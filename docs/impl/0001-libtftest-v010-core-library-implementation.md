@@ -81,12 +81,12 @@ SDK) and runs in `go test ./...` with zero external requirements.
   - [x] `Prefix(t testing.TB) string` — `"ltt-"` + 6 hex chars from hash(test
         name + pid + nanotime)
   - [x] Unit tests: determinism within a run, uniqueness across parallel calls
-- [ ] Implement `internal/dockerx` package
-  - [ ] `Ping(ctx context.Context) error` — ping Docker daemon
-  - [ ] Error classification: daemon down, socket not found, permission denied
-  - [ ] Remediation messages: `colima start`, `rancher-desktop`, `DOCKER_HOST`,
+- [x] Implement `internal/dockerx` package
+  - [x] `Ping(ctx context.Context) error` — ping Docker daemon
+  - [x] Error classification: daemon down, socket not found, permission denied
+  - [x] Remediation messages: `colima start`, `rancher-desktop`, `DOCKER_HOST`,
         `TESTCONTAINERS_HOST_OVERRIDE`
-  - [ ] Unit tests with mock Docker client
+  - [x] Unit tests for error classification and socket path resolution
 - [ ] Implement `internal/logx` package
   - [ ] `slog`-based structured logger scoped to test name
   - [ ] `DumpArtifact(t testing.TB, name string, data []byte)` — writes to
