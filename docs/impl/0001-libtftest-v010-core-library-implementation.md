@@ -122,13 +122,13 @@ for integration tests.
   - [x] `Edition` type: `EditionAuto`, `EditionCommunity`, `EditionPro`
   - [x] `DetectEdition()` — checks `LOCALSTACK_AUTH_TOKEN` env var
   - [x] Unit tests
-- [ ] Implement `localstack/health.go`
-  - [ ] `allServicesReady` response matcher — JSON-decode `/_localstack/health`,
+- [x] Implement `localstack/health.go`
+  - [x] `AllServicesReady` response matcher — JSON-decode `/_localstack/health`,
         return true when no service is `initializing` or `error`
-  - [ ] `DetectEditionFromHealth(healthBody []byte) Edition` — parse edition
+  - [x] `DetectEditionFromHealth(healthBody []byte) Edition` — parse edition
         field from health response
-  - [ ] `ServiceMap` parsing for cached health state
-  - [ ] Unit tests against fixture JSON payloads
+  - [x] `ParseHealth` + `HealthResponse` for cached health state
+  - [x] Unit tests against fixture JSON payloads
 - [ ] Implement `localstack/container.go`
   - [ ] `Container` struct: `ID`, `EdgeURL`, `Edition`, `Services`, unexported
         `container testcontainers.Container`
