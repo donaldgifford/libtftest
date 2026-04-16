@@ -1,0 +1,43 @@
+---
+name: libtftest Module Test
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: "Go version to use"
+        required: false
+        type: string
+        default: "1.26"
+      terraform-version:
+        description: "Terraform version to install"
+        required: false
+        type: string
+        default: "1.9"
+      module-path:
+        description: "Path to the test directory (relative to repo root)"
+        required: false
+        type: string
+        default: "test"
+
+jobs:
+  test:
+    name: Module Integration Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform-version }}
+          terraform_wrapper: false
+
+      - name: Run integration tests
+        working-directory: ${{ inputs.module-path }}
+        run: go test -tags=integration -v -race ./...

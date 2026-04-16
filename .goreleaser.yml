@@ -2,9 +2,9 @@
 version: 2
 
 builds:
-  - id: forge
-    binary: forge
-    main: ./cmd/forge
+  - id: sneakystack
+    binary: sneakystack
+    main: ./cmd/sneakystack
     goos:
       - linux
       - darwin
@@ -13,27 +13,19 @@ builds:
       - arm64
     env:
       - CGO_ENABLED=0
+    ldflags:
+      - -s -w
 
 archives:
   - id: default
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    format: "tar.gz"
+    formats:
+      - tar.gz
     files:
       - none*
 
 checksum:
   name_template: 'checksums.txt'
-
-signs:
-  - artifacts: checksum
-    args:
-      - "--batch"
-      - "--local-user"
-      - "{{ .Env.GPG_FINGERPRINT }}"
-      - "--output"
-      - "${signature}"
-      - "--detach-sign"
-      - "${artifact}"
 
 changelog:
   use: github
@@ -58,26 +50,29 @@ changelog:
 release:
   github:
     owner: donaldgifford
-    name: forge
+    name: libtftest
   draft: false
   prerelease: auto
   mode: prepend
   header: |
     ## Release {{ .Tag }} ({{ .Date }})
 
-    ### Installation
+    ### Go Library
 
-    #### Linux/macOS (Manual)
     ```bash
-    # Download the appropriate binary for your system
-    # Extract and move to your PATH
-    tar -xzf app*.tar.gz
-    mv forge ~/.local/bin/
+    go get github.com/donaldgifford/libtftest@{{ .Tag }}
+    ```
+
+    ### sneakystack Binary
+
+    ```bash
+    tar -xzf sneakystack_*.tar.gz
+    mv sneakystack ~/.local/bin/
     ```
 
   footer: |
     ---
-    **Full Changelog**: https://github.com/donaldgifford/forge/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/donaldgifford/libtftest/compare/{{ .PreviousTag }}...{{ .Tag }}
 
 snapshot:
   version_template: "{{ .Tag }}-dev"

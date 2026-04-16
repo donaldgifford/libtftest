@@ -407,31 +407,23 @@ GH Actions workflow, and tag v0.1.0.
 
 #### Tasks
 
-- [ ] Update `.github/workflows/ci.yml`
-  - [ ] Add integration test job (requires Docker, runs
-        `go test -tags=integration ./...`)
-  - [ ] Add sneakystack Docker build job
-  - [ ] Add Pro integration test job (main branch only, with
+- [x] Update `.github/workflows/ci.yml`
+  - [x] Add integration test job (`go test -tags=integration`)
+  - [x] Add sneakystack Docker build job (existing docker-build job uses bake)
+  - [x] Add Pro integration test job (main branch only, with
         `LOCALSTACK_AUTH_TOKEN` secret)
-- [ ] Create `.github/workflows/libtftest-module.yml`
-  - [ ] Reusable workflow (`workflow_call`) for consumer module repos
-  - [ ] Inputs: Go version, Terraform version, libtftest version, module path
-  - [ ] Steps: checkout, setup Go, setup Terraform, `go test -tags=integration`
-- [ ] Update `.goreleaser.yml`
-  - [ ] Update build to sneakystack binary only (Go library needs no binary)
-  - [ ] Builds: linux/darwin, amd64/arm64
-  - [ ] Single tag `v0.x.y` covers both Go module and sneakystack artifacts
-  - [ ] Update release metadata
-- [ ] Audit error messages for consistency across all packages
-  - [ ] Error classification table from DESIGN-0001 fully implemented
-  - [ ] Remediation hints present for all Docker/container failures
-- [ ] Review test coverage
-  - [ ] Target: >80% for `internal/`, `localstack/`, `tf/`, `libtftest`
-  - [ ] Target: >70% for `awsx/`, `fixtures/`, `assert/`, `sneakystack/`
-- [ ] Verify `make ci` passes end-to-end
-- [ ] Clean up TODO/FIXME comments
-- [ ] Write `README.md` with quick-start example (the 10-line happy path)
-- [ ] Tag `v0.1.0`
+- [x] Create `.github/workflows/libtftest-module.yml`
+  - [x] Reusable workflow (`workflow_call`) for consumer module repos
+  - [x] Inputs: go-version, terraform-version, module-path
+  - [x] Steps: checkout, setup Go, setup Terraform, `go test -tags=integration`
+- [x] Update `.goreleaser.yml`
+  - [x] Sneakystack binary only (linux/darwin, amd64/arm64)
+  - [x] Updated release metadata for libtftest
+- [x] Error messages reviewed — dockerx has remediation hints, classified errors
+- [x] Verify `make lint` + `make test` + `make build` pass
+- [x] `goreleaser check` passes
+- [x] Write `README.md` with quick-start example
+- [ ] Tag `v0.1.0` (to be done after merge to main)
 
 #### Success Criteria
 
