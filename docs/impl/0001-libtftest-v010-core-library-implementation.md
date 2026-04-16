@@ -11,19 +11,18 @@ tags: [terraform, terratest, localstack, testing, go, sneakystack]
 
 # IMPL-0001: libtftest v0.1.0 — Core Library Implementation
 
-**Status:** Draft
-**Author:** Donald Gifford
-**Date:** 2026-04-16
+**Status:** Draft **Author:** Donald Gifford **Date:** 2026-04-16
 
 ## Objective
 
-Implement the libtftest Go module from scaffold to v0.1.0 tag, covering the
-core TestCase API, LocalStack container lifecycle, provider/backend override
+Implement the libtftest Go module from scaffold to v0.1.0 tag, covering the core
+TestCase API, LocalStack container lifecycle, provider/backend override
 injection, AWS SDK client constructors, fixture seeding, assertion helpers,
 shared-container harness, sneakystack proxy with Store interface, and the
 initial CI/CD pipeline.
 
-**Implements:** [DESIGN-0001](../design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md)
+**Implements:**
+[DESIGN-0001](../design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md)
 
 ## Scope
 
@@ -34,9 +33,8 @@ initial CI/CD pipeline.
 - `localstack/` package: container lifecycle, edition detection, health polling
 - `tf/` package: workspace copy, provider + backend override rendering,
   terraform.Options construction
-- Top-level `libtftest` package: `TestCase`, `New`, `SetVar`, `Apply`,
-  `ApplyE`, `Plan`, `PlanE`, `Output`, `AWS`, `Prefix`, `RequirePro`,
-  `RequireServices`
+- Top-level `libtftest` package: `TestCase`, `New`, `SetVar`, `Apply`, `ApplyE`,
+  `Plan`, `PlanE`, `Output`, `AWS`, `Prefix`, `RequirePro`, `RequireServices`
 - `awsx/` package: `EndpointResolverV2` config, typed client constructors for
   S3, DynamoDB, IAM, SSM, Secrets Manager, SQS, SNS, Lambda, KMS, Kinesis, STS
 - `fixtures/` package: `SeedS3Object`, `SeedDynamoItem`, `SeedSSMParameter`,
@@ -44,8 +42,8 @@ initial CI/CD pipeline.
 - `assert/` package: S3, DynamoDB, IAM, SSM, Lambda assertion helpers with
   zero-size struct namespace pattern
 - `harness/` package: `Run`, `Current`, `Config`, `Sidecar` interface
-- `sneakystack/` package: Store interface, maps-backed default, HTTP proxy,
-  SSO Admin + Organizations service handlers, `NewSidecar`
+- `sneakystack/` package: Store interface, maps-backed default, HTTP proxy, SSO
+  Admin + Organizations service handlers, `NewSidecar`
 - `cmd/sneakystack/` binary + Dockerfile
 - `testdata/mod-s3/` fixture module for integration tests
 - Unit tests for all packages, integration tests behind build tags
@@ -80,14 +78,14 @@ SDK) and runs in `go test ./...` with zero external requirements.
 - [ ] Set Go version in `go.mod` (match `mise.toml` Go version)
 - [ ] Create directory structure matching DESIGN-0001 package layout
 - [ ] Implement `internal/naming` package
-  - [ ] `Prefix(t testing.TB) string` — `"ltt-"` + 6 hex chars from
-        hash(test name + pid + nanotime)
+  - [ ] `Prefix(t testing.TB) string` — `"ltt-"` + 6 hex chars from hash(test
+        name + pid + nanotime)
   - [ ] Unit tests: determinism within a run, uniqueness across parallel calls
 - [ ] Implement `internal/dockerx` package
   - [ ] `Ping(ctx context.Context) error` — ping Docker daemon
   - [ ] Error classification: daemon down, socket not found, permission denied
-  - [ ] Remediation messages: `colima start`, `rancher-desktop`,
-        `DOCKER_HOST`, `TESTCONTAINERS_HOST_OVERRIDE`
+  - [ ] Remediation messages: `colima start`, `rancher-desktop`, `DOCKER_HOST`,
+        `TESTCONTAINERS_HOST_OVERRIDE`
   - [ ] Unit tests with mock Docker client
 - [ ] Implement `internal/logx` package
   - [ ] `slog`-based structured logger scoped to test name
@@ -105,48 +103,49 @@ SDK) and runs in `go test ./...` with zero external requirements.
 - `go test ./internal/...` passes with zero external dependencies
 - `make lint` passes
 - `Prefix()` generates deterministic, unique 10-char strings
-- `dockerx.Ping` returns a classified error with remediation message when
-  Docker is unavailable
+- `dockerx.Ping` returns a classified error with remediation message when Docker
+  is unavailable
 
 ---
 
 ### Phase 2: LocalStack Container Lifecycle
 
-Implement the `localstack/` package that manages the testcontainers-go
-container lifecycle, health checking, and edition detection. This phase
-introduces the first external dependency (testcontainers-go) and requires
-Docker to be running for integration tests.
+Implement the `localstack/` package that manages the testcontainers-go container
+lifecycle, health checking, and edition detection. This phase introduces the
+first external dependency (testcontainers-go) and requires Docker to be running
+for integration tests.
 
 #### Tasks
 
-- [ ] Add `testcontainers-go` dependency: `go get github.com/testcontainers/testcontainers-go`
+- [ ] Add `testcontainers-go` dependency:
+      `go get github.com/testcontainers/testcontainers-go`
 - [ ] Implement `localstack/edition.go`
   - [ ] `Edition` type: `EditionAuto`, `EditionCommunity`, `EditionPro`
   - [ ] `DetectEdition()` — checks `LOCALSTACK_AUTH_TOKEN` env var
   - [ ] Unit tests
 - [ ] Implement `localstack/health.go`
-  - [ ] `allServicesReady` response matcher — JSON-decode
-        `/_localstack/health`, return true when no service is `initializing`
-        or `error`
+  - [ ] `allServicesReady` response matcher — JSON-decode `/_localstack/health`,
+        return true when no service is `initializing` or `error`
   - [ ] `DetectEditionFromHealth(healthBody []byte) Edition` — parse edition
         field from health response
   - [ ] `ServiceMap` parsing for cached health state
   - [ ] Unit tests against fixture JSON payloads
 - [ ] Implement `localstack/container.go`
-  - [ ] `Container` struct: `ID`, `EdgeURL`, `Edition`, `Services`,
-        unexported `container testcontainers.Container`
+  - [ ] `Container` struct: `ID`, `EdgeURL`, `Edition`, `Services`, unexported
+        `container testcontainers.Container`
   - [ ] `Config` struct: `Edition`, `Image`, `Services`, `Env`, `AuthToken`,
         `InitHooks`
-  - [ ] `Config.Image()` — resolve image from config, `LIBTFTEST_LOCALSTACK_IMAGE`
-        env var, or default to `localstack/localstack:latest`
+  - [ ] `Config.Image()` — resolve image from config,
+        `LIBTFTEST_LOCALSTACK_IMAGE` env var, or default to
+        `localstack/localstack:latest`
   - [ ] `Config.Env()` — build env map for container
   - [ ] `Config.Mounts()` — bind mounts for init hooks
   - [ ] `Start(ctx, cfg) (*Container, error)` — full lifecycle with
         `dockerx.Ping` pre-check, testcontainers request, health wait
   - [ ] `Stop(ctx) error` — stop and remove
   - [ ] `Container.Endpoint()` — delegated edge URL
-  - [ ] Honor `TESTCONTAINERS_RYUK_DISABLED=true` — rely solely on
-        `t.Cleanup` when Ryuk is unavailable (rootless Docker, K8s runners)
+  - [ ] Honor `TESTCONTAINERS_RYUK_DISABLED=true` — rely solely on `t.Cleanup`
+        when Ryuk is unavailable (rootless Docker, K8s runners)
 - [ ] Implement `localstack/init_hooks.go`
   - [ ] `InitHook` struct: `Name`, `Script`
   - [ ] Write hooks to temp dir, return mount path
@@ -193,8 +192,8 @@ override, and terraform.Options construction.
   - [ ] Unit tests: JSON validity, port substitution, all services present
 - [ ] Implement `tf/options.go`
   - [ ] `BuildOptions(t testing.TB, workDir string, vars map[string]any) *terraform.Options`
-  - [ ] `pluginCacheDir()` — `$XDG_CACHE_HOME/libtftest/plugin-cache` with
-        macOS `~/Library/Caches` fallback
+  - [ ] `pluginCacheDir()` — `$XDG_CACHE_HOME/libtftest/plugin-cache` with macOS
+        `~/Library/Caches` fallback
   - [ ] Env vars: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
         `AWS_DEFAULT_REGION`, `TF_PLUGIN_CACHE_DIR`, `TF_IN_AUTOMATION`
   - [ ] Unit tests: env var population, cache dir creation
@@ -228,7 +227,8 @@ This is the primary consumer-facing API.
   - [ ] `Options` struct (all fields per DESIGN-0001 including `AutoPrefixVars`)
   - [ ] `New(t testing.TB, opts Options) *TestCase`
     - [ ] Docker ping pre-check via `dockerx.Ping`
-    - [ ] Resolve image from `opts.Image` / `LIBTFTEST_LOCALSTACK_IMAGE` / default
+    - [ ] Resolve image from `opts.Image` / `LIBTFTEST_LOCALSTACK_IMAGE` /
+          default
     - [ ] Check `harness.Current()` for shared container; start new if nil
     - [ ] Create workspace via `tf.NewWorkspace`
     - [ ] Write overrides via `tf.WriteOverrides`
@@ -269,8 +269,8 @@ This is the primary consumer-facing API.
 
 #### Success Criteria
 
-- The 10-line happy path from DESIGN-0001 works end-to-end:
-  `New` -> `SetVar` -> `Apply` -> `Output` -> assertion
+- The 10-line happy path from DESIGN-0001 works end-to-end: `New` -> `SetVar` ->
+  `Apply` -> `Output` -> assertion
 - `Plan` returns valid `PlanResult` with parsed `PlanChanges`
 - Cleanup runs in correct order: logs first, destroy second, container last
 - `PersistOnFailure` keeps container alive when test fails
@@ -281,24 +281,23 @@ This is the primary consumer-facing API.
 
 ### Phase 5: AWS Clients, Fixtures, and Assertions
 
-Implement the consumer-facing helper packages: `awsx/`, `fixtures/`,
-`assert/`. These are the packages module authors interact with most
-after `TestCase`.
+Implement the consumer-facing helper packages: `awsx/`, `fixtures/`, `assert/`.
+These are the packages module authors interact with most after `TestCase`.
 
 #### Tasks
 
 - [ ] Add AWS SDK v2 dependencies
-  - [ ] `go get github.com/aws/aws-sdk-go-v2/...` (config, credentials,
-        service clients for S3, DynamoDB, IAM, SSM, Secrets Manager, SQS,
-        SNS, Lambda, KMS, Kinesis, STS)
+  - [ ] `go get github.com/aws/aws-sdk-go-v2/...` (config, credentials, service
+        clients for S3, DynamoDB, IAM, SSM, Secrets Manager, SQS, SNS, Lambda,
+        KMS, Kinesis, STS)
 - [ ] Implement `awsx/config.go`
-  - [ ] `New(edgeURL string) aws.Config` — `EndpointResolverV2` that routes
-        all services to the given URL, dummy credentials
+  - [ ] `New(edgeURL string) aws.Config` — `EndpointResolverV2` that routes all
+        services to the given URL, dummy credentials
   - [ ] Unit test: resolver routes arbitrary service to edge URL
 - [ ] Implement `awsx/clients.go`
   - [ ] Typed constructors: `NewS3`, `NewDynamoDB`, `NewIAM`, `NewSSM`,
-        `NewSecrets`, `NewSQS`, `NewSNS`, `NewLambda`, `NewKMS`,
-        `NewKinesis`, `NewSTS`
+        `NewSecrets`, `NewSQS`, `NewSNS`, `NewLambda`, `NewKMS`, `NewKinesis`,
+        `NewSTS`
   - [ ] S3: `s3.WithUsePathStyle`
   - [ ] Unit tests for each constructor (verify options applied)
 - [ ] Implement `fixtures/` package
@@ -325,8 +324,8 @@ after `TestCase`.
 
 #### Success Criteria
 
-- `awsx.New(edgeURL)` returns an `aws.Config` whose clients successfully talk
-  to a running LocalStack container
+- `awsx.New(edgeURL)` returns an `aws.Config` whose clients successfully talk to
+  a running LocalStack container
 - All `Seed*` functions create resources, and `t.Cleanup` removes them
 - `assert.S3.BucketExists` and friends pass against `testdata/mod-s3/` output
 - IAM assertions auto-skip on Community with `RequirePro` message
@@ -337,8 +336,8 @@ after `TestCase`.
 ### Phase 6: Shared-Container Harness
 
 Implement `harness/` package: `TestMain` helper, shared container management,
-`Sidecar` interface. This enables the per-package container reuse mode that
-most teams will adopt.
+`Sidecar` interface. This enables the per-package container reuse mode that most
+teams will adopt.
 
 #### Tasks
 
@@ -348,8 +347,8 @@ most teams will adopt.
 - [ ] Implement `harness/testmain.go`
   - [ ] `Config` struct: `Edition`, `Image`, `Services`, `Sidecars []Sidecar`
   - [ ] Package-level `shared *localstack.Container` guarded by `sync.Once`
-  - [ ] `Run(m *testing.M, cfg Config)` — start container, set `shared`,
-        run `m.Run()`, stop container
+  - [ ] `Run(m *testing.M, cfg Config)` — start container, set `shared`, run
+        `m.Run()`, stop container
   - [ ] `Current() *localstack.Container` — return `shared` (nil if not set)
   - [ ] Sidecar orchestration: start after container, collect `EdgeURLOverride`
   - [ ] Cleanup on `m.Run()` completion: stop sidecars, stop container
@@ -360,14 +359,14 @@ most teams will adopt.
 - [ ] Write integration tests (`//go:build integration`)
   - [ ] `TestHarness_SharedContainer` — `TestMain` + multiple `Test*` funcs
         sharing one container
-  - [ ] `TestHarness_Current` — verify `Current()` returns nil without
-        `Run()`, non-nil after
+  - [ ] `TestHarness_Current` — verify `Current()` returns nil without `Run()`,
+        non-nil after
   - [ ] `TestHarness_Sidecar` — mock sidecar, verify lifecycle
 
 #### Success Criteria
 
-- `TestMain` with `harness.Run` starts exactly one container shared across
-  all tests in the package
+- `TestMain` with `harness.Run` starts exactly one container shared across all
+  tests in the package
 - `harness.Current()` returns the shared container; `libtftest.New` uses it
   automatically
 - Sidecar lifecycle is orchestrated correctly: start after LocalStack, stop
@@ -378,8 +377,8 @@ most teams will adopt.
 
 ### Phase 7: sneakystack Package
 
-Implement the `sneakystack/` package: Store interface, maps-backed default,
-HTTP reverse proxy, SSO Admin + Organizations service handlers, and the
+Implement the `sneakystack/` package: Store interface, maps-backed default, HTTP
+reverse proxy, SSO Admin + Organizations service handlers, and the
 `harness.Sidecar` implementation. Also build `cmd/sneakystack/` binary and
 Dockerfile.
 
@@ -388,22 +387,22 @@ Dockerfile.
 - [ ] Implement `sneakystack/store.go`
   - [ ] `Store` interface: `Put`, `Get`, `List`, `Delete`
   - [ ] `Filter` struct: `Parent`, `Tags`
-  - [ ] `NewMapStore() Store` — `sync.RWMutex`-protected `map[string]map[string]any`
+  - [ ] `NewMapStore() Store` — `sync.RWMutex`-protected
+        `map[string]map[string]any`
   - [ ] Unit tests: CRUD operations, filtering, concurrent access
 - [ ] Implement `sneakystack/proxy.go`
-  - [ ] `Proxy` struct: holds `Store`, downstream LocalStack URL, service
-        router
+  - [ ] `Proxy` struct: holds `Store`, downstream LocalStack URL, service router
   - [ ] `NewProxy(cfg Config) *Proxy`
-  - [ ] HTTP handler: route by `X-Amz-Target` header or service prefix,
-        dispatch to service handler or forward to LocalStack
+  - [ ] HTTP handler: route by `X-Amz-Target` header or service prefix, dispatch
+        to service handler or forward to LocalStack
   - [ ] `httputil.ReverseProxy` for pass-through to LocalStack
   - [ ] Unit tests: routing logic, header parsing
 - [ ] Implement `sneakystack/services/sso_admin.go`
   - [ ] `SSOAdminService` struct with typed Store wrappers
   - [ ] CreatePermissionSet, GetPermissionSet, ListPermissionSets,
         DeletePermissionSet
-  - [ ] AWS wire protocol: implement only the fields the Terraform AWS
-        provider reads for permission set resources (JSON request/response)
+  - [ ] AWS wire protocol: implement only the fields the Terraform AWS provider
+        reads for permission set resources (JSON request/response)
   - [ ] Unit tests with fixture request/response pairs
 - [ ] Implement `sneakystack/services/organizations.go`
   - [ ] `OrganizationsService` struct with typed Store wrappers
@@ -426,8 +425,8 @@ Dockerfile.
   - [ ] Target for release (linux/amd64, linux/arm64)
   - [ ] Push to `ghcr.io/donaldgifford/sneakystack`
 - [ ] Write integration tests (`//go:build integration`)
-  - [ ] `TestSneakystack_SSOAdmin_CRUD` — full permission set lifecycle
-        through the proxy with LocalStack backend
+  - [ ] `TestSneakystack_SSOAdmin_CRUD` — full permission set lifecycle through
+        the proxy with LocalStack backend
   - [ ] `TestSneakystack_Organizations_CRUD` — account + OU lifecycle
   - [ ] `TestSneakystack_Passthrough` — S3 requests forwarded to LocalStack
   - [ ] `TestSneakystack_Sidecar` — harness integration with real container
@@ -445,8 +444,8 @@ Dockerfile.
 
 ### Phase 8: CI Pipeline and Release Readiness
 
-Harden the codebase, finalize CI, prepare goreleaser config, create the
-reusable GH Actions workflow, and tag v0.1.0.
+Harden the codebase, finalize CI, prepare goreleaser config, create the reusable
+GH Actions workflow, and tag v0.1.0.
 
 #### Tasks
 
@@ -482,7 +481,8 @@ reusable GH Actions workflow, and tag v0.1.0.
 - Integration tests pass in CI with Docker available
 - Reusable workflow `libtftest-module.yml` is callable from a consumer repo
 - goreleaser snapshot produces sneakystack binaries for linux/darwin amd64/arm64
-- `docker buildx bake ci` builds sneakystack image; release target pushes to GHCR
+- `docker buildx bake ci` builds sneakystack image; release target pushes to
+  GHCR
 - `README.md` contains a working quick-start example
 - v0.1.0 tag is pushed and release is published
 
@@ -490,40 +490,40 @@ reusable GH Actions workflow, and tag v0.1.0.
 
 ## File Changes
 
-| File | Action | Description |
-| --- | --- | --- |
-| `go.mod`, `go.sum` | Create | Module init with dependencies |
-| `libtftest.go` | Create | TestCase, Options, New, Apply, Plan, Output, AWS, Prefix |
-| `edition.go` | Create | RequirePro, RequireServices |
-| `internal/naming/prefix.go` | Create | Prefix generation |
-| `internal/dockerx/ping.go` | Create | Docker daemon detection |
-| `internal/logx/dump.go` | Create | Artifact dumping, structured logging |
-| `localstack/container.go` | Create | Container Start/Stop lifecycle |
-| `localstack/edition.go` | Create | Edition type and detection |
-| `localstack/health.go` | Create | Health polling and parsing |
-| `localstack/init_hooks.go` | Create | InitHook struct, mount helper |
-| `tf/workspace.go` | Create | Workspace copy with copyTree |
-| `tf/override.go` | Create | Provider + backend override rendering |
-| `tf/options.go` | Create | terraform.Options builder, pluginCacheDir |
-| `awsx/config.go` | Create | BaseEndpoint config via `config.WithBaseEndpoint` |
-| `awsx/clients.go` | Create | Typed client constructors |
-| `fixtures/*.go` | Create | Seed functions with cleanup |
-| `assert/*.go` | Create | Assertion helpers per service |
-| `harness/testmain.go` | Create | Run, Current, Config |
-| `harness/sidecar.go` | Create | Sidecar interface |
-| `harness/parallel.go` | Create | Prefix re-export, collision warning |
-| `sneakystack/store.go` | Create | Store interface + MapStore |
-| `sneakystack/proxy.go` | Create | HTTP proxy + service routing |
-| `sneakystack/sidecar.go` | Create | harness.Sidecar implementation |
-| `sneakystack/services/*.go` | Create | SSO Admin, Organizations handlers |
-| `cmd/sneakystack/main.go` | Create | Standalone binary entry point |
-| `Dockerfile.sneakystack` | Create | Multi-stage Docker build |
-| `docker-bake.hcl` | Create/Modify | Sneakystack CI + release targets, push to GHCR |
-| `testdata/mod-s3/` | Create | Fixture Terraform module |
-| `.github/workflows/ci.yml` | Modify | Add integration + sneakystack jobs |
-| `.github/workflows/libtftest-module.yml` | Create | Reusable workflow |
-| `.goreleaser.yml` | Modify | Sneakystack binary build only |
-| `README.md` | Modify | Quick-start example |
+| File                                     | Action        | Description                                              |
+| ---------------------------------------- | ------------- | -------------------------------------------------------- |
+| `go.mod`, `go.sum`                       | Create        | Module init with dependencies                            |
+| `libtftest.go`                           | Create        | TestCase, Options, New, Apply, Plan, Output, AWS, Prefix |
+| `edition.go`                             | Create        | RequirePro, RequireServices                              |
+| `internal/naming/prefix.go`              | Create        | Prefix generation                                        |
+| `internal/dockerx/ping.go`               | Create        | Docker daemon detection                                  |
+| `internal/logx/dump.go`                  | Create        | Artifact dumping, structured logging                     |
+| `localstack/container.go`                | Create        | Container Start/Stop lifecycle                           |
+| `localstack/edition.go`                  | Create        | Edition type and detection                               |
+| `localstack/health.go`                   | Create        | Health polling and parsing                               |
+| `localstack/init_hooks.go`               | Create        | InitHook struct, mount helper                            |
+| `tf/workspace.go`                        | Create        | Workspace copy with copyTree                             |
+| `tf/override.go`                         | Create        | Provider + backend override rendering                    |
+| `tf/options.go`                          | Create        | terraform.Options builder, pluginCacheDir                |
+| `awsx/config.go`                         | Create        | BaseEndpoint config via `config.WithBaseEndpoint`        |
+| `awsx/clients.go`                        | Create        | Typed client constructors                                |
+| `fixtures/*.go`                          | Create        | Seed functions with cleanup                              |
+| `assert/*.go`                            | Create        | Assertion helpers per service                            |
+| `harness/testmain.go`                    | Create        | Run, Current, Config                                     |
+| `harness/sidecar.go`                     | Create        | Sidecar interface                                        |
+| `harness/parallel.go`                    | Create        | Prefix re-export, collision warning                      |
+| `sneakystack/store.go`                   | Create        | Store interface + MapStore                               |
+| `sneakystack/proxy.go`                   | Create        | HTTP proxy + service routing                             |
+| `sneakystack/sidecar.go`                 | Create        | harness.Sidecar implementation                           |
+| `sneakystack/services/*.go`              | Create        | SSO Admin, Organizations handlers                        |
+| `cmd/sneakystack/main.go`                | Create        | Standalone binary entry point                            |
+| `Dockerfile.sneakystack`                 | Create        | Multi-stage Docker build                                 |
+| `docker-bake.hcl`                        | Create/Modify | Sneakystack CI + release targets, push to GHCR           |
+| `testdata/mod-s3/`                       | Create        | Fixture Terraform module                                 |
+| `.github/workflows/ci.yml`               | Modify        | Add integration + sneakystack jobs                       |
+| `.github/workflows/libtftest-module.yml` | Create        | Reusable workflow                                        |
+| `.goreleaser.yml`                        | Modify        | Sneakystack binary build only                            |
+| `README.md`                              | Modify        | Quick-start example                                      |
 
 ## Testing Plan
 
@@ -539,49 +539,48 @@ reusable GH Actions workflow, and tag v0.1.0.
 
 ## Dependencies
 
-| Dependency | Purpose | Notes |
-| --- | --- | --- |
-| `github.com/gruntwork-io/terratest` | Terraform test runner | Wrapping, not forking |
-| `github.com/testcontainers/testcontainers-go` | Container lifecycle | Requires Docker daemon |
-| `github.com/aws/aws-sdk-go-v2/*` | AWS client constructors | v2 only, `config.WithBaseEndpoint` |
-| `github.com/hashicorp/terraform-json` | Plan JSON parsing | `PlanResult.Changes` types |
-| Docker | Container runtime | Required for integration tests |
-| Terraform CLI | Plan/Apply execution | Installed via mise or CI |
-| LocalStack | AWS service emulation | OSS default, Pro optional |
+| Dependency                                    | Purpose                 | Notes                              |
+| --------------------------------------------- | ----------------------- | ---------------------------------- |
+| `github.com/gruntwork-io/terratest`           | Terraform test runner   | Wrapping, not forking              |
+| `github.com/testcontainers/testcontainers-go` | Container lifecycle     | Requires Docker daemon             |
+| `github.com/aws/aws-sdk-go-v2/*`              | AWS client constructors | v2 only, `config.WithBaseEndpoint` |
+| `github.com/hashicorp/terraform-json`         | Plan JSON parsing       | `PlanResult.Changes` types         |
+| Docker                                        | Container runtime       | Required for integration tests     |
+| Terraform CLI                                 | Plan/Apply execution    | Installed via mise or CI           |
+| LocalStack                                    | AWS service emulation   | OSS default, Pro optional          |
 
 ## Decisions
 
 1. **LocalStack service catalog source — needs investigation.** The upstream
-   source for the endpoint list is unclear (could be a Python module, JSON
-   file, or internal API). **Action:** Create an INV doc to investigate the
-   upstream source before Phase 3. For v0.1.0, hardcode the initial list from
-   DESIGN-0001 and add `go generate` automation later once the source is
-   understood.
+   source for the endpoint list is unclear (could be a Python module, JSON file,
+   or internal API). **Action:** Create an INV doc to investigate the upstream
+   source before Phase 3. For v0.1.0, hardcode the initial list from DESIGN-0001
+   and add `go generate` automation later once the source is understood.
 
-2. **Ryuk fallback — yes.** Honor `TESTCONTAINERS_RYUK_DISABLED=true` and
-   rely solely on `t.Cleanup` when Ryuk is unavailable (rootless Docker,
+2. **Ryuk fallback — yes.** Honor `TESTCONTAINERS_RYUK_DISABLED=true` and rely
+   solely on `t.Cleanup` when Ryuk is unavailable (rootless Docker,
    Kubernetes-based CI runners). Document this in the README.
 
 3. **sneakystack wire protocol — match what Terraform needs.** Implement only
    the request/response fields the AWS Terraform provider actually reads for
-   each resource. No need for full AWS API fidelity — match the minimum
-   needed for `terraform plan` + `terraform apply` to succeed for the
-   specific resources under test. Error formats should match what the provider
-   expects (JSON for SSO Admin and Organizations).
+   each resource. No need for full AWS API fidelity — match the minimum needed
+   for `terraform plan` + `terraform apply` to succeed for the specific
+   resources under test. Error formats should match what the provider expects
+   (JSON for SSO Admin and Organizations).
 
 4. **Plan parsing — use `hashicorp/terraform-json`.** Import it directly as a
-   dependency (`go get`), no vendoring needed. It provides stable types for
-   the plan JSON format and is maintained by HashiCorp alongside Terraform.
+   dependency (`go get`), no vendoring needed. It provides stable types for the
+   plan JSON format and is maintained by HashiCorp alongside Terraform.
 
 5. **Integration test parallelism — trust testcontainers.** Run fully parallel
    and trust ephemeral port mapping. Adjust to `-parallel 1` only if we hit
    actual contention issues in CI.
 
 6. **Single tag, goreleaser for binary, docker-bake for container.** One
-   `v0.x.y` tag covers both the Go module and sneakystack artifacts.
-   Goreleaser builds the sneakystack CLI binary (linux/darwin, amd64/arm64).
-   A `docker-bake.hcl` handles the sneakystack container image and pushes to
-   GHCR. The Go library itself needs no binary — consumers `go get` it.
+   `v0.x.y` tag covers both the Go module and sneakystack artifacts. Goreleaser
+   builds the sneakystack CLI binary (linux/darwin, amd64/arm64). A
+   `docker-bake.hcl` handles the sneakystack container image and pushes to GHCR.
+   The Go library itself needs no binary — consumers `go get` it.
 
 ## Open Questions
 
@@ -591,7 +590,8 @@ reusable GH Actions workflow, and tag v0.1.0.
 
 ## References
 
-- [DESIGN-0001](../design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md) — libtftest design doc (source of truth)
+- [DESIGN-0001](../design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md)
+  — libtftest design doc (source of truth)
 - [LocalStack Terraform Integration](https://docs.localstack.cloud/user-guide/integrations/terraform/)
 - [Terratest Documentation](https://terratest.gruntwork.io/)
 - [testcontainers-go Documentation](https://golang.testcontainers.org/)
