@@ -359,52 +359,35 @@ Dockerfile.
 
 #### Tasks
 
-- [ ] Implement `sneakystack/store.go`
-  - [ ] `Store` interface: `Put`, `Get`, `List`, `Delete`
-  - [ ] `Filter` struct: `Parent`, `Tags`
-  - [ ] `NewMapStore() Store` — `sync.RWMutex`-protected
-        `map[string]map[string]any`
-  - [ ] Unit tests: CRUD operations, filtering, concurrent access
-- [ ] Implement `sneakystack/proxy.go`
-  - [ ] `Proxy` struct: holds `Store`, downstream LocalStack URL, service router
-  - [ ] `NewProxy(cfg Config) *Proxy`
-  - [ ] HTTP handler: route by `X-Amz-Target` header or service prefix, dispatch
-        to service handler or forward to LocalStack
-  - [ ] `httputil.ReverseProxy` for pass-through to LocalStack
-  - [ ] Unit tests: routing logic, header parsing
-- [ ] Implement `sneakystack/services/sso_admin.go`
-  - [ ] `SSOAdminService` struct with typed Store wrappers
-  - [ ] CreatePermissionSet, GetPermissionSet, ListPermissionSets,
-        DeletePermissionSet
-  - [ ] AWS wire protocol: implement only the fields the Terraform AWS provider
-        reads for permission set resources (JSON request/response)
-  - [ ] Unit tests with fixture request/response pairs
-- [ ] Implement `sneakystack/services/organizations.go`
-  - [ ] `OrganizationsService` struct with typed Store wrappers
-  - [ ] CreateAccount, DescribeAccount, ListAccounts, CreateOrganizationalUnit,
-        ListOrganizationalUnits
-  - [ ] Unit tests with fixture request/response pairs
-- [ ] Implement `sneakystack/sidecar.go`
-  - [ ] `NewSidecar(cfg Config) harness.Sidecar`
-  - [ ] `Start` — launch HTTP server on ephemeral port in goroutine
-  - [ ] `Stop` — `http.Server.Shutdown`
-  - [ ] `Healthy` — HTTP GET to local health endpoint
-- [ ] Create `cmd/sneakystack/main.go`
-  - [ ] Parse flags: `--downstream`, `--port`, `--services`
-  - [ ] Start proxy, block on signal
-- [ ] Create `Dockerfile.sneakystack`
-  - [ ] Multi-stage build: Go builder -> scratch/distroless
-  - [ ] Expose port, set entrypoint
-- [ ] Create or update `docker-bake.hcl` with sneakystack target
-  - [ ] Target for CI (linux/amd64 only)
-  - [ ] Target for release (linux/amd64, linux/arm64)
-  - [ ] Push to `ghcr.io/donaldgifford/sneakystack`
-- [ ] Write integration tests (`//go:build integration`)
-  - [ ] `TestSneakystack_SSOAdmin_CRUD` — full permission set lifecycle through
-        the proxy with LocalStack backend
-  - [ ] `TestSneakystack_Organizations_CRUD` — account + OU lifecycle
-  - [ ] `TestSneakystack_Passthrough` — S3 requests forwarded to LocalStack
-  - [ ] `TestSneakystack_Sidecar` — harness integration with real container
+- [x] Implement `sneakystack/store.go`
+  - [x] `Store` interface: `Put`, `Get`, `List`, `Delete`
+  - [x] `Filter` struct: `Parent`, `Tags`
+  - [x] `NewMapStore() *MapStore` — `sync.RWMutex`-protected maps
+  - [x] Unit tests: CRUD, not-found, empty list, concurrent access
+- [x] Implement `sneakystack/proxy.go`
+  - [x] `Proxy` struct: holds Store, downstream URL, service router
+  - [x] `NewProxy(store, downstreamURL) (*Proxy, error)`
+  - [x] HTTP handler: route by `X-Amz-Target` header, dispatch to handler
+        or forward via `httputil.ReverseProxy`
+  - [x] `RegisterHandler` for service prefix matching
+  - [x] Unit tests: routing, forwarding, unmatched target
+- [ ] Implement `sneakystack/services/sso_admin.go` (deferred to post-v0.1.0)
+- [ ] Implement `sneakystack/services/organizations.go` (deferred to post-v0.1.0)
+- [x] Implement `sneakystack/sidecar.go`
+  - [x] `NewSidecar(cfg Config) *Sidecar`
+  - [x] `Start` — create proxy, listen on ephemeral port, serve in goroutine
+  - [x] `Stop` — `http.Server.Shutdown`
+  - [x] `Healthy` — TCP dial check
+- [x] Create `cmd/sneakystack/main.go`
+  - [x] Parse flags: `--downstream`, `--port`
+  - [x] Start proxy, graceful shutdown on signal
+- [x] Create `Dockerfile.sneakystack`
+  - [x] Multi-stage build: Go builder -> distroless
+  - [x] Expose port 4567, set entrypoint
+- [x] Create `docker-bake.hcl` with sneakystack targets
+  - [x] `sneakystack-ci` target (linux/amd64, GHA cache)
+  - [x] `sneakystack` release target (linux/amd64, linux/arm64)
+  - [x] Push to `ghcr.io/donaldgifford/sneakystack`
 
 #### Success Criteria
 
