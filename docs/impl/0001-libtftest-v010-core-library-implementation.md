@@ -87,11 +87,12 @@ SDK) and runs in `go test ./...` with zero external requirements.
   - [x] Remediation messages: `colima start`, `rancher-desktop`, `DOCKER_HOST`,
         `TESTCONTAINERS_HOST_OVERRIDE`
   - [x] Unit tests for error classification and socket path resolution
-- [ ] Implement `internal/logx` package
-  - [ ] `slog`-based structured logger scoped to test name
-  - [ ] `DumpArtifact(t testing.TB, name string, data []byte)` — writes to
-        `t.TempDir()` and `$LIBTFTEST_ARTIFACT_DIR` if set
-  - [ ] Unit tests for artifact path resolution
+- [x] Implement `internal/logx` package
+  - [x] `slog`-based structured logger scoped to test name
+  - [x] `DumpArtifact(tb, artifactDir, name, data)` — writes to given dir
+        and `$LIBTFTEST_ARTIFACT_DIR` if set
+  - [x] `ResolveArtifactDir(tb, baseDir)` — resolves artifact directory
+  - [x] Unit tests for artifact writing and path resolution
 - [ ] Update `Makefile` if needed (ensure `go build ./...` covers new packages)
 - [ ] Update `.golangci.yml` `goimports` local-prefixes to include
       `github.com/donaldgifford/libtftest`
