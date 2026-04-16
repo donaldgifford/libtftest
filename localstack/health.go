@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 )
 
 // HealthResponse represents the JSON response from /_localstack/health.
@@ -15,19 +14,16 @@ type HealthResponse struct {
 }
 
 // AllServicesReady returns true if no service is in state "initializing" or
-// "error". This is used as a testcontainers ResponseMatcher.
-func AllServicesReady(resp *http.Response) bool {
-	if resp.StatusCode != http.StatusOK {
-		return false
-	}
-
-	body, err := io.ReadAll(resp.Body)
+// "error". The signature matches testcontainers' wait.HTTPStrategy
+// ResponseMatcher: func(body io.Reader) bool.
+func AllServicesReady(body io.Reader) bool {
+	data, err := io.ReadAll(body)
 	if err != nil {
 		return false
 	}
 
 	var hr HealthResponse
-	if err := json.Unmarshal(body, &hr); err != nil {
+	if err := json.Unmarshal(data, &hr); err != nil {
 		return false
 	}
 
@@ -59,7 +55,7 @@ func DetectEditionFromHealth(body []byte) Edition {
 	}
 
 	switch hr.Edition {
-	case "pro":
+	case editionProLabel:
 		return EditionPro
 	default:
 		return EditionCommunity

@@ -1,8 +1,6 @@
 package localstack
 
 import (
-	"io"
-	"net/http"
 	"strings"
 	"testing"
 )
@@ -11,52 +9,39 @@ func TestAllServicesReady(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		statusCode int
-		body       string
-		want       bool
+		name string
+		body string
+		want bool
 	}{
 		{
-			name:       "all running",
-			statusCode: http.StatusOK,
-			body:       `{"edition":"community","version":"3.5.0","services":{"s3":"running","sqs":"running"}}`,
-			want:       true,
+			name: "all running",
+			body: `{"edition":"community","version":"3.5.0","services":{"s3":"running","sqs":"running"}}`,
+			want: true,
 		},
 		{
-			name:       "one initializing",
-			statusCode: http.StatusOK,
-			body:       `{"edition":"community","version":"3.5.0","services":{"s3":"running","sqs":"initializing"}}`,
-			want:       false,
+			name: "one initializing",
+			body: `{"edition":"community","version":"3.5.0","services":{"s3":"running","sqs":"initializing"}}`,
+			want: false,
 		},
 		{
-			name:       "one error",
-			statusCode: http.StatusOK,
-			body:       `{"edition":"community","version":"3.5.0","services":{"s3":"error"}}`,
-			want:       false,
+			name: "one error",
+			body: `{"edition":"community","version":"3.5.0","services":{"s3":"error"}}`,
+			want: false,
 		},
 		{
-			name:       "empty services",
-			statusCode: http.StatusOK,
-			body:       `{"edition":"community","version":"3.5.0","services":{}}`,
-			want:       true,
+			name: "empty services",
+			body: `{"edition":"community","version":"3.5.0","services":{}}`,
+			want: true,
 		},
 		{
-			name:       "non-200 status",
-			statusCode: http.StatusServiceUnavailable,
-			body:       `{}`,
-			want:       false,
+			name: "invalid json",
+			body: `not json`,
+			want: false,
 		},
 		{
-			name:       "invalid json",
-			statusCode: http.StatusOK,
-			body:       `not json`,
-			want:       false,
-		},
-		{
-			name:       "available status",
-			statusCode: http.StatusOK,
-			body:       `{"edition":"pro","version":"3.5.0","services":{"s3":"available","iam":"available"}}`,
-			want:       true,
+			name: "available status",
+			body: `{"edition":"pro","version":"3.5.0","services":{"s3":"available","iam":"available"}}`,
+			want: true,
 		},
 	}
 
@@ -64,12 +49,7 @@ func TestAllServicesReady(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			resp := &http.Response{
-				StatusCode: tt.statusCode,
-				Body:       io.NopCloser(strings.NewReader(tt.body)),
-			}
-
-			got := AllServicesReady(resp)
+			got := AllServicesReady(strings.NewReader(tt.body))
 			if got != tt.want {
 				t.Errorf("AllServicesReady() = %v, want %v", got, tt.want)
 			}

@@ -2,6 +2,8 @@ package localstack
 
 import "os"
 
+const editionProLabel = "pro"
+
 // Edition represents a LocalStack product edition.
 type Edition int
 
@@ -21,7 +23,7 @@ func (e Edition) String() string {
 	case EditionCommunity:
 		return "community"
 	case EditionPro:
-		return "pro"
+		return editionProLabel
 	case EditionAuto:
 		return "auto"
 	default:

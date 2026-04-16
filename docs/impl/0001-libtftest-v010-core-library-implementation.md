@@ -129,26 +129,24 @@ for integration tests.
         field from health response
   - [x] `ParseHealth` + `HealthResponse` for cached health state
   - [x] Unit tests against fixture JSON payloads
-- [ ] Implement `localstack/container.go`
-  - [ ] `Container` struct: `ID`, `EdgeURL`, `Edition`, `Services`, unexported
-        `container testcontainers.Container`
-  - [ ] `Config` struct: `Edition`, `Image`, `Services`, `Env`, `AuthToken`,
-        `InitHooks`
-  - [ ] `Config.Image()` — resolve image from config,
+- [x] Implement `localstack/container.go`
+  - [x] `Container` struct: `ID`, `EdgeURL`, `Edition`, `Services`, unexported
+        `ctr testcontainers.Container`
+  - [x] `Config` struct: `Edition`, `Image`, `Services`, `AuthToken`, `InitHooks`
+  - [x] `Config.ResolveImage()` — resolve image from config,
         `LIBTFTEST_LOCALSTACK_IMAGE` env var, or default to
         `localstack/localstack:latest`
-  - [ ] `Config.Env()` — build env map for container
-  - [ ] `Config.Mounts()` — bind mounts for init hooks
-  - [ ] `Start(ctx, cfg) (*Container, error)` — full lifecycle with
-        `dockerx.Ping` pre-check, testcontainers request, health wait
-  - [ ] `Stop(ctx) error` — stop and remove
-  - [ ] `Container.Endpoint()` — delegated edge URL
-  - [ ] Honor `TESTCONTAINERS_RYUK_DISABLED=true` — rely solely on `t.Cleanup`
-        when Ryuk is unavailable (rootless Docker, K8s runners)
-- [ ] Implement `localstack/init_hooks.go`
-  - [ ] `InitHook` struct: `Name`, `Script`
-  - [ ] Write hooks to temp dir, return mount path
-  - [ ] Unit tests
+  - [x] `Config.Env()` — build env map for container
+  - [x] `Start(ctx, *Config) (*Container, error)` — full lifecycle with
+        `dockerx.Ping` pre-check, testcontainers.Run, health wait
+  - [x] `Stop(ctx) error` — terminate container
+  - [x] `Container.Endpoint()` — returns edge URL
+  - [x] Init hook bind mounts via `WithHostConfigModifier`
+  - [x] Unit tests for Config.ResolveImage, Config.Env, services join
+- [x] Implement `localstack/init_hooks.go`
+  - [x] `InitHook` struct: `Name`, `Script`
+  - [x] `WriteInitHooks` — writes hooks to temp dir, returns path
+  - [x] Unit tests for hook writing and permissions
 - [ ] Create `testdata/mod-s3/` fixture Terraform module
   - [ ] Minimal S3 bucket: `main.tf`, `variables.tf` (`bucket_name`),
         `outputs.tf` (`bucket_id`, `bucket_arn`)
