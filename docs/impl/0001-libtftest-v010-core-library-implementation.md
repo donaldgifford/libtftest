@@ -77,10 +77,10 @@ SDK) and runs in `go test ./...` with zero external requirements.
 - [x] Initialize Go module: `go mod init github.com/donaldgifford/libtftest`
 - [x] Set Go version in `go.mod` (go 1.25 for max compatibility)
 - [x] Create directory structure matching DESIGN-0001 package layout
-- [ ] Implement `internal/naming` package
-  - [ ] `Prefix(t testing.TB) string` — `"ltt-"` + 6 hex chars from hash(test
+- [x] Implement `internal/naming` package
+  - [x] `Prefix(t testing.TB) string` — `"ltt-"` + 6 hex chars from hash(test
         name + pid + nanotime)
-  - [ ] Unit tests: determinism within a run, uniqueness across parallel calls
+  - [x] Unit tests: determinism within a run, uniqueness across parallel calls
 - [ ] Implement `internal/dockerx` package
   - [ ] `Ping(ctx context.Context) error` — ping Docker daemon
   - [ ] Error classification: daemon down, socket not found, permission denied
