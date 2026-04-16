@@ -15,6 +15,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	tfjson "github.com/hashicorp/terraform-json"
 
+	"github.com/donaldgifford/libtftest/harness"
 	"github.com/donaldgifford/libtftest/internal/logx"
 	"github.com/donaldgifford/libtftest/internal/naming"
 	"github.com/donaldgifford/libtftest/localstack"
@@ -227,7 +228,12 @@ func (tc *TestCase) resolveContainer(ctx context.Context) {
 		return
 	}
 
-	// TODO: Check harness.Current() once harness package is implemented.
+	// Check for shared container from harness.Run.
+	if ctr := harness.Current(); ctr != nil {
+		tc.stack = ctr
+		tc.ownStack = false
+		return
+	}
 
 	// Start a new container.
 	cfg := &localstack.Config{

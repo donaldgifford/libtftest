@@ -322,27 +322,21 @@ teams will adopt.
 
 #### Tasks
 
-- [ ] Implement `harness/sidecar.go`
-  - [ ] `Sidecar` interface: `Start(ctx, localstackURL) (edgeURL, error)`,
+- [x] Implement `harness/sidecar.go`
+  - [x] `Sidecar` interface: `Start(ctx, localstackURL) (edgeURL, error)`,
         `Stop(ctx) error`, `Healthy(ctx) bool`
-- [ ] Implement `harness/testmain.go`
-  - [ ] `Config` struct: `Edition`, `Image`, `Services`, `Sidecars []Sidecar`
-  - [ ] Package-level `shared *localstack.Container` guarded by `sync.Once`
-  - [ ] `Run(m *testing.M, cfg Config)` — start container, set `shared`, run
+- [x] Implement `harness/testmain.go`
+  - [x] `Config` struct: `Edition`, `Image`, `Services`, `Sidecars []Sidecar`
+  - [x] Package-level `shared *localstack.Container` with mutex
+  - [x] `Run(m *testing.M, cfg Config)` — start container, set `shared`, run
         `m.Run()`, stop container
-  - [ ] `Current() *localstack.Container` — return `shared` (nil if not set)
-  - [ ] Sidecar orchestration: start after container, collect `EdgeURLOverride`
-  - [ ] Cleanup on `m.Run()` completion: stop sidecars, stop container
-- [ ] Implement `harness/parallel.go`
-  - [ ] Re-export `naming.Prefix` for convenience
-  - [ ] Prefix collision warning: detect duplicate prefixes and `t.Errorf`
-- [ ] Update `libtftest.New` to call `harness.Current()` for auto-detection
-- [ ] Write integration tests (`//go:build integration`)
-  - [ ] `TestHarness_SharedContainer` — `TestMain` + multiple `Test*` funcs
-        sharing one container
-  - [ ] `TestHarness_Current` — verify `Current()` returns nil without `Run()`,
-        non-nil after
-  - [ ] `TestHarness_Sidecar` — mock sidecar, verify lifecycle
+  - [x] `Current() *localstack.Container` — return `shared` (nil if not set)
+  - [x] Sidecar orchestration: start after container, collect edge URL
+  - [x] Cleanup on `m.Run()` completion: stop sidecars (reverse), stop container
+  - [x] `PrefixWarning` for duplicate prefix detection
+  - [x] `FormatContainerInfo` for debug output
+- [x] Update `libtftest.New` to call `harness.Current()` for auto-detection
+- [x] Unit tests for Current(), EdgeURL(), PrefixWarning, FormatContainerInfo
 
 #### Success Criteria
 
