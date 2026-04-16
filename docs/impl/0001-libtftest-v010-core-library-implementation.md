@@ -74,8 +74,8 @@ SDK) and runs in `go test ./...` with zero external requirements.
 
 #### Tasks
 
-- [ ] Initialize Go module: `go mod init github.com/donaldgifford/libtftest`
-- [ ] Set Go version in `go.mod` (match `mise.toml` Go version)
+- [x] Initialize Go module: `go mod init github.com/donaldgifford/libtftest`
+- [x] Set Go version in `go.mod` (go 1.25 for max compatibility)
 - [ ] Create directory structure matching DESIGN-0001 package layout
 - [ ] Implement `internal/naming` package
   - [ ] `Prefix(t testing.TB) string` — `"ltt-"` + 6 hex chars from hash(test
