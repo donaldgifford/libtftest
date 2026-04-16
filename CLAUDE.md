@@ -8,7 +8,10 @@ libtftest is a Go library (`github.com/donaldgifford/libtftest`) that wraps Terr
 
 The module also includes `sneakystack`, a Go HTTP proxy that fills gaps in LocalStack's AWS API coverage (IAM Identity Center, Organizations, Control Tower). sneakystack ships as both an importable package and a standalone Docker container (`cmd/sneakystack/`).
 
-**Status**: Early scaffold — `go.mod` has not been initialized yet. The design doc at `docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md` is the source of truth for architecture and API decisions.
+**Status**: IMPL-0001 Phase 1 complete. Go module initialized (`go 1.25`), all internal packages (`naming`, `dockerx`, `logx`) implemented with tests. Working on Phase 2 (LocalStack container lifecycle).
+
+- Design doc: `docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md`
+- Impl plan: `docs/impl/0001-libtftest-v010-core-library-implementation.md`
 
 ## Build & Development Commands
 

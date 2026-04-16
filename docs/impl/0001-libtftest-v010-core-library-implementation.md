@@ -117,12 +117,11 @@ for integration tests.
 
 #### Tasks
 
-- [ ] Add `testcontainers-go` dependency:
-      `go get github.com/testcontainers/testcontainers-go`
-- [ ] Implement `localstack/edition.go`
-  - [ ] `Edition` type: `EditionAuto`, `EditionCommunity`, `EditionPro`
-  - [ ] `DetectEdition()` — checks `LOCALSTACK_AUTH_TOKEN` env var
-  - [ ] Unit tests
+- [x] Add `testcontainers-go` dependency: v0.42.0
+- [x] Implement `localstack/edition.go`
+  - [x] `Edition` type: `EditionAuto`, `EditionCommunity`, `EditionPro`
+  - [x] `DetectEdition()` — checks `LOCALSTACK_AUTH_TOKEN` env var
+  - [x] Unit tests
 - [ ] Implement `localstack/health.go`
   - [ ] `allServicesReady` response matcher — JSON-decode `/_localstack/health`,
         return true when no service is `initializing` or `error`
