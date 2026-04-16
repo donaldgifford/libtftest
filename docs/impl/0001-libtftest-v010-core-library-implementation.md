@@ -93,10 +93,9 @@ SDK) and runs in `go test ./...` with zero external requirements.
         and `$LIBTFTEST_ARTIFACT_DIR` if set
   - [x] `ResolveArtifactDir(tb, baseDir)` — resolves artifact directory
   - [x] Unit tests for artifact writing and path resolution
-- [ ] Update `Makefile` if needed (ensure `go build ./...` covers new packages)
-- [ ] Update `.golangci.yml` `goimports` local-prefixes to include
-      `github.com/donaldgifford/libtftest`
-- [ ] Verify `make lint` passes with the new packages
+- [x] Update `Makefile` if needed (ensure `go build ./...` covers new packages)
+- [x] Update `.golangci.yml` `goimports` local-prefixes (already configured)
+- [x] Verify `make lint` passes with the new packages
 
 #### Success Criteria
 
