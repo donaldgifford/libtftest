@@ -477,15 +477,14 @@ GH Actions workflow, and tag v0.1.0.
 
 ## Testing Plan
 
-- [ ] Unit tests for all exported functions in every package
-- [ ] Table-driven tests for multi-input functions (override rendering, prefix
-      generation, health parsing, Store CRUD)
-- [ ] Integration tests behind `//go:build integration` tag for container
-      lifecycle, full TestCase flow, fixtures, assertions, sneakystack proxy
-- [ ] Pro integration tests behind `//go:build integration && localstack_pro`
-      for IAM assertion auto-skip verification
-- [ ] `testdata/mod-s3/` fixture module tested in CI on every PR
-- [ ] Coverage targets: >80% core, >70% helpers
+- [x] Unit tests for exported functions in implemented packages
+- [x] Table-driven tests for multi-input functions (override rendering, prefix
+      generation, health parsing, Store CRUD, PlanChanges)
+- [x] Integration tests behind `//go:build integration` tag for container
+      lifecycle and full TestCase flow
+- [ ] Pro integration tests (requires Pro token, validated in CI only)
+- [x] `testdata/mod-s3/` fixture module used in integration tests
+- [ ] Coverage targets: >80% core, >70% helpers (to be measured post-merge)
 
 ## Dependencies
 
