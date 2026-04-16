@@ -147,10 +147,10 @@ for integration tests.
   - [x] `InitHook` struct: `Name`, `Script`
   - [x] `WriteInitHooks` — writes hooks to temp dir, returns path
   - [x] Unit tests for hook writing and permissions
-- [ ] Create `testdata/mod-s3/` fixture Terraform module
-  - [ ] Minimal S3 bucket: `main.tf`, `variables.tf` (`bucket_name`),
-        `outputs.tf` (`bucket_id`, `bucket_arn`)
-  - [ ] `provider "aws"` block (will be overridden)
+- [x] Create `testdata/mod-s3/` fixture Terraform module
+  - [x] Minimal S3 bucket with versioning: `main.tf`, `variables.tf`
+        (`bucket_name`), `outputs.tf` (`bucket_id`, `bucket_arn`)
+  - [x] `provider "aws"` block (will be overridden by libtftest)
 - [ ] Write integration tests (`//go:build integration`)
   - [ ] `TestContainerStart_Community` — start, health check, stop
   - [ ] `TestContainerStart_ImageOverride` — verify env var override
