@@ -122,7 +122,7 @@ func Start(ctx context.Context, cfg *Config) (*Container, error) {
 		return nil, fmt.Errorf("start localstack container: %w", err)
 	}
 
-	endpoint, err := ctr.Endpoint(ctx, "http")
+	endpoint, err := ctr.PortEndpoint(ctx, edgePort, "http")
 	if err != nil {
 		_ = testcontainers.TerminateContainer(ctr) //nolint:errcheck // Best-effort cleanup on failure path.
 		return nil, fmt.Errorf("get container endpoint: %w", err)
