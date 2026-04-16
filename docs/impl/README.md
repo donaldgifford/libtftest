@@ -28,4 +28,9 @@ docz create impl "Your Implementation Title"
 - **Cancelled**: Plan was abandoned
 
 <!-- BEGIN DOCZ AUTO-GENERATED -->
+## All IMPLs
+
+| ID | Title | Status | Date | Author | Link |
+|----|-------|--------|------|--------|------|
+| IMPL-0001 | libtftest v0.1.0 — Core Library Implementation | Draft | 2026-04-16 | Donald Gifford | [0001-libtftest-v010-core-library-implementation.md](0001-libtftest-v010-core-library-implementation.md) |
 <!-- END DOCZ AUTO-GENERATED -->

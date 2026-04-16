@@ -346,9 +346,17 @@ provider block, and Terraform merges overrides key-by-key.
 ```go
 package awsx
 
-// New returns an aws.Config whose endpoint resolver routes every service
+// New returns an aws.Config whose BaseEndpoint routes every service
 // to the given LocalStack edge URL. Credentials are the LocalStack dummies.
-func New(edgeURL string) aws.Config
+func New(ctx context.Context, edgeURL string) (aws.Config, error) {
+    return config.LoadDefaultConfig(ctx,
+        config.WithBaseEndpoint(edgeURL),
+        config.WithRegion("us-east-1"),
+        config.WithCredentialsProvider(
+            credentials.NewStaticCredentialsProvider("test", "test", ""),
+        ),
+    )
+}
 
 // Typed constructors for the common services — thin wrappers that add the
 // s3.UsePathStyle option, DynamoDB disable-ssl flag, etc.
@@ -365,9 +373,10 @@ func NewKinesis(cfg aws.Config) *kinesis.Client
 func NewSTS(cfg aws.Config) *sts.Client
 ```
 
-We use SDK v2's `EndpointResolverV2` interface — the v1 custom-resolver pattern
-is deprecated. A single resolver implementation handles every service so callers
-never have to configure endpoints themselves.
+We use SDK v2's `config.WithBaseEndpoint` to route all services to the
+LocalStack edge URL. This is the current recommended pattern — the older
+`EndpointResolverV2` and `WithEndpointResolver` approaches are deprecated.
+Callers never have to configure endpoints themselves.
 
 ### Fixtures (pre-apply seeding)
 
@@ -487,23 +496,24 @@ type Container struct {
     EdgeURL  string            // e.g. http://localhost:49314
     Edition  Edition
     Services map[string]string // name -> status from /health
-    container testcontainers.Container
+    ctr      testcontainers.Container
 }
 
 func Start(ctx context.Context, cfg Config) (*Container, error) {
-    req := testcontainers.ContainerRequest{
-        Image:        cfg.Image(),                    // pro vs community
-        ExposedPorts: []string{"4566/tcp"},
-        Env:          cfg.Env(),                      // SERVICES, DEBUG, etc.
-        WaitingFor: wait.ForHTTP("/_localstack/health").
-            WithPort("4566/tcp").
-            WithStartupTimeout(90 * time.Second).
-            WithResponseMatcher(allServicesReady),
-        HostConfigModifier: func(hc *container.HostConfig) {
+    ctr, err := testcontainers.Run(ctx, cfg.Image(),
+        testcontainers.WithExposedPorts("4566/tcp"),
+        testcontainers.WithEnv(cfg.Env()),
+        testcontainers.WithWaitStrategy(
+            wait.ForHTTP("/_localstack/health").
+                WithPort("4566/tcp").
+                WithStartupTimeout(90 * time.Second).
+                WithResponseMatcher(allServicesReady),
+        ),
+        testcontainers.WithHostConfigModifier(func(hc *container.HostConfig) {
             hc.AutoRemove = true
             hc.Mounts = cfg.Mounts()                  // init hooks dir
-        },
-    }
+        }),
+    )
     // ...
 }
 ```
