@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	defaultImage    = "localstack/localstack:latest"
-	defaultProImage = "localstack/localstack-pro:latest"
+	defaultImage    = "localstack/localstack:4.4"
+	defaultProImage = "localstack/localstack-pro:4.4"
 	edgePort        = "4566/tcp"
 	imageEnv        = "LIBTFTEST_LOCALSTACK_IMAGE"
 	startupTimeout  = 90 * time.Second

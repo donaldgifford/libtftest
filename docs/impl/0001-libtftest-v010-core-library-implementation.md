@@ -151,10 +151,10 @@ for integration tests.
   - [x] Minimal S3 bucket with versioning: `main.tf`, `variables.tf`
         (`bucket_name`), `outputs.tf` (`bucket_id`, `bucket_arn`)
   - [x] `provider "aws"` block (will be overridden by libtftest)
-- [ ] Write integration tests (`//go:build integration`)
-  - [ ] `TestContainerStart_Community` — start, health check, stop
-  - [ ] `TestContainerStart_ImageOverride` — verify env var override
-  - [ ] `TestEditionDetection` — verify health endpoint parsing
+- [x] Write integration tests (`//go:build integration`)
+  - [x] `TestContainerStart_Community` — start, health check, stop
+  - [x] `TestContainerStart_ImageOverride` — verify env var override
+  - [x] `TestEditionDetection_FromHealthEndpoint` — verify health endpoint parsing
 
 #### Success Criteria
 
