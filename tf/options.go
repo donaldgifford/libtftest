@@ -24,19 +24,39 @@ func BuildOptions(tb testing.TB, workDir string, vars map[string]any) *terraform
 	return terraform.WithDefaultRetryableErrors(tb, &terraform.Options{
 		TerraformDir: workDir,
 		Vars:         vars,
-		EnvVars: map[string]string{
-			"AWS_ACCESS_KEY_ID":     "test",
-			"AWS_SECRET_ACCESS_KEY": "test",
-			"AWS_DEFAULT_REGION":    "us-east-1",
-			"TF_PLUGIN_CACHE_DIR":   PluginCacheDir(),
-			"TF_IN_AUTOMATION":      "1",
-		},
+		EnvVars:      defaultEnvVars(),
+		NoColor:      true,
+		Lock:         true,
+		LockTimeout:  "60s",
+		Logger:       logger.Discard,
+	})
+}
+
+// BuildPlanOptions constructs a terraform.Options with PlanFilePath set
+// for plan operations.
+func BuildPlanOptions(tb testing.TB, workDir string, vars map[string]any) *terraform.Options {
+	tb.Helper()
+
+	return terraform.WithDefaultRetryableErrors(tb, &terraform.Options{
+		TerraformDir: workDir,
+		Vars:         vars,
+		EnvVars:      defaultEnvVars(),
 		NoColor:      true,
 		Lock:         true,
 		LockTimeout:  "60s",
 		Logger:       logger.Discard,
 		PlanFilePath: filepath.Join(workDir, "libtftest.plan"),
 	})
+}
+
+func defaultEnvVars() map[string]string {
+	return map[string]string{
+		"AWS_ACCESS_KEY_ID":     "test",
+		"AWS_SECRET_ACCESS_KEY": "test",
+		"AWS_DEFAULT_REGION":    "us-east-1",
+		"TF_PLUGIN_CACHE_DIR":   PluginCacheDir(),
+		"TF_IN_AUTOMATION":      "1",
+	}
 }
 
 // PluginCacheDir returns a stable directory for Terraform's plugin cache.

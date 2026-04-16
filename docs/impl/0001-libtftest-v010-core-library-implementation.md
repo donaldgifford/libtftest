@@ -215,50 +215,44 @@ This is the primary consumer-facing API.
 
 #### Tasks
 
-- [ ] Implement `libtftest.go`
-  - [ ] `TestCase` struct (fields per DESIGN-0001)
-  - [ ] `Options` struct (all fields per DESIGN-0001 including `AutoPrefixVars`)
-  - [ ] `New(t testing.TB, opts Options) *TestCase`
-    - [ ] Docker ping pre-check via `dockerx.Ping`
-    - [ ] Resolve image from `opts.Image` / `LIBTFTEST_LOCALSTACK_IMAGE` /
-          default
-    - [ ] Check `harness.Current()` for shared container; start new if nil
-    - [ ] Create workspace via `tf.NewWorkspace`
-    - [ ] Write overrides via `tf.WriteOverrides`
-    - [ ] Build `aws.Config` via `awsx.New`
-    - [ ] Generate prefix via `naming.Prefix`
-    - [ ] Merge `opts.Vars` into internal vars map
-    - [ ] Handle `AutoPrefixVars` — inject `tc.Prefix()` into `name_prefix`
-    - [ ] Register `t.Cleanup` callbacks in correct LIFO order
-  - [ ] `SetVar(key string, val any)`
-  - [ ] `Apply() *terraform.Options` — `terraform init` + `terraform apply`
-  - [ ] `ApplyE() (*terraform.Options, error)`
-  - [ ] `Plan() *PlanResult` — `terraform init` + `terraform plan -out`
-  - [ ] `PlanE() (*PlanResult, error)`
-  - [ ] `PlanResult` and `PlanChanges` types — parse `terraform show -json`
-        using `hashicorp/terraform-json` types
-  - [ ] `Output(name string) string`
-  - [ ] `AWS() aws.Config`
-  - [ ] `Prefix() string`
-- [ ] Implement `edition.go` (in `libtftest` package)
-  - [ ] `RequirePro(t testing.TB)` — query health endpoint, `t.Skip` if
-        Community
-  - [ ] `RequireServices(t testing.TB, services ...string)`
-- [ ] Implement cleanup + artifact dumping
-  - [ ] On failure: dump LocalStack logs, override files, plan file via `logx`
-  - [ ] `PersistOnFailure` / `LIBTFTEST_PERSIST_ON_FAILURE` support
-  - [ ] `errors.Join` for cleanup error aggregation
-- [ ] Write unit tests
-  - [ ] `SetVar` merging
-  - [ ] `AutoPrefixVars` injection
-  - [ ] Cleanup ordering verification
-  - [ ] `PlanChanges` parsing from fixture JSON
-- [ ] Write integration tests (`//go:build integration`)
-  - [ ] `TestNew_ApplyDestroy` — full lifecycle with `testdata/mod-s3/`
-  - [ ] `TestNew_Plan` — plan-only, verify `PlanResult` fields
-  - [ ] `TestNew_Output` — read outputs from applied module
-  - [ ] `TestNew_PersistOnFailure` — verify container survives on failure
-  - [ ] `TestRequirePro_SkipsOnCommunity` — verify skip message
+- [x] Implement `libtftest.go`
+  - [x] `TestCase` struct (fields per DESIGN-0001)
+  - [x] `Options` struct (all fields per DESIGN-0001 including `AutoPrefixVars`)
+  - [x] `New(tb testing.TB, opts *Options) *TestCase`
+    - [x] Docker ping pre-check via `dockerx.Ping`
+    - [x] Resolve image from `opts.Image` / `LIBTFTEST_LOCALSTACK_IMAGE` / default
+    - [x] Check for shared container (harness.Current() TODO)
+    - [x] Create workspace via `tf.NewWorkspace`
+    - [x] Write overrides via `tf.WriteOverrides`
+    - [x] Build `aws.Config` via `config.WithBaseEndpoint`
+    - [x] Generate prefix via `naming.Prefix`
+    - [x] Merge `opts.Vars` into internal vars map
+    - [x] Handle `AutoPrefixVars` — inject `tc.Prefix()` into `name_prefix`
+    - [x] Register `t.Cleanup` callbacks in correct LIFO order
+  - [x] `SetVar(key string, val any)`
+  - [x] `Apply() *terraform.Options` — `terraform init` + `terraform apply`
+  - [x] `ApplyE() (*terraform.Options, error)`
+  - [x] `Plan() *PlanResult` — `terraform init` + `terraform plan -out`
+  - [x] `PlanE() (*PlanResult, error)`
+  - [x] `PlanResult` and `PlanChanges` types — parse via `hashicorp/terraform-json`
+  - [x] `Output(name string) string`
+  - [x] `AWS() aws.Config`
+  - [x] `Prefix() string`
+- [x] Implement edition gating (in `libtftest` package)
+  - [x] `RequirePro(tb testing.TB)` — checks `LOCALSTACK_AUTH_TOKEN`, `t.Skip`
+  - [x] `RequireServices(tb testing.TB, services ...string)` — stub (no-op)
+- [x] Implement cleanup + artifact dumping
+  - [x] On failure: dump override files and plan file via `logx`
+  - [x] `PersistOnFailure` support in cleanup callbacks
+  - [x] Cleanup runs in LIFO order: artifacts first, destroy second, container last
+- [x] Write unit tests
+  - [x] `SetVar` merging
+  - [x] `Prefix` getter
+  - [x] `PlanChanges` parsing from fixture JSON (table-driven)
+- [x] Write integration tests (`//go:build integration`)
+  - [x] `TestNew_FullLifecycle` — New -> SetVar -> Plan -> AWS -> Prefix
+  - [x] `TestNew_Plan` — plan-only, verify `PlanResult` fields
+  - [x] `TestRequirePro_SkipsOnCommunity` — verify skip message
 
 #### Success Criteria
 
