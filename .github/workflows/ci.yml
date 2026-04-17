@@ -172,7 +172,7 @@ jobs:
 
       - name: Build and push dev image
         if: github.event_name == 'pull_request'
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         with:
           targets: ci
           source: .
@@ -184,7 +184,7 @@ jobs:
 
       - name: Build multi-arch images (post-merge validation)
         if: github.event_name == 'push'
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         with:
           targets: ci
           source: .
