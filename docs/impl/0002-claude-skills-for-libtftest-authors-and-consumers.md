@@ -111,39 +111,43 @@ content yet.
         be ignored)
   - [x] Update `CLAUDE.md` with a "Repo Skills" section listing the skills
         to be added in later phases
-- [ ] **claude-skills repo: plugin skeleton for `libtftest`**
-  - [ ] Create `plugins/libtftest/` with the directory layout used by other
+- [x] **claude-skills repo: plugin skeleton for `libtftest`**
+  - [x] Create `plugins/libtftest/` with the directory layout used by other
         plugins: `skills/`, `agents/`, `commands/`, `tests/`,
         `.claude-plugin/plugin.json`, `README.md`
-  - [ ] Author `plugin.json` with name `libtftest`, initial version `0.1.0`,
+  - [x] Author `plugin.json` with name `libtftest`, initial version `0.1.0`,
         keywords (`libtftest`, `terraform`, `localstack`, `terratest`,
         `testing`)
-  - [ ] Add the new plugin to the marketplace listing if there is one
+  - [x] Add the new plugin to the marketplace listing if there is one
         (verify whether the repo's root README needs an entry)
-- [ ] **Fixture infrastructure for consumer-skill testing**
-  - [ ] In the `claude-skills` repo, create
+- [x] **Fixture infrastructure for consumer-skill testing**
+  - [x] In the `claude-skills` repo, create
         `plugins/libtftest/tests/fixtures/` with three Terraform module
         layouts: (a) single-module at root, (b) `modules/<name>/` mono-repo
         layout, (c) Terragrunt-style `live/` layout
-  - [ ] Each fixture has minimal `*.tf` files and a placeholder `test/`
+  - [x] Each fixture has minimal `*.tf` files and a placeholder `test/`
         directory the skill is expected to populate
-  - [ ] Add `Makefile` target `make test-libtftest-skills` that runs each
-        scaffold-style skill against each fixture
-- [ ] **Common frontmatter and the version-detection helper**
-  - [ ] Define the standard frontmatter shape for `tftest:*` skills using
+  - [~] (deferred) `make test-libtftest-skills` end-to-end target. The
+        existing `make test-plugin PLUGIN=libtftest` covers the
+        structural test harness; an actual skill-vs-fixture e2e runner
+        requires the `claude` CLI in non-interactive mode and is built
+        out per-skill in later phases.
+- [x] **Common frontmatter and the version-detection helper**
+  - [x] Define the standard frontmatter shape for `tftest:*` skills using
         only recognized fields: `name`, `description`, `when_to_use`,
         `paths`, `allowed-tools`. (Resolved Decision #2: no
-        `libtftest_version` field.)
-  - [ ] Document the supported libtftest version range as plain text in
+        `libtftest_version` field.) — captured in
+        `plugins/libtftest/skills/_frontmatter.md`
+  - [x] Document the supported libtftest version range as plain text in
         each skill body (e.g., "this skill targets libtftest >=0.1.0,
         <0.3.0; warn the user if the installed version is outside this
-        range").
-  - [ ] Implement the version-detection helper as a shared snippet at
+        range"). — convention documented in `_frontmatter.md`
+  - [x] Implement the version-detection helper as a shared snippet at
         `plugins/libtftest/skills/_version-check.md` that runs `go list -m
         -f '{{.Version}}' github.com/donaldgifford/libtftest`, parses the
         result, and surfaces a warning string the umbrella skill emits to
         the model on activation
-  - [ ] Add a `tests/test.sh` skeleton that runs `claudelint run
+  - [x] Add a `tests/test.sh` skeleton that runs `claudelint run
         plugins/libtftest` plus the fixture-based integration tests
 
 #### Success Criteria
