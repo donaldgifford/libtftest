@@ -172,37 +172,38 @@ churn additions.
 
 #### Tasks
 
-- [ ] **`libtftest:add-awsx-client`** (build first — others depend on it)
-  - [ ] `SKILL.md` with frontmatter (`name`, `description`, `when_to_use`,
-        `tools: [Read, Write, Edit, Bash]`)
-  - [ ] System prompt: prompts for service name and SDK module path,
+- [x] **`libtftest:add-awsx-client`** (build first — others depend on it)
+  - [x] `SKILL.md` with frontmatter (`name`, `description`, `when_to_use`,
+        `allowed-tools: [Read, Write, Edit, Bash, Grep]`)
+  - [x] System prompt: prompts for service name and SDK module path,
         generates `awsx/clients.go` constructor, adds smoke test
-  - [ ] Reference doc: `references/awsx-client-template.go.tmpl` showing the
+  - [x] Reference doc: `references/awsx-client-template.go.tmpl` showing the
         `config.WithBaseEndpoint` pattern
-  - [ ] Fixture test: invoke the skill on a scratch branch for `kms`, verify
-        the generated file builds and the smoke test passes
-- [ ] **`libtftest:add-assertion`**
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: prompts for service + method list, generates
+  - [~] (deferred) Fixture test against scratch branch — runs in Phase 6
+        once the e2e harness exists. Skill structure passes claudelint.
+- [x] **`libtftest:add-assertion`**
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: prompts for service + method list, generates
         `assert/<service>.go` (zero-size struct + package-level var pattern),
         plus `_test.go` table-driven stubs
-  - [ ] If awsx client missing, prompt user to run `libtftest:add-awsx-client`
+  - [x] If awsx client missing, prompt user to run `libtftest:add-awsx-client`
         first (do not silently invoke another skill)
-  - [ ] Reference doc: `references/assertion-template.go.tmpl` based on
+  - [x] Reference doc: `references/assertion-template.go.tmpl` based on
         `assert/s3.go`
-  - [ ] Pro-vs-Community gating prompt: skill asks the user before inserting
+  - [x] Pro-vs-Community gating prompt: skill asks the user before inserting
         `RequirePro(t)`. Lookup table for known services lives in
         `references/pro-services.md`
-  - [ ] Fixture test: scaffold `assert/kms.go` for two methods, build, lint
-- [ ] **`libtftest:add-fixture`**
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: prompts for service + `Seed*` function name +
+  - [~] (deferred) Fixture test: scaffold `assert/kms.go` for two methods —
+        runs in Phase 6 once the e2e harness exists.
+- [x] **`libtftest:add-fixture`**
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: prompts for service + `Seed*` function name +
         signature, appends to `fixtures/fixtures.go` with paired `t.Cleanup`
-  - [ ] Reference doc: `references/fixture-template.go.tmpl` from existing
+  - [x] Reference doc: `references/fixture-template.go.tmpl` from existing
         `SeedS3Object`
-  - [ ] Enforces `tb testing.TB` parameter naming (thelper linter)
-  - [ ] Fixture test: scaffold `SeedDynamoDBItem`, verify build + lint + the
-        cleanup runs in a smoke test
+  - [x] Enforces `tb testing.TB` parameter naming (thelper linter)
+  - [~] (deferred) Fixture test: scaffold `SeedDynamoDBItem` — runs in
+        Phase 6 once the e2e harness exists.
 
 #### Success Criteria
 
