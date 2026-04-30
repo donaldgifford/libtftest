@@ -222,44 +222,45 @@ install the plugin and go from zero to a passing CI in one skill invocation.
 
 #### Tasks
 
-- [ ] **`tftest` (umbrella skill)**
-  - [ ] `SKILL.md` with frontmatter including `paths` glob
+- [x] **`tftest` (umbrella skill)**
+  - [x] `SKILL.md` with frontmatter including `paths` glob
         (`**/*_test.go, **/*.tf, **/go.mod`)
-  - [ ] System prompt content: libtftest mental model, `LIBTFTEST_*` env
+  - [x] System prompt content: libtftest mental model, `LIBTFTEST_*` env
         vars, override file naming, lifecycle modes, golangci-lint awareness
         (libtftest itself uses v2 with the Uber Go Style Guide)
-  - [ ] Embeds `_version-check.md` snippet — skill runs `go list -m` on
+  - [x] Embeds `_version-check.md` snippet — skill runs `go list -m` on
         activation and warns the model when the installed libtftest
         version is outside the documented support range
-  - [ ] Documents the supported version range as plain text in the skill
+  - [x] Documents the supported version range as plain text in the skill
         body (Resolved Decision #2: no frontmatter field)
-  - [ ] Links out to `github.com/donaldgifford/libtftest/docs/examples/` so
+  - [x] Links out to `github.com/donaldgifford/libtftest/docs/examples/` so
         the model can fetch up-to-date examples
-- [ ] **`tftest:scaffold`**
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: detects layout (root, `modules/<name>/`, Terragrunt),
+- [x] **`tftest:scaffold`**
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: detects layout (root, `modules/<name>/`, Terragrunt),
         prompts for edition + default services + sneakystack yes/no
-  - [ ] Generates `test/` directory:
-    - [ ] `go.mod` with libtftest version resolved at activation (Resolved
+  - [x] Generates `test/` directory:
+    - [x] `go.mod` with libtftest version resolved at activation (Resolved
           Decision #4): the skill runs `go list -m -versions
           github.com/donaldgifford/libtftest` and pins to the highest version
           inside the supported range
-    - [ ] `TestMain` with `harness.Run` defaulting to per-package container
-    - [ ] Starter `_test.go` with a single S3-or-similar passing test
-    - [ ] `.gitignore` entries for `terraform.tfstate*`, `_libtftest_*`
-  - [ ] Calls `tftest:setup-ci` if user opts in
-  - [ ] Reference docs: three layout templates under `references/layouts/`
-- [ ] **`tftest:setup-ci`**
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: detects existing CI (GHA / Circle / other), bails
+    - [x] `TestMain` with `harness.Run` defaulting to per-package container
+    - [x] Starter `_test.go` with a single S3-or-similar passing test
+    - [x] `.gitignore` entries for `terraform.tfstate*`, `_libtftest_*`
+  - [x] Calls `tftest:setup-ci` if user opts in
+  - [x] Reference docs: three layout templates under `references/layouts/`
+- [x] **`tftest:setup-ci`**
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: detects existing CI (GHA / Circle / other), bails
         gracefully on non-GHA, otherwise generates
         `.github/workflows/integration.yml` calling the reusable
         `donaldgifford/libtftest/.github/workflows/libtftest-module.yml`
-  - [ ] Wires `LOCALSTACK_AUTH_TOKEN` secret if Pro
-  - [ ] Adds `hashicorp/setup-terraform@v3` (terratest v0.56.0 needs this)
-  - [ ] Adds Codecov upload step if `codecov.yml` exists
-  - [ ] Adds README badge
-  - [ ] Reference doc: `references/integration-workflow.yml.tmpl`
+  - [x] Wires `LOCALSTACK_AUTH_TOKEN` secret if Pro
+  - [x] Adds `hashicorp/setup-terraform@v3` (terratest v0.56.0 needs this)
+        — handled by the reusable workflow
+  - [x] Adds Codecov upload step if `codecov.yml` exists
+  - [x] Adds README badge
+  - [x] Reference doc: `references/integration-workflow.yml.tmpl`
 
 #### Success Criteria
 
