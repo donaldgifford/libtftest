@@ -282,33 +282,32 @@ already scaffolded by Phase 2.
 
 #### Tasks
 
-- [ ] **`tftest:add-test`**
-  - [ ] `SKILL.md` with frontmatter; activates inside `test/` directories
-  - [ ] System prompt: prompts for resource under test + assertions, parses
+- [x] **`tftest:add-test`**
+  - [x] `SKILL.md` with frontmatter; activates inside `test/` directories
+  - [x] System prompt: prompts for resource under test + assertions, parses
         the module's `variables.tf` to populate `tc.SetVar` calls, picks the
         correct `assert.*` helper or surfaces a gap
-  - [ ] Fixture test: against the single-module fixture, generate a second
-        test that exercises a different output, build, lint, run
-- [ ] **`tftest:add-fixture`**
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: appends `fixtures.Seed*` call before `tc.Apply()`,
+  - [x] Reference doc: `references/assertion-map.md` (resource → namespace)
+  - [~] (deferred) Fixture test against single-module fixture — Phase 6.
+- [x] **`tftest:add-fixture`**
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: appends `fixtures.Seed*` call before `tc.Apply()`,
         registers cleanup in the right order (before Apply runs)
-  - [ ] Recommends opening an upstream PR if libtftest doesn't yet have the
+  - [x] Recommends opening an upstream PR if libtftest doesn't yet have the
         seed helper for the requested service
-- [ ] **`tftest:add-assertion`**
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: appends `assert.*` call after `tc.Apply()`, falls
+- [x] **`tftest:add-assertion`**
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: appends `assert.*` call after `tc.Apply()`, falls
         back to inline `tc.AWS()` + typed SDK call if no helper exists
-  - [ ] Recommends contributing the helper upstream when generating inline
-- [ ] **`tftest:debug`**
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: walks artifact-dump path, env vars
+  - [x] Recommends contributing the helper upstream when generating inline
+- [x] **`tftest:debug`**
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: walks artifact-dump path, env vars
         (`LIBTFTEST_LOG_LEVEL`, `LIBTFTEST_KEEP_CONTAINER`,
         `LIBTFTEST_ARTIFACT_DIR`), known failure modes
         (`tofu` vs `terraform` PATH, port collisions, plan/apply mismatch,
-        `aws.Config` cache)
-  - [ ] Reference doc: `references/known-failures.md` linking to relevant
-        `docs/examples/` pages
+        `aws.Config` cache, MalformedXML on LS 4.4, t.Setenv-vs-Parallel)
+  - [x] Known-failures table inline in SKILL.md body
 
 #### Success Criteria
 
