@@ -1,0 +1,80 @@
+// Template for assert/<service>.go.
+//
+// Replace placeholders:
+//   {{Service}}     — TitleCase service name, e.g. KMS
+//   {{servicepkg}}  — SDK service package short name, e.g. kms
+//   {{servicelower}} — lowercase service name, e.g. kms
+//
+// File goes at assert/{{servicelower}}.go.
+//
+// Then add to assert/assert.go (in alphabetical order with the existing vars):
+//
+//   // {{Service}} provides {{Service}} assertion methods.
+//   var {{Service}} {{servicelower}}Asserts
+
+package assert
+
+import (
+	"context"
+	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/{{servicepkg}}"
+
+	// "github.com/donaldgifford/libtftest"  // uncomment if Pro-only
+	"github.com/donaldgifford/libtftest/awsx"
+)
+
+type {{servicelower}}Asserts struct{}
+
+// ResourceExists asserts that the named {{Service}} resource exists.
+func ({{servicelower}}Asserts) ResourceExists(tb testing.TB, cfg aws.Config, name string) {
+	tb.Helper()
+	// libtftest.RequirePro(tb)  // uncomment if Pro-only
+
+	client := awsx.New{{Service}}(cfg)
+	_, err := client.<DescribeOrGet>(context.Background(), &{{servicepkg}}.<Input>{
+		<Field>: aws.String(name),
+	})
+	if err != nil {
+		tb.Errorf("ResourceExists(%q): %v", name, err)
+	}
+}
+
+// ResourceHasProperty asserts that the resource's <property> matches want.
+func ({{servicelower}}Asserts) ResourceHasProperty(tb testing.TB, cfg aws.Config, name, want string) {
+	tb.Helper()
+	// libtftest.RequirePro(tb)  // uncomment if Pro-only
+
+	client := awsx.New{{Service}}(cfg)
+	out, err := client.<DescribeOrGet>(context.Background(), &{{servicepkg}}.<Input>{
+		<Field>: aws.String(name),
+	})
+	if err != nil {
+		tb.Errorf("ResourceHasProperty(%q, %q): %v", name, want, err)
+		return
+	}
+
+	got := string(out.<Field>)
+	if got != want {
+		tb.Errorf("ResourceHasProperty(%q): got %q, want %q", name, got, want)
+	}
+}
+
+// --- Test stub for assert/{{servicelower}}_test.go ---
+//
+// package assert_test
+//
+// import (
+//     "testing"
+//
+//     "github.com/donaldgifford/libtftest/assert"
+// )
+//
+// func TestResourceExists(t *testing.T) {
+//     t.Parallel()
+//     // Real exercise lives in the integration test that pairs with the
+//     // mod-{{servicelower}} testdata module. This is a smoke check that
+//     // the namespace var is wired correctly.
+//     _ = assert.{{Service}}
+// }
