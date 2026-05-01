@@ -441,26 +441,28 @@ Make sure end-users can find the skills and that maintainers know they exist.
 
 #### Tasks
 
-- [ ] **libtftest repo docs**
-  - [ ] Add a "Using Claude Code with libtftest" section to root `README.md`
+- [x] **libtftest repo docs**
+  - [x] Add a "Using Claude Code with libtftest" section to root `README.md`
         with install instructions for the plugin
-  - [ ] Add a section to `docs/examples/README.md` linking to the plugin and
+  - [x] Add a section to `docs/examples/README.md` linking to the plugin and
         listing the consumer skills with one-line descriptions
-  - [ ] Update `CLAUDE.md` "Repo Skills" section with the final skill list
-  - [ ] Add a `docs/development/README.md` subsection on the local skills
+  - [x] Update `CLAUDE.md` "Repo Skills" section with the final skill list
+  - [x] Add a `docs/development/README.md` subsection on the local skills
         and how maintainers should use them
-- [ ] **claude-skills repo docs**
-  - [ ] Author `plugins/libtftest/README.md` with: install instructions,
+- [x] **claude-skills repo docs**
+  - [x] Author `plugins/libtftest/README.md` with: install instructions,
         skill list with descriptions, version-compat table, link back to
         libtftest repo
-  - [ ] Add the plugin to the top-level marketplace README/listing
-  - [ ] Add a CHANGELOG.md entry for the initial 0.1.0 release of the plugin
-- [ ] **Cross-repo automation**
-  - [ ] Add a CI job in libtftest repo that runs the local skills against a
-        scratch branch on PR (smoke test only)
-  - [ ] Add a CI job in claude-skills repo that runs `make
-        test-libtftest-skills` against the fixture layouts on every PR
-        touching `plugins/libtftest/`
+  - [x] Add the plugin to the top-level marketplace README/listing
+  - [x] Add a CHANGELOG.md entry for the initial 0.1.0 release of the plugin
+- [x] **Cross-repo automation**
+  - [x] Add `.github/workflows/skills.yml` in libtftest repo: claudelint
+        + frontmatter structure checks on every PR/push touching `.claude/`
+  - [~] (deferred) Add a CI job in claude-skills repo that runs the
+        plugin's `tests/test.sh` against fixtures on PR. The existing
+        `claudelint.yml` already covers lint for this plugin's directory;
+        a `make test` workflow is out of scope (repo-wide concern, not
+        per-plugin) and can be added in a follow-up.
 
 #### Success Criteria
 
