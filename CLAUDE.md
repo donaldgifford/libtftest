@@ -8,10 +8,14 @@ libtftest is a Go library (`github.com/donaldgifford/libtftest`) that wraps Terr
 
 The module also includes `sneakystack`, a Go HTTP proxy that fills gaps in LocalStack's AWS API coverage (IAM Identity Center, Organizations, Control Tower). sneakystack ships as both an importable package and a standalone Docker container (`cmd/sneakystack/`).
 
-**Status**: IMPL-0001 Phase 8 near-complete. All phases 1-8 done. Pending: v0.1.0 tag after merge to main. sneakystack service handlers (sso_admin, organizations) deferred to post-v0.1.0.
+**Status**: IMPL-0001 (core library) merged to main. IMPL-0002 (Claude Code skills) shipped on chore/add-claude-skills + a companion feat/libtftest-plugin branch in `donaldgifford/claude-skills`. Pending: v0.1.0 tag, sneakystack service handlers (sso_admin, organizations).
 
-- Design doc: `docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md`
-- Impl plan: `docs/impl/0001-libtftest-v010-core-library-implementation.md`
+- Design doc (core): `docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md`
+- Impl plan (core): `docs/impl/0001-libtftest-v010-core-library-implementation.md`
+- Design doc (skills): `docs/design/0002-claude-skills-for-libtftest-authors-and-consumers.md`
+- Impl plan (skills): `docs/impl/0002-claude-skills-for-libtftest-authors-and-consumers.md`
+- Development guide: `docs/development/README.md`
+- Examples: `docs/examples/`
 
 ## Build & Development Commands
 
@@ -87,8 +91,44 @@ Core external dependencies: `terratest`, `testcontainers-go`, `aws-sdk-go-v2`.
 
 ## CI Pipeline
 
-GitHub Actions (`.github/workflows/ci.yml`): lint, test-coverage (with Codecov), security scan (govulncheck + Trivy), build (goreleaser snapshot), Docker build (Bake).
+GitHub Actions (`.github/workflows/ci.yml`): lint, test-coverage (with Codecov), security scan (govulncheck + Trivy), build (goreleaser snapshot), Docker build (Bake), integration tests (requires Docker + Terraform).
+
+Integration tests require `hashicorp/setup-terraform@v3` in CI -- terratest v0.56.0 defaults to `tofu` if `terraform` is not in PATH.
+
+## Lint Gotchas
+
+- `gosec G703` on paths derived from env vars (e.g. `HOME`, `XDG_CACHE_HOME`): use `//nolint:gosec // <reason>` on the `os.MkdirAll` or `os.Stat` line, not the `Getenv` line
+- `errcheck` on `Close`: use `defer x.Close() //nolint:errcheck // <reason>`
+- `gocritic hugeParam` on `aws.Config` (696 bytes): threshold raised to 800 in `.golangci.yml` -- AWS SDK passes `aws.Config` by value everywhere
+- `nolintlint` fires if your nolint is on the wrong line -- gosec/errcheck target the specific call, not the surrounding code
+
+## LocalStack Notes
+
+- Default image pinned to `localstack/localstack:4.4` -- `:latest` now requires Pro auth token
+- S3 CreateBucket returns MalformedXML on 4.4 with current AWS provider version (Plan works, Apply has compat issues)
+- `AllServicesReady` signature is `func(io.Reader) bool` (not `func(*http.Response) bool`)
 
 ## Documentation
 
 Uses `docz` for structured docs under `docs/` (RFC, ADR, Design, Impl, Plan, Investigation). Config in `.docz.yaml`.
+
+## Repo Skills
+
+Local Claude Code skills live under `.claude/skills/` (committed, team-shared). Per DESIGN-0002 / IMPL-0002, these accelerate common libtftest development workflows. See `.claude/skills/_preamble.md` for the shared conventions every local skill should follow.
+
+Local skills (`.claude/skills/`):
+
+- `libtftest:add-awsx-client` — scaffold a new typed AWS SDK v2 client constructor in `awsx/`
+- `libtftest:add-assertion` — scaffold a new assertion namespace + methods in `assert/`
+- `libtftest:add-fixture` — scaffold a new `Seed*` fixture function with paired `t.Cleanup`
+- `libtftest:add-sneakystack-service` — scaffold a new gap-service handler in `sneakystack/services/` (JSON-RPC and REST-XML templates)
+- `libtftest:bump-localstack` — wraps `make bump-localstack LS_VERSION=<x>` plus the playbook (release notes, CHANGELOG, integration tests)
+- `libtftest:release` — release tag + CHANGELOG drafting workflow with explicit refusal conditions
+
+Local agents (`.claude/agents/`):
+
+- `libtftest-reviewer` — review changes for libtftest-specific rules (PortEndpoint, RequirePro, `tb` naming, BuildOptions split). Emits structured JSON findings. Defers Go style to the `go-development:go-style` agent.
+
+Consumer-facing skills (`tftest:*`) ship in a separate `libtftest` plugin in `donaldgifford/claude-skills`, not in this repo. See [docs/examples/README.md](docs/examples/) for the consumer skill list.
+
+Lint local skills with `claudelint run .claude/`.

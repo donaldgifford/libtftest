@@ -1,0 +1,82 @@
+// Template for a Seed* function in fixtures/fixtures.go.
+//
+// Replace placeholders:
+//   {{Service}}       — TitleCase service name, e.g. DynamoDB
+//   {{servicepkg}}    — SDK package short name, e.g. dynamodb
+//   {{Verb}}          — Put, Create, Add, Send, etc.
+//   {{Resource}}      — TitleCase resource name, e.g. Item, Stream, Topic
+//   {{params...}}     — additional typed parameters specific to this seed
+//   {{<DeleteVerb>}}  — matching cleanup verb (Delete, Destroy, Remove)
+//
+// Add the function to fixtures/fixtures.go in alphabetical order by
+// service. Add the SDK import to the existing import block (alphabetical).
+
+import "github.com/aws/aws-sdk-go-v2/service/{{servicepkg}}"
+
+// Seed{{Service}}{{Resource}} {{verb-phrase, e.g. "creates a DynamoDB item"}}
+// and registers cleanup to {{cleanup-phrase, e.g. "delete it"}}.
+func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
+	tb.Helper()
+
+	client := awsx.New{{Service}}(cfg)
+	ctx := context.Background()
+
+	_, err := client.{{Verb}}{{Resource}}(ctx, &{{servicepkg}}.{{Verb}}{{Resource}}Input{
+		// fields based on params
+	})
+	if err != nil {
+		tb.Fatalf("Seed{{Service}}{{Resource}}({{format-args}}): %v", {{args}}, err)
+	}
+
+	tb.Cleanup(func() {
+		_, err := client.{{<DeleteVerb>}}{{Resource}}(ctx, &{{servicepkg}}.{{<DeleteVerb>}}{{Resource}}Input{
+			// matching identifier fields
+		})
+		if err != nil {
+			tb.Errorf("cleanup Seed{{Service}}{{Resource}}({{format-args}}): %v", {{args}}, err)
+		}
+	})
+}
+
+// --- Variant: fire-and-forget (no cleanup; test consumes the payload) ---
+//
+// Only use this when the test will actually read and remove the seeded
+// payload itself (e.g., SeedSQSMessage). Document explicitly in the doc
+// comment: "Cleanup: none (consumed by test)".
+//
+// func SeedSQSMessage(tb testing.TB, cfg aws.Config, queueURL, body string) {
+//     tb.Helper()
+//     client := awsx.NewSQS(cfg)
+//     _, err := client.SendMessage(context.Background(), &sqs.SendMessageInput{
+//         QueueUrl:    aws.String(queueURL),
+//         MessageBody: aws.String(body),
+//     })
+//     if err != nil {
+//         tb.Fatalf("SeedSQSMessage(%s): %v", queueURL, err)
+//     }
+//     // Cleanup: none (consumed by test)
+// }
+
+// --- Variant: force-delete required (Secrets Manager recovery window) ---
+//
+// func SeedSecret(tb testing.TB, cfg aws.Config, name, value string) {
+//     tb.Helper()
+//     client := awsx.NewSecrets(cfg)
+//     ctx := context.Background()
+//     _, err := client.CreateSecret(ctx, &secretsmanager.CreateSecretInput{
+//         Name:         aws.String(name),
+//         SecretString: aws.String(value),
+//     })
+//     if err != nil {
+//         tb.Fatalf("SeedSecret(%s): %v", name, err)
+//     }
+//     tb.Cleanup(func() {
+//         _, err := client.DeleteSecret(ctx, &secretsmanager.DeleteSecretInput{
+//             SecretId:                   aws.String(name),
+//             ForceDeleteWithoutRecovery: aws.Bool(true),
+//         })
+//         if err != nil {
+//             tb.Errorf("cleanup SeedSecret(%s): %v", name, err)
+//         }
+//     })
+// }

@@ -1,0 +1,34 @@
+// Template for a new awsx client constructor.
+//
+// Replace placeholders:
+//   {{Service}}     — TitleCase service name, e.g. CloudWatch
+//   {{servicepkg}}  — SDK service package short name, e.g. cloudwatch
+//
+// Place the constructor in alphabetical order in awsx/clients.go.
+
+import "github.com/aws/aws-sdk-go-v2/service/{{servicepkg}}"
+
+// New{{Service}} creates a {{Service}} client.
+func New{{Service}}(cfg aws.Config) *{{servicepkg}}.Client {
+	return {{servicepkg}}.NewFromConfig(cfg)
+}
+
+// --- Variants ---
+
+// If the service needs client-options modifiers (e.g., S3 path-style):
+//
+// func New{{Service}}(cfg aws.Config) *{{servicepkg}}.Client {
+//     return {{servicepkg}}.NewFromConfig(cfg, func(o *{{servicepkg}}.Options) {
+//         o.UsePathStyle = true
+//     })
+// }
+
+// --- Smoke test stub for awsx/clients_test.go ---
+//
+// func TestNew{{Service}}(t *testing.T) {
+//     t.Parallel()
+//     client := awsx.New{{Service}}(aws.Config{})
+//     if client == nil {
+//         t.Fatal("New{{Service}} returned nil")
+//     }
+// }

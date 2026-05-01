@@ -1,0 +1,90 @@
+// Template for a REST-XML service handler.
+//
+// Replace placeholders:
+//   {{Service}}      — TitleCase service name, e.g. CloudFormation
+//   {{servicelower}} — lowercase service name, e.g. cloudformation
+//
+// File goes at sneakystack/services/{{servicelower}}.go.
+
+package services
+
+import (
+	"encoding/xml"
+	"net/http"
+	"strings"
+
+	"github.com/donaldgifford/libtftest/sneakystack"
+)
+
+// {{Service}} handles AWS {{Service}} REST-XML requests by matching
+// {method, path}.
+type {{Service}} struct {
+	store sneakystack.Store
+}
+
+// New{{Service}} returns a handler backed by the given Store.
+func New{{Service}}(store sneakystack.Store) *{{Service}} {
+	return &{{Service}}{store: store}
+}
+
+// Handle dispatches by HTTP method + URL path.
+func (h *{{Service}}) Handle(w http.ResponseWriter, r *http.Request) {
+	switch {
+	case r.Method == http.MethodPost && r.URL.Path == "/":
+		h.handleAction(w, r)
+	case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/<resource>/"):
+		h.describe<Resource>(w, r)
+	default:
+		writeXMLError(w, http.StatusNotFound, "NotFound",
+			"sneakystack: no route for %s %s", r.Method, r.URL.Path)
+	}
+}
+
+// handleAction dispatches POST / by reading the form-encoded Action param.
+func (h *{{Service}}) handleAction(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		writeXMLError(w, http.StatusBadRequest, "InvalidRequest", "parse form: %v", err)
+		return
+	}
+
+	switch r.Form.Get("Action") {
+	case "Create<Resource>":
+		h.create<Resource>(w, r)
+	default:
+		writeXMLError(w, http.StatusNotImplemented, "OperationNotImplemented",
+			"sneakystack: action %q not implemented", r.Form.Get("Action"))
+	}
+}
+
+// --- Operation handlers ---
+
+func (h *{{Service}}) create<Resource>(w http.ResponseWriter, r *http.Request) {
+	// Read params from r.Form.Get(...)
+	// Store via h.store.Put(r.Context(), "<kind>", id, obj)
+	writeXML(w, http.StatusOK, struct {
+		XMLName xml.Name `xml:"Create<Resource>Response"`
+		// fields
+	}{})
+}
+
+// --- Helpers (consider moving to services/util.go) ---
+
+func writeXML(w http.ResponseWriter, status int, body any) {
+	w.Header().Set("Content-Type", "text/xml")
+	w.WriteHeader(status)
+	_ = xml.NewEncoder(w).Encode(body)
+}
+
+func writeXMLError(w http.ResponseWriter, status int, code, format string, args ...any) {
+	w.Header().Set("Content-Type", "text/xml")
+	w.WriteHeader(status)
+	_ = xml.NewEncoder(w).Encode(struct {
+		XMLName xml.Name `xml:"ErrorResponse"`
+		Code    string   `xml:"Error>Code"`
+		Message string   `xml:"Error>Message"`
+	}{
+		Code:    code,
+		Message: format, // sprintf in real code
+	})
+	_ = args
+}

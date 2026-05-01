@@ -1,0 +1,87 @@
+// Template for a JSON-RPC service handler.
+//
+// Replace placeholders:
+//   {{Service}}      — TitleCase service name, e.g. SSOAdmin
+//   {{servicename}}  — wire-format service prefix in X-Amz-Target,
+//                       e.g. SWBExternalService
+//   {{servicelower}} — lowercase service name, e.g. ssoadmin
+//
+// File goes at sneakystack/services/{{servicelower}}.go.
+
+package services
+
+import (
+	"encoding/json"
+	"net/http"
+	"strings"
+
+	"github.com/donaldgifford/libtftest/sneakystack"
+)
+
+// {{Service}} handles AWS {{Service}} JSON-RPC requests by dispatching on
+// the X-Amz-Target header.
+type {{Service}} struct {
+	store sneakystack.Store
+}
+
+// New{{Service}} returns a handler backed by the given Store.
+func New{{Service}}(store sneakystack.Store) *{{Service}} {
+	return &{{Service}}{store: store}
+}
+
+// Handle dispatches the request to the right operation handler.
+func (h *{{Service}}) Handle(w http.ResponseWriter, r *http.Request) {
+	target := r.Header.Get("X-Amz-Target")
+	// X-Amz-Target is "<servicename>.<Operation>" — strip the prefix.
+	op := strings.TrimPrefix(target, "{{servicename}}.")
+
+	switch op {
+	case "Create<Resource>":
+		h.create<Resource>(w, r)
+	case "List<Resources>":
+		h.list<Resources>(w, r)
+	case "Describe<Resource>":
+		h.describe<Resource>(w, r)
+	case "Delete<Resource>":
+		h.delete<Resource>(w, r)
+	default:
+		writeError(w, http.StatusNotImplemented, "OperationNotImplemented",
+			"sneakystack: operation %q is not implemented", op)
+	}
+}
+
+// --- Operation handlers (one per operation) ---
+
+func (h *{{Service}}) create<Resource>(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		// fields from CreateXInput
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "InvalidRequest", "decode: %v", err)
+		return
+	}
+
+	// Build the resource, store via h.store.Put(r.Context(), "<kind>", id, obj)
+	// Then return the AWS-shaped response.
+	writeJSON(w, http.StatusOK, map[string]any{
+		// CreateXOutput fields
+	})
+}
+
+// --- Helpers used by all handlers (consider moving to services/util.go) ---
+
+func writeJSON(w http.ResponseWriter, status int, body any) {
+	w.Header().Set("Content-Type", "application/x-amz-json-1.1")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(body)
+}
+
+func writeError(w http.ResponseWriter, status int, code, format string, args ...any) {
+	w.Header().Set("Content-Type", "application/x-amz-json-1.1")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"__type":  code,
+		"message": format, // sprintf with args before encoding in real code
+	})
+	_ = args
+}

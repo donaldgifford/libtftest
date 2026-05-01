@@ -1,0 +1,63 @@
+---
+name: Local Skills
+
+on:
+  pull_request:
+    paths:
+      - ".claude/**"
+      - ".github/workflows/skills.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".claude/**"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: claudelint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - name: Install claudelint
+        run: mise install github:donaldgifford/claudelint@0.2.0
+
+      - name: Lint .claude/
+        run: mise exec github:donaldgifford/claudelint@0.2.0 -- claudelint run .claude/
+
+  structure:
+    name: skill structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify each skill has SKILL.md with required frontmatter
+        run: |
+          set -e
+          for skill_md in .claude/skills/*/SKILL.md; do
+            skill_name="$(basename "$(dirname "$skill_md")")"
+            head -10 "$skill_md" | grep -q "^name:" \
+              || { echo "FAIL: $skill_name missing 'name:'"; exit 1; }
+            head -10 "$skill_md" | grep -q "^description:" \
+              || { echo "FAIL: $skill_name missing 'description:'"; exit 1; }
+            echo "PASS: $skill_name"
+          done
+
+      - name: Verify each agent has frontmatter
+        run: |
+          set -e
+          for agent_md in .claude/agents/*.md; do
+            agent_name="$(basename "$agent_md" .md)"
+            head -10 "$agent_md" | grep -q "^name:" \
+              || { echo "FAIL: $agent_name missing 'name:'"; exit 1; }
+            head -10 "$agent_md" | grep -q "^description:" \
+              || { echo "FAIL: $agent_name missing 'description:'"; exit 1; }
+            echo "PASS: $agent_name"
+          done
