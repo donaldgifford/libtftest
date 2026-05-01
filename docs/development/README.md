@@ -245,3 +245,45 @@ docz update <type>
 # List documents
 docz list
 ```
+
+## Local Claude Code Skills
+
+This repo ships local Claude Code skills under `.claude/skills/` and
+agents under `.claude/agents/` that scaffold the most common new-code
+paths in libtftest and review changes for libtftest-specific rules.
+See the [Repo Skills section in CLAUDE.md](../../CLAUDE.md#repo-skills)
+for the full list.
+
+### Using the skills
+
+Inside this repo, ask Claude Code things like:
+
+- "Add an awsx client for cloudwatch" — invokes `libtftest:add-awsx-client`
+- "Add a KMS assertion helper" — `libtftest:add-assertion` (which can
+  chain to `libtftest:add-awsx-client` if the AWS client is missing)
+- "Bump LocalStack to 4.5" — `libtftest:bump-localstack` (which runs
+  `make bump-localstack LS_VERSION=4.5`)
+- "Tag a v0.2.0 release" — `libtftest:release`
+
+The skills always run lint (`make lint`) and tests for the affected
+package before declaring success.
+
+### Adding a new local skill
+
+1. Create `.claude/skills/<skill-name>/SKILL.md` with frontmatter (name,
+   description, when_to_use, allowed-tools).
+2. Reference `.claude/skills/_preamble.md` in the body for project
+   conventions.
+3. Add reference templates under `.claude/skills/<skill-name>/references/`.
+4. Run `claudelint run .claude/` to verify.
+5. Update the Repo Skills section in `CLAUDE.md`.
+
+### Linting
+
+```bash
+# Install claudelint (already pinned in donaldgifford/claude-skills mise.toml)
+mise install github:donaldgifford/claudelint
+
+# Lint all local skills and agents
+claudelint run .claude/
+```

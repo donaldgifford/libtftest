@@ -45,3 +45,31 @@ the code into a `test/` directory alongside your Terraform module and run:
 ```bash
 go test -tags=integration -v ./test/...
 ```
+
+## Claude Code Skills
+
+The [`libtftest` plugin](https://github.com/donaldgifford/claude-skills/tree/main/plugins/libtftest)
+in `donaldgifford/claude-skills` automates everything in these examples.
+Install with:
+
+```bash
+claude plugin install donaldgifford/claude-skills:libtftest
+```
+
+| Skill                          | What it does                                                              |
+| ------------------------------ | ------------------------------------------------------------------------- |
+| `tftest`                       | Umbrella — loads libtftest mental model, runs version-detection check     |
+| `tftest:scaffold`              | Bootstrap a `test/` directory (go.mod, TestMain, starter test, .gitignore) |
+| `tftest:setup-ci`              | Wire the reusable libtftest GitHub Actions workflow                       |
+| `tftest:add-test`              | Add a new `Test*` function                                                |
+| `tftest:add-fixture`           | Insert a `fixtures.Seed*` call before `tc.Apply()`                        |
+| `tftest:add-assertion`         | Insert an `assert.*` call after `tc.Apply()`                              |
+| `tftest:debug`                 | Triage failing/flaky libtftest tests                                      |
+| `tftest:enable-pro`            | Switch a suite to LocalStack Pro                                          |
+| `tftest:enable-sneakystack`    | Add the sneakystack sidecar for SSO/Orgs/CT services                      |
+| `tftest:upgrade`               | Upgrade libtftest with mechanical migrations                              |
+| `tftest-reviewer` (agent)      | Review consumer test code for parallel-safety, cleanup, edition gating    |
+
+The plugin's umbrella skill checks the installed libtftest version
+against its supported range on activation and warns the model when
+they're out of sync.

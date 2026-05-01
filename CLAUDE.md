@@ -114,17 +114,19 @@ Uses `docz` for structured docs under `docs/` (RFC, ADR, Design, Impl, Plan, Inv
 
 Local Claude Code skills live under `.claude/skills/` (committed, team-shared). Per DESIGN-0002 / IMPL-0002, these accelerate common libtftest development workflows. See `.claude/skills/_preamble.md` for the shared conventions every local skill should follow.
 
-Planned local skills (Phase 1 first):
+Local skills (`.claude/skills/`):
 
 - `libtftest:add-awsx-client` — scaffold a new typed AWS SDK v2 client constructor in `awsx/`
 - `libtftest:add-assertion` — scaffold a new assertion namespace + methods in `assert/`
 - `libtftest:add-fixture` — scaffold a new `Seed*` fixture function with paired `t.Cleanup`
-- `libtftest:add-sneakystack-service` — scaffold a new gap-service handler in `sneakystack/services/`
-- `libtftest:bump-localstack` — wraps `make bump-localstack VERSION=<x>` plus the playbook
-- `libtftest:release` — release tag + CHANGELOG drafting workflow
+- `libtftest:add-sneakystack-service` — scaffold a new gap-service handler in `sneakystack/services/` (JSON-RPC and REST-XML templates)
+- `libtftest:bump-localstack` — wraps `make bump-localstack LS_VERSION=<x>` plus the playbook (release notes, CHANGELOG, integration tests)
+- `libtftest:release` — release tag + CHANGELOG drafting workflow with explicit refusal conditions
 
-Planned local agents under `.claude/agents/`:
+Local agents (`.claude/agents/`):
 
-- `libtftest-reviewer` — review changes for libtftest-specific rules (PortEndpoint, RequirePro, `tb` naming, BuildOptions split). Defers Go style to the `go-development:go-style` agent.
+- `libtftest-reviewer` — review changes for libtftest-specific rules (PortEndpoint, RequirePro, `tb` naming, BuildOptions split). Emits structured JSON findings. Defers Go style to the `go-development:go-style` agent.
 
-Consumer-facing skills (`tftest:*`) ship in a separate `libtftest` plugin in `donaldgifford/claude-skills`, not in this repo.
+Consumer-facing skills (`tftest:*`) ship in a separate `libtftest` plugin in `donaldgifford/claude-skills`, not in this repo. See [docs/examples/README.md](docs/examples/) for the consumer skill list.
+
+Lint local skills with `claudelint run .claude/`.

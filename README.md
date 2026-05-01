@@ -146,6 +146,35 @@ func TestMyModule(t *testing.T) {
 | [Development Guide](docs/development/) | How to develop, test, and contribute to libtftest |
 | [Design Doc (DESIGN-0001)](docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md) | Architecture and API design |
 | [Implementation Plan (IMPL-0001)](docs/impl/0001-libtftest-v010-core-library-implementation.md) | Phased implementation plan |
+| [Skills Design (DESIGN-0002)](docs/design/0002-claude-skills-for-libtftest-authors-and-consumers.md) | Claude Code skills for authors and consumers |
+| [Skills Implementation (IMPL-0002)](docs/impl/0002-claude-skills-for-libtftest-authors-and-consumers.md) | Phased plan for the skills above |
+
+## Using Claude Code with libtftest
+
+Two sets of Claude Code skills accelerate libtftest workflows:
+
+**For libtftest maintainers** — local skills in this repo's `.claude/skills/`
+that scaffold the most common new-code paths (assertions, fixtures,
+sneakystack handlers, AWS clients) and a `libtftest-reviewer` agent that
+catches libtftest-specific mistakes (PortEndpoint vs Endpoint, RequirePro
+gating, `tb` naming). They activate automatically when working in this repo.
+
+**For Terraform module repos that consume libtftest** — install the
+`libtftest` plugin from
+[`donaldgifford/claude-skills`](https://github.com/donaldgifford/claude-skills/tree/main/plugins/libtftest):
+
+```bash
+claude plugin install donaldgifford/claude-skills:libtftest
+```
+
+The plugin provides `tftest:scaffold` (bootstrap a `test/` directory),
+`tftest:setup-ci` (wire the reusable GHA workflow), `tftest:add-test`,
+`tftest:add-fixture`, `tftest:add-assertion`, `tftest:debug`,
+`tftest:enable-pro`, `tftest:enable-sneakystack`, `tftest:upgrade`, plus a
+`tftest-reviewer` agent.
+
+See [docs/examples/README.md](docs/examples/README.md) for the full skill
+list with descriptions.
 
 ## License
 
