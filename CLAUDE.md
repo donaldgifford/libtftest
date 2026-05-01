@@ -8,10 +8,12 @@ libtftest is a Go library (`github.com/donaldgifford/libtftest`) that wraps Terr
 
 The module also includes `sneakystack`, a Go HTTP proxy that fills gaps in LocalStack's AWS API coverage (IAM Identity Center, Organizations, Control Tower). sneakystack ships as both an importable package and a standalone Docker container (`cmd/sneakystack/`).
 
-**Status**: IMPL-0001 merged to main. Core library implemented (phases 1-8). Pending: v0.1.0 tag, sneakystack service handlers (sso_admin, organizations).
+**Status**: IMPL-0001 (core library) merged to main. IMPL-0002 (Claude Code skills) shipped on chore/add-claude-skills + a companion feat/libtftest-plugin branch in `donaldgifford/claude-skills`. Pending: v0.1.0 tag, sneakystack service handlers (sso_admin, organizations).
 
-- Design doc: `docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md`
-- Impl plan: `docs/impl/0001-libtftest-v010-core-library-implementation.md`
+- Design doc (core): `docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md`
+- Impl plan (core): `docs/impl/0001-libtftest-v010-core-library-implementation.md`
+- Design doc (skills): `docs/design/0002-claude-skills-for-libtftest-authors-and-consumers.md`
+- Impl plan (skills): `docs/impl/0002-claude-skills-for-libtftest-authors-and-consumers.md`
 - Development guide: `docs/development/README.md`
 - Examples: `docs/examples/`
 
