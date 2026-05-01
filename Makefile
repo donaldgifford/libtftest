@@ -149,6 +149,29 @@ release-local: ## Test goreleaser without publishing
 	@ $(MAKE) --no-print-directory log-$@
 	goreleaser release --snapshot --clean --skip=publish --skip=sign
 
+bump-localstack: ## Bump pinned LocalStack image version (use with LS_VERSION=4.5)
+	@ $(MAKE) --no-print-directory log-$@
+	@if [ -z "$(LS_VERSION)" ]; then \
+		echo "Error: LS_VERSION is required. Usage: make bump-localstack LS_VERSION=4.5"; \
+		exit 1; \
+	fi
+	@OLD_VERSION="$$(grep -oE 'localstack/localstack:[0-9.]+' localstack/container.go | head -1 | cut -d: -f2)"; \
+	if [ -z "$$OLD_VERSION" ]; then \
+		echo "Error: could not detect current pinned version in localstack/container.go"; \
+		exit 1; \
+	fi; \
+	echo "Bumping LocalStack pin..."; \
+	echo "  current: $$OLD_VERSION"; \
+	echo "  target:  $(LS_VERSION)"; \
+	find . -type f \( -name '*.go' -o -name '*.tf' -o -name 'Dockerfile*' -o -name 'docker-bake.hcl' -o -name '*.md' -o -name 'CLAUDE.md' \) \
+		-not -path './.git/*' -not -path './vendor/*' -not -path './build/*' \
+		-exec sed -i.bak "s|localstack/localstack:$$OLD_VERSION|localstack/localstack:$(LS_VERSION)|g" {} +; \
+	find . -type f \( -name '*.go' -o -name '*.tf' -o -name 'Dockerfile*' -o -name 'docker-bake.hcl' -o -name '*.md' -o -name 'CLAUDE.md' \) \
+		-not -path './.git/*' -not -path './vendor/*' -not -path './build/*' \
+		-exec sed -i.bak "s|localstack/localstack-pro:$$OLD_VERSION|localstack/localstack-pro:$(LS_VERSION)|g" {} +; \
+	find . -name '*.bak' -not -path './.git/*' -delete
+	@echo "✓ Pin updated. Review with 'git diff', then run 'make test' to verify."
+
 
 ########################################################################
 ## Self-Documenting Makefile Help                                     ##
