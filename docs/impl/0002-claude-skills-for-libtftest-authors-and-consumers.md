@@ -374,52 +374,52 @@ human at least twice and felt repetitive.
 
 #### Tasks
 
-- [ ] **`libtftest:add-sneakystack-service`** (this repo)
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: prompts for service name + dispatch protocol
-        (JSON-1.1 / REST-XML / query), scaffolds handler + routing +
+- [x] **`libtftest:add-sneakystack-service`** (this repo)
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: prompts for service name + dispatch protocol
+        (JSON-RPC / REST-XML / query), scaffolds handler + routing +
         Store-typed wrapper + httptest test
-  - [ ] Two reference docs: `references/jsonrpc-handler.go.tmpl`,
+  - [x] Two reference docs: `references/jsonrpc-handler.go.tmpl`,
         `references/restxml-handler.go.tmpl`
-  - [ ] Decision point: if the third dispatch style is needed, split into
-        sub-skills rather than adding more branches
-- [ ] **`libtftest:bump-localstack`** (this repo) — split into Makefile
+- [x] **`libtftest:bump-localstack`** (this repo) — split into Makefile
       target + skill wrapper (Resolved Decision #5)
-  - [ ] Add `make bump-localstack VERSION=<x>` target to top-level
+  - [x] Add `make bump-localstack LS_VERSION=<x>` target to top-level
         `Makefile`: sed/grep work for the pinned image string in
         `localstack/container.go`, `Dockerfile.sneakystack`,
         `docker-bake.hcl`, README, and `docs/examples/05-custom-image.md`
-  - [ ] `SKILL.md` with frontmatter — wraps the Makefile target and
+        (uses `LS_VERSION=` not `VERSION=` — the latter shadows the
+        existing git-describe variable)
+  - [x] `SKILL.md` with frontmatter — wraps the Makefile target and
         provides the playbook: read LocalStack release notes, identify
         breaking changes, run integration suite, draft CHANGELOG entry,
         update examples
-  - [ ] Reference doc: `references/release-notes-checklist.md` listing
+  - [x] Reference doc: `references/release-notes-checklist.md` listing
         the LocalStack release-notes URL pattern and known regression
         areas (S3 MalformedXML, edge port behavior, Pro-only services)
-- [ ] **`libtftest:release`** (this repo)
-  - [ ] `SKILL.md` with frontmatter, tools include `Bash`
-  - [ ] System prompt: verifies clean main + green CI + new version,
+- [x] **`libtftest:release`** (this repo)
+  - [x] `SKILL.md` with frontmatter, allowed-tools includes `Bash`
+  - [x] System prompt: verifies clean main + green CI + new version,
         runs `make release-check`, drafts CHANGELOG, requires explicit
         confirmation before tagging/pushing
-  - [ ] Hard-coded refusal to push to anything other than the resolved
-        upstream remote
-- [ ] **`tftest:enable-pro`** (plugin)
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: flips `Edition`, sets `LIBTFTEST_LOCALSTACK_IMAGE`,
+  - [x] Hard-coded refusal to push to anything other than the resolved
+        upstream remote (origin matching donaldgifford/libtftest)
+- [x] **`tftest:enable-pro`** (plugin)
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: flips `Edition`, sets `LIBTFTEST_LOCALSTACK_IMAGE`,
         adds `LOCALSTACK_AUTH_TOKEN` secret, removes redundant `t.Skip`,
         adds `RequirePro(t)` to Pro-only tests
-- [ ] **`tftest:enable-sneakystack`** (plugin)
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: adds `sneakystack.NewSidecar` to `harness.Run`
-        config, prompts for gap services, updates CI to pull the
-        sneakystack image if running externally
-- [ ] **`tftest:upgrade`** (plugin)
-  - [ ] `SKILL.md` with frontmatter
-  - [ ] System prompt: reads libtftest CHANGELOG between versions, applies
+- [x] **`tftest:enable-sneakystack`** (plugin)
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: adds `sneakystack.NewSidecar` to `harness.Run`
+        config, prompts for gap services, covers in-process default and
+        optional external-container variant
+- [x] **`tftest:upgrade`** (plugin)
+  - [x] `SKILL.md` with frontmatter
+  - [x] System prompt: reads libtftest CHANGELOG between versions, applies
         mechanical migrations (renamed options, moved imports), bumps
         `go.mod`/`go.sum`, runs the test suite, reports breakage
-  - [ ] Couples to libtftest CHANGELOG hygiene — add an item to the
-        `libtftest:release` checklist requiring a CHANGELOG entry
+  - [x] Warns when target version is outside this plugin's supported
+        range; CHANGELOG-hygiene caveat documented
 
 #### Success Criteria
 
