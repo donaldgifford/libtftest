@@ -142,7 +142,7 @@ func (tc *TestCase) Apply() *terraform.Options {
 	tc.tb.Helper()
 
 	tfOpts := tf.BuildOptions(tc.tb, tc.work.Dir, tc.vars)
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
+	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0001.
 	terraform.InitAndApply(tc.tb, tfOpts)
 
 	return tfOpts
@@ -153,7 +153,7 @@ func (tc *TestCase) ApplyE() (*terraform.Options, error) {
 	tc.tb.Helper()
 
 	tfOpts := tf.BuildOptions(tc.tb, tc.work.Dir, tc.vars)
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
+	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0001.
 	_, err := terraform.InitAndApplyE(tc.tb, tfOpts)
 
 	return tfOpts, err
@@ -177,13 +177,13 @@ func (tc *TestCase) PlanE() (*PlanResult, error) {
 
 	tfOpts := tf.BuildPlanOptions(tc.tb, tc.work.Dir, tc.vars)
 
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
+	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0001.
 	_, err := terraform.InitAndPlanE(tc.tb, tfOpts)
 	if err != nil {
 		return nil, fmt.Errorf("init and plan: %w", err)
 	}
 
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
+	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0001.
 	planJSON, err := terraform.ShowE(tc.tb, tfOpts)
 	if err != nil {
 		return nil, fmt.Errorf("terraform show: %w", err)
@@ -207,7 +207,7 @@ func (tc *TestCase) Output(name string) string {
 
 	tfOpts := tf.BuildOptions(tc.tb, tc.work.Dir, tc.vars)
 
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
+	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0001.
 	return terraform.Output(tc.tb, tfOpts, name)
 }
 
@@ -279,7 +279,7 @@ func (tc *TestCase) registerCleanup() {
 		}
 
 		tfOpts := tf.BuildOptions(tc.tb, tc.work.Dir, tc.vars)
-		//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
+		//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0001.
 		if _, err := terraform.DestroyE(tc.tb, tfOpts); err != nil {
 			tc.tb.Errorf("terraform destroy: %v", err)
 		}

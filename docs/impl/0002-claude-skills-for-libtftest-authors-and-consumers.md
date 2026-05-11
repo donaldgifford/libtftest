@@ -46,6 +46,7 @@ tags: [claude, skills, agents, plugin, automation]
   - [claude-skills repo (donaldgifford/claude-skills)](#claude-skills-repo-donaldgiffordclaude-skills)
 - [Testing Plan](#testing-plan)
 - [Dependencies](#dependencies)
+- [Resolved Decisions](#resolved-decisions)
 - [Open Questions](#open-questions)
 - [References](#references)
 <!--toc:end-->
