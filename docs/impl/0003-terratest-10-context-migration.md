@@ -195,19 +195,19 @@ test, so must use `WithoutCancel`).
 
 #### Tasks
 
-- [ ] Add `SeedS3ObjectContext(tb, ctx, cfg, bucket, key, body)`
+- [x] Add `SeedS3ObjectContext(tb, ctx, cfg, bucket, key, body)`
   with cleanup using `context.WithoutCancel(ctx)` for the `DeleteObject` call
-- [ ] Add `SeedSSMParameterContext(tb, ctx, cfg, name, value, secure)`
+- [x] Add `SeedSSMParameterContext(tb, ctx, cfg, name, value, secure)`
   with the same `WithoutCancel` cleanup pattern
-- [ ] Add `SeedSecretContext(tb, ctx, cfg, name, value)` with
+- [x] Add `SeedSecretContext(tb, ctx, cfg, name, value)` with
   `WithoutCancel` cleanup for `DeleteSecret`
-- [ ] Add `SeedSQSMessageContext(tb, ctx, cfg, queueURL, body)`
+- [x] Add `SeedSQSMessageContext(tb, ctx, cfg, queueURL, body)`
   (no cleanup — messages are consumed by the test)
-- [ ] Rewrite existing `Seed*` functions as shims passing
+- [x] Rewrite existing `Seed*` functions as shims passing
   `tb.Context()`
-- [ ] Update test files exercising fixtures to also assert the
+- [x] Update test files exercising fixtures to also assert the
   `*Context` variants
-- [ ] Document the `WithoutCancel` semantics in `fixtures.go` package
+- [x] Document the `WithoutCancel` semantics in `fixtures.go` package
   doc
 
 #### Success Criteria
