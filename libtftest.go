@@ -91,7 +91,8 @@ func New(tb testing.TB, opts *Options) *TestCase {
 	}
 
 	// Resolve container: reuse, shared (harness), or start new.
-	ctx := context.Background()
+	// Use tb.Context() so container startup honors test cancellation.
+	ctx := tb.Context()
 	tc.resolveContainer(ctx)
 
 	// Determine edge URL.
@@ -293,7 +294,8 @@ func (tc *TestCase) registerCleanup() {
 				return
 			}
 
-			if err := tc.stack.Stop(context.Background()); err != nil {
+			stopCtx := context.WithoutCancel(tc.tb.Context())
+			if err := tc.stack.Stop(stopCtx); err != nil {
 				tc.tb.Errorf("stop container: %v", err)
 			}
 		})
