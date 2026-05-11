@@ -4,6 +4,9 @@ The simplest libtftest usage: test an S3 bucket module with a single test
 function. No `TestMain` needed -- libtftest starts and stops a container per
 test.
 
+> Runnable counterpart: `Test_Example01_BasicS3Test` in
+> [`examples_integration_test.go`](examples_integration_test.go).
+
 ## Module Under Test
 
 ```hcl

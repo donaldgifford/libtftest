@@ -1,5 +1,8 @@
 # Cancellation and Deadlines
 
+> Runnable counterpart: `Test_Example07_Cancellation` in
+> [`examples_integration_test.go`](examples_integration_test.go).
+
 libtftest's `*Context` methods accept a caller-supplied `context.Context`,
 enabling:
 

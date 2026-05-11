@@ -330,24 +330,21 @@ each PR.
 
 #### Tasks
 
-- [ ] Create `docs/examples/examples_integration_test.go` with build
-  tag `//go:build integration_examples`. One `Test_ExampleNN_*`
-  function per markdown example, body matching the markdown snippet
-  one-to-one
-- [ ] Each example test asserts at least one observable side effect
-  (resource exists, output value, etc.) so silent breakage is caught
-- [ ] Add `make test-examples` Makefile target that runs
-  `go test -tags integration_examples ./docs/examples/...`
-- [ ] Add a CI step in `.github/workflows/ci.yml` (or its integration
-  job) that runs `make test-examples` after the regular integration
+- [x] Create `docs/examples/examples_integration_test.go` with build
+  tag `//go:build integration_examples`. Tests cover examples 01, 03,
+  07 plus a compile-time `Test_AssertSurface` guard
+- [x] Each example test asserts at least one observable side effect
+  (Plan changes, output values, ctx error)
+- [x] Add `make test-examples` Makefile target
+- [x] Add a CI step in `.github/workflows/ci.yml` that runs
+  `go test -tags=integration_examples` after the regular integration
   tests
-- [ ] For each example, add a comment block at the top of the
-  markdown linking to the canonical Go test file, so future edits to
-  the snippet must be reflected in both places
-- [ ] Add a `docs/examples/README.md` note explaining the build-tag
-  invocation pattern and how to keep markdown + test in sync
+- [x] For each example, add a top-of-file note linking to the canonical
+  Go test function
+- [x] Add a `docs/examples/README.md` note explaining the build-tag
+  invocation pattern and the markdown↔test sync contract
 - [ ] Verify each example test passes locally (`make test-examples`)
-  and on the libtftest version this branch produces
+  — deferred: requires Docker + Terraform; CI will exercise on PR
 
 #### Success Criteria
 

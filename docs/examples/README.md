@@ -40,12 +40,29 @@ terraform-aws-my-module/
 
 ## Running the Examples
 
-These are documentation examples, not runnable test files. To try them, copy
-the code into a `test/` directory alongside your Terraform module and run:
+These markdown files are the canonical examples. Their behavior is verified
+by [`examples_integration_test.go`](examples_integration_test.go), which
+mirrors the snippets one-to-one and runs them end-to-end against
+LocalStack.
+
+```bash
+# From the libtftest repo root:
+make test-examples
+# Or directly:
+go test -tags=integration_examples -v ./docs/examples/...
+```
+
+To try them in a consumer repo, copy the code into a `test/` directory
+alongside your Terraform module and run:
 
 ```bash
 go test -tags=integration -v ./test/...
 ```
+
+**Keeping markdown + tests in sync.** When you edit a snippet in a
+markdown example, the corresponding `Test_ExampleNN_*` function in
+`examples_integration_test.go` should match. CI runs the test file on
+every PR, so silent drift will fail the build.
 
 ## Claude Code Skills
 

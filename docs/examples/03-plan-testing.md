@@ -7,6 +7,10 @@ This is useful for:
 - Golden-file testing (diff plan output against checked-in baselines)
 - Catching unexpected destroys before they happen
 
+> Runnable counterparts: `Test_Example03_PlanTesting` and
+> `Test_Example03_PlanContext` in
+> [`examples_integration_test.go`](examples_integration_test.go).
+
 ## Plan and Assert on Changes
 
 ```go

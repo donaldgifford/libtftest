@@ -78,6 +78,9 @@ jobs:
       - name: Run integration tests
         run: go test -tags=integration -v -race ./...
 
+      - name: Run docs/examples integration tests
+        run: go test -tags=integration_examples -v -race ./docs/examples/...
+
   test-integration-pro:
     name: Integration Tests (Pro)
     runs-on: ubuntu-latest

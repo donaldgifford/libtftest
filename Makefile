@@ -37,7 +37,7 @@ COVERAGE_OUT := coverage.out
 ##@ Go Development
 
 .PHONY: build
-.PHONY: test test-all test-coverage
+.PHONY: test test-all test-coverage test-examples
 .PHONY: lint lint-fix fmt clean
 .PHONY: run run-local test-api ci check
 .PHONY: release-check release-local
@@ -72,6 +72,10 @@ test-report: ## Run tests with coverage report then open
 test-coverage: ## Run tests with coverage report
 	@ $(MAKE) --no-print-directory log-$@
 	@go test -v -race -coverprofile=$(COVERAGE_OUT) ./...
+
+test-examples: ## Run docs/examples runnable tests (requires Docker + Terraform)
+	@ $(MAKE) --no-print-directory log-$@
+	@go test -v -tags=integration_examples ./docs/examples/...
 
 
 ## Code Quality
