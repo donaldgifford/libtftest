@@ -12,12 +12,12 @@ import (
 
 type ssmAsserts struct{}
 
-// ParameterExists asserts that the named SSM parameter exists.
-func (ssmAsserts) ParameterExists(tb testing.TB, cfg aws.Config, name string) {
+// ParameterExistsContext is the ctx-aware variant of ParameterExists.
+func (ssmAsserts) ParameterExistsContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
 	tb.Helper()
 
 	client := awsx.NewSSM(cfg)
-	_, err := client.GetParameter(context.Background(), &ssm.GetParameterInput{
+	_, err := client.GetParameter(ctx, &ssm.GetParameterInput{
 		Name: aws.String(name),
 	})
 	if err != nil {
@@ -25,12 +25,18 @@ func (ssmAsserts) ParameterExists(tb testing.TB, cfg aws.Config, name string) {
 	}
 }
 
-// ParameterHasValue asserts that the parameter has the expected value.
-func (ssmAsserts) ParameterHasValue(tb testing.TB, cfg aws.Config, name, want string) {
+// ParameterExists is a shim that calls ParameterExistsContext with tb.Context().
+func (s ssmAsserts) ParameterExists(tb testing.TB, cfg aws.Config, name string) {
+	tb.Helper()
+	s.ParameterExistsContext(tb, tb.Context(), cfg, name)
+}
+
+// ParameterHasValueContext is the ctx-aware variant of ParameterHasValue.
+func (ssmAsserts) ParameterHasValueContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, want string) {
 	tb.Helper()
 
 	client := awsx.NewSSM(cfg)
-	out, err := client.GetParameter(context.Background(), &ssm.GetParameterInput{
+	out, err := client.GetParameter(ctx, &ssm.GetParameterInput{
 		Name:           aws.String(name),
 		WithDecryption: aws.Bool(true),
 	})
@@ -42,4 +48,10 @@ func (ssmAsserts) ParameterHasValue(tb testing.TB, cfg aws.Config, name, want st
 	if got := aws.ToString(out.Parameter.Value); got != want {
 		tb.Errorf("ParameterHasValue(%q) = %q, want %q", name, got, want)
 	}
+}
+
+// ParameterHasValue is a shim that calls ParameterHasValueContext with tb.Context().
+func (s ssmAsserts) ParameterHasValue(tb testing.TB, cfg aws.Config, name, want string) {
+	tb.Helper()
+	s.ParameterHasValueContext(tb, tb.Context(), cfg, name, want)
 }

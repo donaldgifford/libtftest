@@ -159,21 +159,21 @@ methods become shims that pass `tb.Context()`.
 
 #### Tasks
 
-- [ ] `assert/s3.go`: add `BucketExistsContext`, `BucketHasEncryptionContext`,
+- [x] `assert/s3.go`: add `BucketExistsContext`, `BucketHasEncryptionContext`,
   `BucketHasVersioningContext`, `BucketBlocksPublicAccessContext`,
-  `BucketTaggedContext` paired with the existing methods
-- [ ] `assert/dynamodb.go`: add `TableExistsContext`
-- [ ] `assert/iam.go`: add `RoleExistsContext`, `RoleHasInlinePolicyContext`
+  `BucketHasTagContext` paired with the existing methods
+- [x] `assert/dynamodb.go`: add `TableExistsContext`
+- [x] `assert/iam.go`: add `RoleExistsContext`, `RoleHasInlinePolicyContext`
   (note: both keep the `RequirePro` gate)
-- [ ] `assert/ssm.go`: add `ParameterExistsContext`,
+- [x] `assert/ssm.go`: add `ParameterExistsContext`,
   `ParameterHasValueContext`
-- [ ] `assert/lambda.go`: add `FunctionExistsContext`
-- [ ] Rewrite each existing method as a one-line shim that calls its
+- [x] `assert/lambda.go`: add `FunctionExistsContext`
+- [x] Rewrite each existing method as a one-line shim that calls its
   `*Context` variant with `tb.Context()`
-- [ ] Drop the `"context"` import from any file that no longer needs it
+- [x] Drop the `"context"` import from any file that no longer needs it
   directly (the imports get pushed into call sites that no longer hold
   `context.Background()`)
-- [ ] Add `_test.go` coverage for at least one `*Context` method per
+- [x] Add `_test.go` coverage for at least one `*Context` method per
   file that verifies cancellation propagation
 
 #### Success Criteria

@@ -162,6 +162,8 @@ linters:
         - name: early-return  # Uber: Early returns preferred
         - name: blank-imports
         - name: context-as-argument  # Uber: Context as first param
+          arguments:
+            - allowTypesBefore: "*testing.T,*testing.B,*testing.F,testing.TB"
         - name: context-keys-type  # Uber: Typed context keys
         - name: dot-imports  # Uber: Avoid dot imports
 
