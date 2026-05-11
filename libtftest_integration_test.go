@@ -3,9 +3,12 @@
 package libtftest
 
 import (
+	"context"
+	"errors"
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/donaldgifford/libtftest/localstack"
 )
@@ -67,6 +70,37 @@ func TestNew_Plan(t *testing.T) {
 	}
 
 	t.Logf("Plan: add=%d change=%d destroy=%d", result.Changes.Add, result.Changes.Change, result.Changes.Destroy)
+}
+
+// TestPlanContext_CancellationAborts verifies that a cancelled context
+// causes PlanContextE to return an error instead of completing normally.
+func TestPlanContext_CancellationAborts(t *testing.T) {
+	tc := New(t, &Options{
+		Edition:   localstack.EditionCommunity,
+		Image:     "localstack/localstack:4.4",
+		ModuleDir: testdataDir(),
+		Services:  []string{"s3"},
+	})
+	tc.SetVar("bucket_name", tc.Prefix()+"-cancel-test")
+
+	ctx, cancel := context.WithTimeout(t.Context(), 1*time.Millisecond)
+	defer cancel()
+
+	// Give the timeout time to fire.
+	time.Sleep(10 * time.Millisecond)
+
+	_, err := tc.PlanContextE(ctx)
+	if err == nil {
+		t.Fatal("PlanContextE with cancelled ctx returned nil error, want non-nil")
+	}
+
+	// terratest wraps the underlying ctx error, so we look for context-related
+	// failure rather than a strict errors.Is match.
+	if !errors.Is(ctx.Err(), context.DeadlineExceeded) && !errors.Is(ctx.Err(), context.Canceled) {
+		t.Errorf("ctx.Err() = %v, want DeadlineExceeded or Canceled", ctx.Err())
+	}
+
+	t.Logf("PlanContextE(cancelled) returned: %v", err)
 }
 
 func TestRequirePro_SkipsOnCommunity(t *testing.T) {

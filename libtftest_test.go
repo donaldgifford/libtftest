@@ -1,8 +1,39 @@
 package libtftest
 
 import (
+	"context"
 	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/gruntwork-io/terratest/modules/terraform"
 )
+
+// TestContextMethodSignatures is a compile-time guard that the *Context
+// variants exist with the expected shapes. It performs no runtime work —
+// the test passes as long as the assignments compile.
+func TestContextMethodSignatures(t *testing.T) {
+	t.Parallel()
+
+	var tc *TestCase
+
+	// Explicit types are the assertion — leaving them off would make the
+	// test pass trivially. The QF1011 staticcheck rule wants type inference,
+	// which would defeat the purpose.
+	//nolint:staticcheck // QF1011: explicit types are the assertion.
+	var (
+		_ func(context.Context) *terraform.Options          = tc.ApplyContext
+		_ func(context.Context) (*terraform.Options, error) = tc.ApplyContextE
+		_ func(context.Context) *PlanResult                 = tc.PlanContext
+		_ func(context.Context) (*PlanResult, error)        = tc.PlanContextE
+		_ func(context.Context, string) string              = tc.OutputContext
+		_ func() *terraform.Options                         = tc.Apply
+		_ func() (*terraform.Options, error)                = tc.ApplyE
+		_ func() *PlanResult                                = tc.Plan
+		_ func() (*PlanResult, error)                       = tc.PlanE
+		_ func(string) string                               = tc.Output
+		_ func() aws.Config                                 = tc.AWS
+	)
+}
 
 func TestSetVar(t *testing.T) {
 	t.Parallel()

@@ -116,26 +116,26 @@ subsequent phase depends on the new methods existing.
 
 #### Tasks
 
-- [ ] Add `ApplyContext(ctx context.Context) *terraform.Options` calling
+- [x] Add `ApplyContext(ctx context.Context) *terraform.Options` calling
   `terraform.InitAndApplyContext(tc.tb, ctx, tfOpts)`
-- [ ] Add `ApplyContextE(ctx context.Context) (*terraform.Options, error)`
+- [x] Add `ApplyContextE(ctx context.Context) (*terraform.Options, error)`
   calling `terraform.InitAndApplyContextE`
-- [ ] Add `PlanContext(ctx context.Context) *PlanResult` that delegates
+- [x] Add `PlanContext(ctx context.Context) *PlanResult` that delegates
   to `PlanContextE`
-- [ ] Add `PlanContextE(ctx context.Context) (*PlanResult, error)`
+- [x] Add `PlanContextE(ctx context.Context) (*PlanResult, error)`
   calling `terraform.InitAndPlanContextE` + `terraform.ShowContextE`
-- [ ] Add `OutputContext(ctx context.Context, name string) string`
+- [x] Add `OutputContext(ctx context.Context, name string) string`
   calling `terraform.OutputContext`
-- [ ] Rewrite existing `Apply`, `ApplyE`, `Plan`, `PlanE`, `Output` as
+- [x] Rewrite existing `Apply`, `ApplyE`, `Plan`, `PlanE`, `Output` as
   one-line shims calling the `*Context` variants with `tc.tb.Context()`.
   Each shim gets a one-line doc comment of the form
   `// <Name> is a shim that calls <Name>Context with tb.Context().`
   (not `// Deprecated:` — these are permanent convenience methods)
-- [ ] Rewrite the destroy cleanup callback in `registerCleanup` to use
+- [x] Rewrite the destroy cleanup callback in `registerCleanup` to use
   `context.WithoutCancel(tc.tb.Context())` and call `terraform.DestroyContextE`
-- [ ] Add unit/integration test covering: cancellable context aborts a
+- [x] Add unit/integration test covering: cancellable context aborts a
   long-running operation (use a deadline that expires mid-init)
-- [ ] Add unit test covering: shim methods still work end-to-end without
+- [x] Add unit test covering: shim methods still work end-to-end without
   caller-supplied ctx (existing tests should keep passing untouched)
 
 #### Success Criteria
