@@ -8,18 +8,22 @@
 //   {{params...}}     — additional typed parameters specific to this seed
 //   {{<DeleteVerb>}}  — matching cleanup verb (Delete, Destroy, Remove)
 //
-// Add the function to fixtures/fixtures.go in alphabetical order by
+// Pattern: every Seed function has a paired Seed*Context variant. The
+// shim form (no ctx) forwards to the *Context variant with tb.Context().
+// Cleanup callbacks use context.WithoutCancel(ctx) so they survive
+// test-end cancellation.
+//
+// Add both functions to fixtures/fixtures.go in alphabetical order by
 // service. Add the SDK import to the existing import block (alphabetical).
 
 import "github.com/aws/aws-sdk-go-v2/service/{{servicepkg}}"
 
-// Seed{{Service}}{{Resource}} {{verb-phrase, e.g. "creates a DynamoDB item"}}
-// and registers cleanup to {{cleanup-phrase, e.g. "delete it"}}.
-func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
+// Seed{{Service}}{{Resource}}Context {{verb-phrase, e.g. "creates a DynamoDB item"}}
+// and registers cleanup (via context.WithoutCancel) to {{cleanup-phrase}}.
+func Seed{{Service}}{{Resource}}Context(tb testing.TB, ctx context.Context, cfg aws.Config, {{params...}}) {
 	tb.Helper()
 
 	client := awsx.New{{Service}}(cfg)
-	ctx := context.Background()
 
 	_, err := client.{{Verb}}{{Resource}}(ctx, &{{servicepkg}}.{{Verb}}{{Resource}}Input{
 		// fields based on params
@@ -28,8 +32,9 @@ func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
 		tb.Fatalf("Seed{{Service}}{{Resource}}({{format-args}}): %v", {{args}}, err)
 	}
 
+	cleanupCtx := context.WithoutCancel(ctx)
 	tb.Cleanup(func() {
-		_, err := client.{{<DeleteVerb>}}{{Resource}}(ctx, &{{servicepkg}}.{{<DeleteVerb>}}{{Resource}}Input{
+		_, err := client.{{<DeleteVerb>}}{{Resource}}(cleanupCtx, &{{servicepkg}}.{{<DeleteVerb>}}{{Resource}}Input{
 			// matching identifier fields
 		})
 		if err != nil {
@@ -38,31 +43,40 @@ func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
 	})
 }
 
+// Seed{{Service}}{{Resource}} is a shim that calls Seed{{Service}}{{Resource}}Context with tb.Context().
+func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
+	tb.Helper()
+	Seed{{Service}}{{Resource}}Context(tb, tb.Context(), cfg, {{args}})
+}
+
 // --- Variant: fire-and-forget (no cleanup; test consumes the payload) ---
 //
 // Only use this when the test will actually read and remove the seeded
-// payload itself (e.g., SeedSQSMessage). Document explicitly in the doc
-// comment: "Cleanup: none (consumed by test)".
+// payload itself (e.g., SeedSQSMessage). Document explicitly: "no cleanup
+// — consumed by test".
 //
-// func SeedSQSMessage(tb testing.TB, cfg aws.Config, queueURL, body string) {
+// func SeedSQSMessageContext(tb testing.TB, ctx context.Context, cfg aws.Config, queueURL, body string) {
 //     tb.Helper()
 //     client := awsx.NewSQS(cfg)
-//     _, err := client.SendMessage(context.Background(), &sqs.SendMessageInput{
+//     _, err := client.SendMessage(ctx, &sqs.SendMessageInput{
 //         QueueUrl:    aws.String(queueURL),
 //         MessageBody: aws.String(body),
 //     })
 //     if err != nil {
 //         tb.Fatalf("SeedSQSMessage(%s): %v", queueURL, err)
 //     }
-//     // Cleanup: none (consumed by test)
+// }
+//
+// func SeedSQSMessage(tb testing.TB, cfg aws.Config, queueURL, body string) {
+//     tb.Helper()
+//     SeedSQSMessageContext(tb, tb.Context(), cfg, queueURL, body)
 // }
 
 // --- Variant: force-delete required (Secrets Manager recovery window) ---
 //
-// func SeedSecret(tb testing.TB, cfg aws.Config, name, value string) {
+// func SeedSecretContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, value string) {
 //     tb.Helper()
 //     client := awsx.NewSecrets(cfg)
-//     ctx := context.Background()
 //     _, err := client.CreateSecret(ctx, &secretsmanager.CreateSecretInput{
 //         Name:         aws.String(name),
 //         SecretString: aws.String(value),
@@ -70,8 +84,9 @@ func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
 //     if err != nil {
 //         tb.Fatalf("SeedSecret(%s): %v", name, err)
 //     }
+//     cleanupCtx := context.WithoutCancel(ctx)
 //     tb.Cleanup(func() {
-//         _, err := client.DeleteSecret(ctx, &secretsmanager.DeleteSecretInput{
+//         _, err := client.DeleteSecret(cleanupCtx, &secretsmanager.DeleteSecretInput{
 //             SecretId:                   aws.String(name),
 //             ForceDeleteWithoutRecovery: aws.Bool(true),
 //         })

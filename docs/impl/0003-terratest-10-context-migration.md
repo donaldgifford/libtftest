@@ -288,25 +288,26 @@ variants without making the simple usage feel heavier.
 
 #### Tasks
 
-- [ ] Update `docs/examples/01-basic-s3-test.md` — leave the simple
+- [x] Update `docs/examples/01-basic-s3-test.md` — leave the simple
   case unchanged (uses shim) but add a sidebar showing the `*Context`
   variant
-- [ ] Update `docs/examples/03-plan-testing.md` — same approach
-- [ ] Update `docs/examples/04-fixtures.md` — show one
-  `SeedS3ObjectContext` call to demonstrate
-- [ ] Update `docs/examples/README.md` — add a row in the "advanced"
-  section pointing to ctx usage
-- [ ] Add a new `docs/examples/07-cancellation.md` showing a per-call
-  deadline pattern with `*Context` methods
-- [ ] Update `.claude/skills/libtftest-add-assertion/references/assertion-template.go.tmpl`
+- [x] Update `docs/examples/03-plan-testing.md` — same approach
+- [x] Update `docs/examples/04-fixtures.md` — show `SeedS3ObjectContext`
+  + updated availability table with paired variants
+- [x] Update `docs/examples/README.md` — index `07-cancellation.md`
+- [x] Add a new `docs/examples/07-cancellation.md` showing per-call
+  deadline patterns with `*Context` methods
+- [x] Update `.claude/skills/libtftest-add-assertion/references/assertion-template.go.tmpl`
   to generate both the non-context method AND the `*Context` paired
   variant by default
-- [ ] Update `.claude/skills/libtftest-add-fixture/references/fixture-template.go.tmpl`
+- [x] Update `.claude/skills/libtftest-add-fixture/references/fixture-template.go.tmpl`
   to generate paired `Seed*` and `Seed*Context`
-- [ ] Update `.claude/skills/libtftest-add-assertion/SKILL.md` and
+- [x] Update `.claude/skills/libtftest-add-assertion/SKILL.md` and
   `libtftest-add-fixture/SKILL.md` bodies to describe the paired
   pattern as the convention
-- [ ] Run `claudelint run .claude/` to confirm no regressions
+- [ ] Run `claudelint run .claude/` to confirm no regressions (deferred
+  — claudelint not in local toolchain; runs in CI via the skills.yml
+  workflow)
 
 #### Success Criteria
 

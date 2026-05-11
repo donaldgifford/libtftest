@@ -30,6 +30,11 @@ cleanup pairing is the contract — without it, parallel tests collide.
 - Pre-apply seeding runs **before** `tc.Apply()`, so the fixture must
   point at LocalStack via the `aws.Config` from `tc.AWS()` — that's what
   the caller supplies as the `cfg` argument.
+- **Paired-method pattern (required as of v0.2.0).** Every `Seed*`
+  function has a `Seed*Context` variant accepting `context.Context`.
+  The non-context shim forwards with `tb.Context()`. Cleanup callbacks
+  use `context.WithoutCancel(ctx)` so they survive test-end
+  cancellation.
 
 ## Procedure
 
@@ -48,13 +53,15 @@ cleanup pairing is the contract — without it, parallel tests collide.
    `references/fixture-template.go.tmpl`. Maintain the rough alphabetical
    ordering by service in the file. Add the SDK import to the import block.
 
-4. **Verify the cleanup pair.** The function must:
+4. **Verify the cleanup pair.** The `*Context` function must:
    - Call `tb.Helper()` first
    - Use `tb.Fatalf` on the seed error
+   - Bind `cleanupCtx := context.WithoutCancel(ctx)` before registering
+     cleanup
    - Register cleanup via `tb.Cleanup(func() { ... })`
    - Use `tb.Errorf` (not Fatalf) inside the cleanup
-   - Reuse the same `client` and `ctx` from the outer scope so cleanup
-     is consistent
+   - The shim function is one line: forwards to the `*Context` variant
+     with `tb.Context()`
 
 5. **Add a smoke test** to `fixtures/fixtures_test.go` (or extend the
    existing one) that exercises seed+cleanup against a stub or LocalStack.

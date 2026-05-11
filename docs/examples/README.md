@@ -36,6 +36,7 @@ terraform-aws-my-module/
 | [Fixtures and Seeding](04-fixtures.md) | Pre-seed data before terraform apply |
 | [Custom Image and Pro Edition](05-custom-image.md) | Use Pro, airgapped mirrors, or custom images |
 | [sneakystack Sidecar](06-sneakystack.md) | Fill LocalStack gaps with sneakystack |
+| [Cancellation and Deadlines](07-cancellation.md) | Per-call deadlines via the `*Context` API variants |
 
 ## Running the Examples
 

@@ -11,6 +11,10 @@
 //
 //   // {{Service}} provides {{Service}} assertion methods.
 //   var {{Service}} {{servicelower}}Asserts
+//
+// Pattern: every assertion method has a paired *Context variant. The
+// shim form (no ctx) forwards to the *Context variant with tb.Context().
+// Cleanup paths (when applicable) use context.WithoutCancel(ctx).
 
 package assert
 
@@ -27,13 +31,13 @@ import (
 
 type {{servicelower}}Asserts struct{}
 
-// ResourceExists asserts that the named {{Service}} resource exists.
-func ({{servicelower}}Asserts) ResourceExists(tb testing.TB, cfg aws.Config, name string) {
+// ResourceExistsContext is the ctx-aware variant of ResourceExists.
+func ({{servicelower}}Asserts) ResourceExistsContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
 	tb.Helper()
 	// libtftest.RequirePro(tb)  // uncomment if Pro-only
 
 	client := awsx.New{{Service}}(cfg)
-	_, err := client.<DescribeOrGet>(context.Background(), &{{servicepkg}}.<Input>{
+	_, err := client.<DescribeOrGet>(ctx, &{{servicepkg}}.<Input>{
 		<Field>: aws.String(name),
 	})
 	if err != nil {
@@ -41,13 +45,19 @@ func ({{servicelower}}Asserts) ResourceExists(tb testing.TB, cfg aws.Config, nam
 	}
 }
 
-// ResourceHasProperty asserts that the resource's <property> matches want.
-func ({{servicelower}}Asserts) ResourceHasProperty(tb testing.TB, cfg aws.Config, name, want string) {
+// ResourceExists is a shim that calls ResourceExistsContext with tb.Context().
+func (s {{servicelower}}Asserts) ResourceExists(tb testing.TB, cfg aws.Config, name string) {
+	tb.Helper()
+	s.ResourceExistsContext(tb, tb.Context(), cfg, name)
+}
+
+// ResourceHasPropertyContext is the ctx-aware variant of ResourceHasProperty.
+func ({{servicelower}}Asserts) ResourceHasPropertyContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, want string) {
 	tb.Helper()
 	// libtftest.RequirePro(tb)  // uncomment if Pro-only
 
 	client := awsx.New{{Service}}(cfg)
-	out, err := client.<DescribeOrGet>(context.Background(), &{{servicepkg}}.<Input>{
+	out, err := client.<DescribeOrGet>(ctx, &{{servicepkg}}.<Input>{
 		<Field>: aws.String(name),
 	})
 	if err != nil {
@@ -59,6 +69,12 @@ func ({{servicelower}}Asserts) ResourceHasProperty(tb testing.TB, cfg aws.Config
 	if got != want {
 		tb.Errorf("ResourceHasProperty(%q): got %q, want %q", name, got, want)
 	}
+}
+
+// ResourceHasProperty is a shim that calls ResourceHasPropertyContext with tb.Context().
+func (s {{servicelower}}Asserts) ResourceHasProperty(tb testing.TB, cfg aws.Config, name, want string) {
+	tb.Helper()
+	s.ResourceHasPropertyContext(tb, tb.Context(), cfg, name, want)
 }
 
 // --- Test stub for assert/{{servicelower}}_test.go ---

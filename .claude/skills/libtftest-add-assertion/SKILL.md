@@ -34,6 +34,12 @@ as `assert.<Service>.<Method>(t, tc.AWS(), …)`.
   a clear message instead of failing.
 - File organization: one `assert/<service>.go` file per service, all
   methods live on a single struct receiver.
+- **Paired-method pattern (required as of v0.2.0).** Every assertion
+  method has a `*Context` variant that accepts `context.Context`. The
+  non-context method is a one-line shim that forwards with
+  `tb.Context()`. Both forms are first-class. Generated tests should
+  exercise the `*Context` variant since it's the canonical form;
+  the shim is structurally trivial.
 
 ## Procedure
 
@@ -94,11 +100,17 @@ If Pro-only, insert `libtftest.RequirePro(tb)` immediately after
 `tb.Helper()`. Document the Pro requirement in the method doc comment:
 
 ```go
-// KeyExists asserts that the named KMS key exists. Pro-only: calls RequirePro.
-func (kmsAsserts) KeyExists(tb testing.TB, cfg aws.Config, name string) {
+// KeyExistsContext is the ctx-aware variant of KeyExists. Pro-only: calls RequirePro.
+func (kmsAsserts) KeyExistsContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
     tb.Helper()
     libtftest.RequirePro(tb)
     // …
+}
+
+// KeyExists is a shim that calls KeyExistsContext with tb.Context().
+func (k kmsAsserts) KeyExists(tb testing.TB, cfg aws.Config, name string) {
+    tb.Helper()
+    k.KeyExistsContext(tb, tb.Context(), cfg, name)
 }
 ```
 

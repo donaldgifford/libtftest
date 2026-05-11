@@ -76,3 +76,18 @@ func TestInvalidModule_PlanFails(t *testing.T) {
 | `Changes.Add` | `int` | Resources to create |
 | `Changes.Change` | `int` | Resources to update in-place |
 | `Changes.Destroy` | `int` | Resources to destroy |
+
+## With caller-supplied context
+
+`tc.Plan()` and `tc.PlanE()` are shims that delegate to `PlanContext` /
+`PlanContextE` with `tb.Context()`. To attach a deadline or propagate
+tracing:
+
+```go
+ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+defer cancel()
+
+result := tc.PlanContext(ctx)
+// or:
+_, err := tc.PlanContextE(ctx)
+```
