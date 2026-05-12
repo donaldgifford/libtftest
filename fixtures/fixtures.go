@@ -1,5 +1,9 @@
 // Package fixtures provides pre-apply data seeding functions for LocalStack resources.
 // Each Seed function registers a t.Cleanup that removes the fixture.
+//
+// Cleanup callbacks use context.WithoutCancel(ctx) so they survive test-end
+// cancellation. The passing case is semantically identical to using
+// tb.Context() directly; the failing/cancelled case is the one that matters.
 package fixtures
 
 import (
@@ -17,13 +21,12 @@ import (
 	"github.com/donaldgifford/libtftest/awsx"
 )
 
-// SeedS3Object uploads an object to the given S3 bucket and registers
-// cleanup to delete it.
-func SeedS3Object(tb testing.TB, cfg aws.Config, bucket, key string, body []byte) {
+// SeedS3ObjectContext uploads an object to the given S3 bucket and registers
+// cleanup (via context.WithoutCancel) to delete it after the test.
+func SeedS3ObjectContext(tb testing.TB, ctx context.Context, cfg aws.Config, bucket, key string, body []byte) {
 	tb.Helper()
 
 	client := awsx.NewS3(cfg)
-	ctx := context.Background()
 
 	_, err := client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
@@ -34,8 +37,9 @@ func SeedS3Object(tb testing.TB, cfg aws.Config, bucket, key string, body []byte
 		tb.Fatalf("SeedS3Object(%s/%s): %v", bucket, key, err)
 	}
 
+	cleanupCtx := context.WithoutCancel(ctx)
 	tb.Cleanup(func() {
-		_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		_, err := client.DeleteObject(cleanupCtx, &s3.DeleteObjectInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),
 		})
@@ -45,12 +49,18 @@ func SeedS3Object(tb testing.TB, cfg aws.Config, bucket, key string, body []byte
 	})
 }
 
-// SeedSSMParameter creates an SSM parameter and registers cleanup to delete it.
-func SeedSSMParameter(tb testing.TB, cfg aws.Config, name, value string, secure bool) {
+// SeedS3Object is a shim that calls SeedS3ObjectContext with tb.Context().
+func SeedS3Object(tb testing.TB, cfg aws.Config, bucket, key string, body []byte) {
+	tb.Helper()
+	SeedS3ObjectContext(tb, tb.Context(), cfg, bucket, key, body)
+}
+
+// SeedSSMParameterContext creates an SSM parameter and registers cleanup
+// (via context.WithoutCancel) to delete it after the test.
+func SeedSSMParameterContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, value string, secure bool) {
 	tb.Helper()
 
 	client := awsx.NewSSM(cfg)
-	ctx := context.Background()
 
 	paramType := ssmtypes.ParameterTypeString
 	if secure {
@@ -66,8 +76,9 @@ func SeedSSMParameter(tb testing.TB, cfg aws.Config, name, value string, secure 
 		tb.Fatalf("SeedSSMParameter(%s): %v", name, err)
 	}
 
+	cleanupCtx := context.WithoutCancel(ctx)
 	tb.Cleanup(func() {
-		_, err := client.DeleteParameter(ctx, &ssm.DeleteParameterInput{
+		_, err := client.DeleteParameter(cleanupCtx, &ssm.DeleteParameterInput{
 			Name: aws.String(name),
 		})
 		if err != nil {
@@ -76,12 +87,18 @@ func SeedSSMParameter(tb testing.TB, cfg aws.Config, name, value string, secure 
 	})
 }
 
-// SeedSecret creates a Secrets Manager secret and registers cleanup.
-func SeedSecret(tb testing.TB, cfg aws.Config, name, value string) {
+// SeedSSMParameter is a shim that calls SeedSSMParameterContext with tb.Context().
+func SeedSSMParameter(tb testing.TB, cfg aws.Config, name, value string, secure bool) {
+	tb.Helper()
+	SeedSSMParameterContext(tb, tb.Context(), cfg, name, value, secure)
+}
+
+// SeedSecretContext creates a Secrets Manager secret and registers cleanup
+// (via context.WithoutCancel) to delete it after the test.
+func SeedSecretContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, value string) {
 	tb.Helper()
 
 	client := awsx.NewSecrets(cfg)
-	ctx := context.Background()
 
 	_, err := client.CreateSecret(ctx, &secretsmanager.CreateSecretInput{
 		Name:         aws.String(name),
@@ -91,8 +108,9 @@ func SeedSecret(tb testing.TB, cfg aws.Config, name, value string) {
 		tb.Fatalf("SeedSecret(%s): %v", name, err)
 	}
 
+	cleanupCtx := context.WithoutCancel(ctx)
 	tb.Cleanup(func() {
-		_, err := client.DeleteSecret(ctx, &secretsmanager.DeleteSecretInput{
+		_, err := client.DeleteSecret(cleanupCtx, &secretsmanager.DeleteSecretInput{
 			SecretId:                   aws.String(name),
 			ForceDeleteWithoutRecovery: aws.Bool(true),
 		})
@@ -102,18 +120,30 @@ func SeedSecret(tb testing.TB, cfg aws.Config, name, value string) {
 	})
 }
 
-// SeedSQSMessage sends a message to the given SQS queue URL.
+// SeedSecret is a shim that calls SeedSecretContext with tb.Context().
+func SeedSecret(tb testing.TB, cfg aws.Config, name, value string) {
+	tb.Helper()
+	SeedSecretContext(tb, tb.Context(), cfg, name, value)
+}
+
+// SeedSQSMessageContext sends a message to the given SQS queue URL.
 // No cleanup is registered — messages are consumed by the test.
-func SeedSQSMessage(tb testing.TB, cfg aws.Config, queueURL, body string) {
+func SeedSQSMessageContext(tb testing.TB, ctx context.Context, cfg aws.Config, queueURL, body string) {
 	tb.Helper()
 
 	client := awsx.NewSQS(cfg)
 
-	_, err := client.SendMessage(context.Background(), &sqs.SendMessageInput{
+	_, err := client.SendMessage(ctx, &sqs.SendMessageInput{
 		QueueUrl:    aws.String(queueURL),
 		MessageBody: aws.String(body),
 	})
 	if err != nil {
 		tb.Fatalf("SeedSQSMessage(%s): %v", queueURL, err)
 	}
+}
+
+// SeedSQSMessage is a shim that calls SeedSQSMessageContext with tb.Context().
+func SeedSQSMessage(tb testing.TB, cfg aws.Config, queueURL, body string) {
+	tb.Helper()
+	SeedSQSMessageContext(tb, tb.Context(), cfg, queueURL, body)
 }

@@ -4,6 +4,9 @@ The simplest libtftest usage: test an S3 bucket module with a single test
 function. No `TestMain` needed -- libtftest starts and stops a container per
 test.
 
+> Runnable counterpart: `Test_Example01_BasicS3Test` in
+> [`examples_integration_test.go`](examples_integration_test.go).
+
 ## Module Under Test
 
 ```hcl
@@ -81,3 +84,25 @@ func TestS3Bucket_CreatesWithVersioning(t *testing.T) {
 ```bash
 go test -tags=integration -v -run TestS3Bucket ./test/...
 ```
+
+## With caller-supplied context
+
+The example above uses `tc.Apply()`, `tc.Output()`, and `assert.S3.*` —
+shim methods that internally delegate to their `*Context` variants with
+`tb.Context()`. For per-call deadlines, tracing propagation, or explicit
+cancellation, call the `*Context` variants directly:
+
+```go
+ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+defer cancel()
+
+tc.ApplyContext(ctx)
+bucket := tc.OutputContext(ctx, "bucket_id")
+
+assert.S3.BucketExistsContext(t, ctx, tc.AWS(), bucket)
+assert.S3.BucketHasVersioningContext(t, ctx, tc.AWS(), bucket)
+```
+
+Both forms are first-class — pick whichever fits the test's needs.
+See [`07-cancellation.md`](07-cancellation.md) for a deeper dive on
+deadlines and cancellation.

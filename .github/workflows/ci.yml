@@ -1,4 +1,5 @@
 ---
+# $schema=https://schemastore.org/https://www.schemastore.org/github-action.json
 name: CI
 
 on:
@@ -55,7 +56,7 @@ jobs:
         with:
           files: coverage.out
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: donaldgifford/
+          slug: donaldgifford/libtftest
         continue-on-error: true
 
   test-integration:
@@ -77,6 +78,9 @@ jobs:
 
       - name: Run integration tests
         run: go test -tags=integration -v -race ./...
+
+      - name: Run docs/examples integration tests
+        run: go test -tags=integration_examples -v -race ./docs/examples/...
 
   test-integration-pro:
     name: Integration Tests (Pro)
@@ -122,7 +126,7 @@ jobs:
           go-package: ./...
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -157,14 +161,14 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GitHub Container Registry
         if: github.event_name == 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -172,7 +176,7 @@ jobs:
 
       - name: Build and push dev image
         if: github.event_name == 'pull_request'
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         with:
           targets: ci
           source: .
@@ -184,7 +188,7 @@ jobs:
 
       - name: Build multi-arch images (post-merge validation)
         if: github.event_name == 'push'
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         with:
           targets: ci
           source: .

@@ -91,7 +91,8 @@ func New(tb testing.TB, opts *Options) *TestCase {
 	}
 
 	// Resolve container: reuse, shared (harness), or start new.
-	ctx := context.Background()
+	// Use tb.Context() so container startup honors test cancellation.
+	ctx := tb.Context()
 	tc.resolveContainer(ctx)
 
 	// Determine edge URL.
@@ -136,34 +137,46 @@ func (tc *TestCase) SetVar(key string, val any) {
 	tc.vars[key] = val
 }
 
-// Apply runs terraform init + terraform apply and returns the terraform.Options
-// so callers can chain additional operations.
-func (tc *TestCase) Apply() *terraform.Options {
+// ApplyContext runs terraform init + terraform apply with the supplied
+// context and returns the terraform.Options so callers can chain additional
+// operations.
+func (tc *TestCase) ApplyContext(ctx context.Context) *terraform.Options {
 	tc.tb.Helper()
 
 	tfOpts := tf.BuildOptions(tc.tb, tc.work.Dir, tc.vars)
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
-	terraform.InitAndApply(tc.tb, tfOpts)
+	terraform.InitAndApplyContext(tc.tb, ctx, tfOpts)
 
 	return tfOpts
 }
 
-// ApplyE is the error-returning variant for negative tests.
-func (tc *TestCase) ApplyE() (*terraform.Options, error) {
+// ApplyContextE is the error-returning variant of ApplyContext.
+func (tc *TestCase) ApplyContextE(ctx context.Context) (*terraform.Options, error) {
 	tc.tb.Helper()
 
 	tfOpts := tf.BuildOptions(tc.tb, tc.work.Dir, tc.vars)
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
-	_, err := terraform.InitAndApplyE(tc.tb, tfOpts)
+	_, err := terraform.InitAndApplyContextE(tc.tb, ctx, tfOpts)
 
 	return tfOpts, err
 }
 
-// Plan runs terraform init + terraform plan -out and returns a PlanResult.
-func (tc *TestCase) Plan() *PlanResult {
+// Apply is a shim that calls ApplyContext with tb.Context().
+func (tc *TestCase) Apply() *terraform.Options {
+	tc.tb.Helper()
+	return tc.ApplyContext(tc.tb.Context())
+}
+
+// ApplyE is a shim that calls ApplyContextE with tb.Context().
+func (tc *TestCase) ApplyE() (*terraform.Options, error) {
+	tc.tb.Helper()
+	return tc.ApplyContextE(tc.tb.Context())
+}
+
+// PlanContext runs terraform init + terraform plan -out with the supplied
+// context and returns a PlanResult.
+func (tc *TestCase) PlanContext(ctx context.Context) *PlanResult {
 	tc.tb.Helper()
 
-	result, err := tc.PlanE()
+	result, err := tc.PlanContextE(ctx)
 	if err != nil {
 		tc.tb.Fatalf("plan: %v", err)
 	}
@@ -171,20 +184,18 @@ func (tc *TestCase) Plan() *PlanResult {
 	return result
 }
 
-// PlanE is the error-returning variant.
-func (tc *TestCase) PlanE() (*PlanResult, error) {
+// PlanContextE is the error-returning variant of PlanContext.
+func (tc *TestCase) PlanContextE(ctx context.Context) (*PlanResult, error) {
 	tc.tb.Helper()
 
 	tfOpts := tf.BuildPlanOptions(tc.tb, tc.work.Dir, tc.vars)
 
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
-	_, err := terraform.InitAndPlanE(tc.tb, tfOpts)
+	_, err := terraform.InitAndPlanContextE(tc.tb, ctx, tfOpts)
 	if err != nil {
 		return nil, fmt.Errorf("init and plan: %w", err)
 	}
 
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
-	planJSON, err := terraform.ShowE(tc.tb, tfOpts)
+	planJSON, err := terraform.ShowContextE(tc.tb, ctx, tfOpts)
 	if err != nil {
 		return nil, fmt.Errorf("terraform show: %w", err)
 	}
@@ -201,14 +212,31 @@ func (tc *TestCase) PlanE() (*PlanResult, error) {
 	}, nil
 }
 
-// Output reads a single Terraform output value.
-func (tc *TestCase) Output(name string) string {
+// Plan is a shim that calls PlanContext with tb.Context().
+func (tc *TestCase) Plan() *PlanResult {
+	tc.tb.Helper()
+	return tc.PlanContext(tc.tb.Context())
+}
+
+// PlanE is a shim that calls PlanContextE with tb.Context().
+func (tc *TestCase) PlanE() (*PlanResult, error) {
+	tc.tb.Helper()
+	return tc.PlanContextE(tc.tb.Context())
+}
+
+// OutputContext reads a single Terraform output value with the supplied context.
+func (tc *TestCase) OutputContext(ctx context.Context, name string) string {
 	tc.tb.Helper()
 
 	tfOpts := tf.BuildOptions(tc.tb, tc.work.Dir, tc.vars)
 
-	//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
-	return terraform.Output(tc.tb, tfOpts, name)
+	return terraform.OutputContext(tc.tb, ctx, tfOpts, name)
+}
+
+// Output is a shim that calls OutputContext with tb.Context().
+func (tc *TestCase) Output(name string) string {
+	tc.tb.Helper()
+	return tc.OutputContext(tc.tb.Context(), name)
 }
 
 // AWS returns a cached aws.Config pointed at the LocalStack container.
@@ -266,7 +294,8 @@ func (tc *TestCase) registerCleanup() {
 				return
 			}
 
-			if err := tc.stack.Stop(context.Background()); err != nil {
+			stopCtx := context.WithoutCancel(tc.tb.Context())
+			if err := tc.stack.Stop(stopCtx); err != nil {
 				tc.tb.Errorf("stop container: %v", err)
 			}
 		})
@@ -279,8 +308,8 @@ func (tc *TestCase) registerCleanup() {
 		}
 
 		tfOpts := tf.BuildOptions(tc.tb, tc.work.Dir, tc.vars)
-		//nolint:staticcheck // SA1019: terratest 1.0 *Context variants tracked for migration in INV-0004.
-		if _, err := terraform.DestroyE(tc.tb, tfOpts); err != nil {
+		ctx := context.WithoutCancel(tc.tb.Context())
+		if _, err := terraform.DestroyContextE(tc.tb, ctx, tfOpts); err != nil {
 			tc.tb.Errorf("terraform destroy: %v", err)
 		}
 	})

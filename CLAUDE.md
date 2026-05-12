@@ -8,14 +8,29 @@ libtftest is a Go library (`github.com/donaldgifford/libtftest`) that wraps Terr
 
 The module also includes `sneakystack`, a Go HTTP proxy that fills gaps in LocalStack's AWS API coverage (IAM Identity Center, Organizations, Control Tower). sneakystack ships as both an importable package and a standalone Docker container (`cmd/sneakystack/`).
 
-**Status**: IMPL-0001 (core library) merged to main. IMPL-0002 (Claude Code skills) shipped on chore/add-claude-skills + a companion feat/libtftest-plugin branch in `donaldgifford/claude-skills`. Pending: v0.1.0 tag, sneakystack service handlers (sso_admin, organizations).
+**Status**: IMPL-0001 (core library) merged to main. IMPL-0002 (Claude Code skills) shipped. PR #8 bumped terratest to v1.0.0. IMPL-0003 (terratest 1.0 context migration) complete on `docs/inv-0001-terratest-context-migration` — paired-method `*Context` API across `TestCase`, `assert/`, `fixtures/`; v0.2.0 CHANGELOG drafted; consumer plugin bumped to 0.2.0 on `feat/libtftest-plugin-v0.2.0` in claude-skills repo. Pending: v0.1.0 + v0.2.0 tags, sneakystack service handlers (sso_admin, organizations).
 
 - Design doc (core): `docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md`
 - Impl plan (core): `docs/impl/0001-libtftest-v010-core-library-implementation.md`
 - Design doc (skills): `docs/design/0002-claude-skills-for-libtftest-authors-and-consumers.md`
 - Impl plan (skills): `docs/impl/0002-claude-skills-for-libtftest-authors-and-consumers.md`
+- Investigation (terratest 1.0 ctx): `docs/investigation/0001-terratest-10-context-variant-migration.md`
+- Impl plan (terratest 1.0 ctx): `docs/impl/0003-terratest-10-context-migration.md`
 - Development guide: `docs/development/README.md`
 - Examples: `docs/examples/`
+
+### Context API surface (post-IMPL-0003 Phase 1)
+
+`TestCase` exposes both context-aware and shim methods:
+
+- `ApplyContext(ctx) *terraform.Options` / `ApplyContextE` / `Apply` / `ApplyE`
+- `PlanContext(ctx) *PlanResult` / `PlanContextE` / `Plan` / `PlanE`
+- `OutputContext(ctx, name) string` / `Output(name)`
+
+Non-context methods are permanent shims that forward to the `*Context`
+variant with `tb.Context()`. They are NOT marked `// Deprecated:`. The
+destroy cleanup uses `context.WithoutCancel(tb.Context())` so it survives
+test-end cancellation.
 
 ## Build & Development Commands
 

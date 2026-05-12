@@ -87,9 +87,25 @@ func TestModule_UsesSecret(t *testing.T) {
 
 ## Available Fixtures
 
-| Function | What it seeds | Cleanup |
-| --- | --- | --- |
-| `SeedS3Object(tb, cfg, bucket, key, body)` | S3 object | Deletes the object |
-| `SeedSSMParameter(tb, cfg, name, value, secure)` | SSM parameter (String or SecureString) | Deletes the parameter |
-| `SeedSecret(tb, cfg, name, value)` | Secrets Manager secret | Force-deletes the secret |
-| `SeedSQSMessage(tb, cfg, queueURL, body)` | SQS message | None (consumed by test) |
+Every `Seed*` function has a paired `Seed*Context` variant that accepts
+a `context.Context` as the second argument. The non-context variants are
+shims that pass `tb.Context()`.
+
+| Function | Context variant | What it seeds | Cleanup |
+| --- | --- | --- | --- |
+| `SeedS3Object(tb, cfg, bucket, key, body)` | `SeedS3ObjectContext(tb, ctx, ...)` | S3 object | Deletes the object |
+| `SeedSSMParameter(tb, cfg, name, value, secure)` | `SeedSSMParameterContext(tb, ctx, ...)` | SSM parameter (String or SecureString) | Deletes the parameter |
+| `SeedSecret(tb, cfg, name, value)` | `SeedSecretContext(tb, ctx, ...)` | Secrets Manager secret | Force-deletes the secret |
+| `SeedSQSMessage(tb, cfg, queueURL, body)` | `SeedSQSMessageContext(tb, ctx, ...)` | SQS message | None (consumed by test) |
+
+Cleanup callbacks use `context.WithoutCancel(ctx)` so they survive
+test-end cancellation.
+
+## With caller-supplied context
+
+```go
+ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+defer cancel()
+
+fixtures.SeedS3ObjectContext(t, ctx, tc.AWS(), bucket, "k", []byte("v"))
+```

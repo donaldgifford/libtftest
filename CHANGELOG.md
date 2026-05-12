@@ -1,0 +1,115 @@
+# Changelog
+
+All notable changes to libtftest are documented here. The format is
+based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
+this project adheres to [Semantic Versioning](https://semver.org/).
+While the library is pre-1.0, minor-version bumps may contain
+breaking changes; the API freeze begins at v1.0.
+
+This file is regenerated from conventional commits by `git-cliff`.
+Manual edits will be overwritten by the `Changelog Regen` workflow on
+each push to `main` — author release notes via conventional commit
+subjects and bodies instead.
+
+## [unreleased]
+
+### Features
+
+- *(testcase)* Add *Context API surface (IMPL-0003 Phase 1)
+- *(assert)* Pair every method with *Context variant (IMPL-0003 Phase 2)
+- *(fixtures)* Pair every Seed* with *Context variant (IMPL-0003 Phase 3)
+- *(testcase)* Migrate remaining context.Background sites (IMPL-0003 Phase 4)
+- *(examples)* Runnable example tests (IMPL-0003 Phase 7)
+
+### Bug Fixes
+
+- Forgot to add some permissions
+
+### Other
+
+- Additional plugins to .claude/settings.json
+
+### Documentation
+
+- Add INV-0001 + IMPL-0003 for terratest 1.0 context migration
+- *(impl)* Mark Phase 5 verification complete in IMPL-0003
+- *(examples,skills)* Document paired ctx pattern (IMPL-0003 Phase 6)
+- *(impl)* Mark Phase 8 complete in IMPL-0003
+- *(changelog)* Draft v0.2.0 entry + mark IMPL-0003 complete
+- *(impl)* Check off satisfied IMPL-0003 testing plan items
+- *(readme)* Surface terratest 1.0 ctx API + IMPL-0003 docs
+- *(examples)* Swap pre-cancel PlanContextE pattern for SDK-level cancellation
+
+### Testing
+
+- *(integration)* Replace pre-cancel plan test with custom-deadline test
+
+### Miscellaneous Tasks
+
+- Bump docker/* actions to latest majors
+- Bump aquasecurity/trivy-action to v0.36.0
+- Add git-cliff changelog automation + workflow polish
+
+## [0.0.2] - 2026-05-11
+
+### Features
+
+- *(skills)* Add libtftest:add-awsx-client local skill
+- *(skills)* Add libtftest:add-assertion local skill
+- *(skills)* Add libtftest:add-fixture local skill
+- *(agents)* Add libtftest-reviewer review agent
+- *(skills)* Add Phase 5 libtftest operational skills
+
+### Documentation
+
+- *(design,impl)* Add 0002 claude skills design and implementation plan
+- *(impl)* Mark Phase 0 complete in IMPL-0002
+- *(impl)* Mark Phase 1 local skills complete in IMPL-0002
+- *(impl)* Mark Phase 2 consumer-scaffolding skills complete in IMPL-0002
+- *(impl)* Mark Phase 3 day-2 consumer skills complete in IMPL-0002
+- *(impl)* Mark Phase 4 review agents complete in IMPL-0002
+- *(impl)* Mark Phase 5 operational skills complete in IMPL-0002
+- *(skills)* Wire up Phase 6 discovery and CI
+- *(impl)* Mark Phase 6 discovery+CI complete in IMPL-0002
+- Update CLAUDE.md status for IMPL-0002 skills work
+
+### Miscellaneous Tasks
+
+- *(skills)* Scaffold .claude/ for local skill development
+
+## [0.0.1] - 2026-04-17
+
+### Features
+
+- Initialize Go module github.com/donaldgifford/libtftest
+- Scaffold package directory structure
+- *(naming)* Implement parallel-safe prefix generation
+- *(dockerx)* Implement Docker daemon detection with error classification
+- *(logx)* Implement structured logging and artifact dumping
+- *(localstack)* Add testcontainers-go dep and edition detection
+- *(localstack)* Implement health check parsing and edition detection
+- *(localstack)* Implement container lifecycle and init hooks
+- Add testdata/mod-s3 fixture Terraform module
+- *(localstack)* Add integration tests and pin default image to 4.4
+- *(tf)* Implement workspace copy, override injection, and options
+- Implement core TestCase API with Plan, Apply, and cleanup
+- Implement awsx clients, fixtures, and assertion helpers
+- *(harness)* Implement shared-container TestMain and Sidecar interface
+- *(sneakystack)* Implement Store, proxy, sidecar, and Docker packaging
+- Finalize CI pipeline, reusable workflow, and README
+
+### Bug Fixes
+
+- Use PortEndpoint for edge port and upgrade vulnerable xz dep
+- *(ci)* Add Terraform setup to integration test jobs
+
+### Documentation
+
+- Add IMPL-0001 and update DESIGN-0001 with current API patterns
+- Add development guide, usage examples, and expand README
+
+### Miscellaneous Tasks
+
+- Verify build, lint, and golangci config for Phase 1
+- Update testing plan checklist in IMPL-0001
+
