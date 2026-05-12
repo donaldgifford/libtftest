@@ -11,44 +11,11 @@ Manual edits will be overwritten by the `Changelog Regen` workflow on
 each push to `main` — author release notes via conventional commit
 subjects and bodies instead.
 
-## [unreleased]
+## [0.1.0] - 2026-05-12
 
 ### Features
 
-- *(testcase)* Add *Context API surface (IMPL-0003 Phase 1)
-- *(assert)* Pair every method with *Context variant (IMPL-0003 Phase 2)
-- *(fixtures)* Pair every Seed* with *Context variant (IMPL-0003 Phase 3)
-- *(testcase)* Migrate remaining context.Background sites (IMPL-0003 Phase 4)
-- *(examples)* Runnable example tests (IMPL-0003 Phase 7)
-
-### Bug Fixes
-
-- Forgot to add some permissions
-
-### Other
-
-- Additional plugins to .claude/settings.json
-
-### Documentation
-
-- Add INV-0001 + IMPL-0003 for terratest 1.0 context migration
-- *(impl)* Mark Phase 5 verification complete in IMPL-0003
-- *(examples,skills)* Document paired ctx pattern (IMPL-0003 Phase 6)
-- *(impl)* Mark Phase 8 complete in IMPL-0003
-- *(changelog)* Draft v0.2.0 entry + mark IMPL-0003 complete
-- *(impl)* Check off satisfied IMPL-0003 testing plan items
-- *(readme)* Surface terratest 1.0 ctx API + IMPL-0003 docs
-- *(examples)* Swap pre-cancel PlanContextE pattern for SDK-level cancellation
-
-### Testing
-
-- *(integration)* Replace pre-cancel plan test with custom-deadline test
-
-### Miscellaneous Tasks
-
-- Bump docker/* actions to latest majors
-- Bump aquasecurity/trivy-action to v0.36.0
-- Add git-cliff changelog automation + workflow polish
+- Terratest 1.0 *Context paired-method API (IMPL-0003, v0.1.0) ([#9](https://github.com/donaldgifford/libtftest/issues/9))
 
 ## [0.0.2] - 2026-05-11
 
