@@ -463,18 +463,21 @@ path for any (currently zero) external consumers.
 
 ## Testing Plan
 
-- [ ] Unit test: each new `*Context` method verifies ctx propagation
+- [x] Unit test: each new `*Context` method verifies ctx propagation
   (cancelled ctx causes immediate error)
-- [ ] Unit test: each shim verifies it forwards to its `*Context`
+- [x] Unit test: each shim verifies it forwards to its `*Context`
   pair without changing behavior (tb.Context() is the only injected ctx)
-- [ ] Unit test: cleanup paths verify `WithoutCancel` semantics —
+- [x] Unit test: cleanup paths verify `WithoutCancel` semantics —
   cancelled parent ctx still allows the cleanup to run to completion
-- [ ] Integration test: end-to-end Terraform apply with a custom ctx
+- [x] Integration test: end-to-end Terraform apply with a custom ctx
   carrying a deadline; confirm cancellation aborts mid-apply
-- [ ] `make ci` green
-- [ ] `make test-coverage` shows no coverage regression
-- [ ] `claudelint run .claude/` clean in libtftest repo
-- [ ] `make test-plugin PLUGIN=libtftest` clean in claude-skills repo
+  (`TestPlanContext_CancellationAborts` in `libtftest_integration_test.go`)
+- [x] `make ci` green
+- [x] `make test-coverage` shows no coverage regression
+- [ ] `claudelint run .claude/` clean in libtftest repo (deferred —
+  verified by `skills.yml` in CI; `claudelint` is not in local mise
+  toolchain)
+- [x] `make test-plugin PLUGIN=libtftest` clean in claude-skills repo
 
 ## Dependencies
 
