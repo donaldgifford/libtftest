@@ -7,9 +7,15 @@ While the library is pre-1.0, minor-version bumps may contain
 breaking changes; the API freeze begins at v1.0.
 
 This file is regenerated from conventional commits by `git-cliff`.
-Manual edits will be overwritten by the `Changelog Regen` workflow on
-each push to `main` — author release notes via conventional commit
-subjects and bodies instead.
+Manual edits will be overwritten by the `Changelog Sync` job in the
+`Release` workflow after each tagged release — author release notes
+via conventional commit subjects and bodies instead.
+
+## [unreleased]
+
+### Miscellaneous Tasks
+
+- Consolidate changelog regen into release workflow (post-tag)
 
 ## [0.1.0] - 2026-05-12
 
