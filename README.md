@@ -26,8 +26,9 @@ ships as both an importable Go package and a standalone Docker container.
 go get github.com/donaldgifford/libtftest
 ```
 
-**Requirements:** Go 1.25+, Docker (for running LocalStack containers),
-Terraform CLI (installed via [mise](https://mise.jdx.dev/) or manually).
+**Requirements:** Go 1.26+ (uses `testing.TB.Context()`, requires 1.24
+minimum), Docker (for running LocalStack containers), Terraform CLI
+(installed via [mise](https://mise.jdx.dev/) or manually).
 
 ## Quick Start
 
@@ -89,6 +90,13 @@ See [docs/examples](docs/examples/) for more complete examples.
   `fixtures.SeedSecret`, `fixtures.SeedSQSMessage` with automatic `t.Cleanup`
 - **Plan testing** -- `tc.Plan()` returns parsed `PlanResult` with resource
   change counts for golden-file testing
+- **terratest 1.0 `*Context` API** -- every `TestCase` method, every
+  `assert.*` helper, and every `fixtures.Seed*` ships a paired `*Context`
+  variant (`ApplyContext`, `BucketExistsContext`, `SeedS3ObjectContext`,
+  etc.); non-context forms are permanent shims that forward to the
+  `*Context` variant with `tb.Context()`. Cleanup paths use
+  `context.WithoutCancel` so destroy + teardown survive test-end
+  cancellation. See [docs/examples/07-cancellation.md](docs/examples/07-cancellation.md).
 - **sneakystack** -- gap-filling proxy for LocalStack blind spots, usable as an
   in-process sidecar or standalone Docker container
 - **Configurable image** -- defaults to OSS LocalStack; override via
@@ -143,11 +151,15 @@ func TestMyModule(t *testing.T) {
 | Doc | Description |
 | --- | --- |
 | [Examples](docs/examples/) | Usage examples for common testing scenarios |
+| [Cancellation & ctx](docs/examples/07-cancellation.md) | `*Context` paired API, deadlines, `WithoutCancel` cleanup |
+| [CHANGELOG](CHANGELOG.md) | Released versions and migration notes |
 | [Development Guide](docs/development/) | How to develop, test, and contribute to libtftest |
 | [Design Doc (DESIGN-0001)](docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md) | Architecture and API design |
 | [Implementation Plan (IMPL-0001)](docs/impl/0001-libtftest-v010-core-library-implementation.md) | Phased implementation plan |
 | [Skills Design (DESIGN-0002)](docs/design/0002-claude-skills-for-libtftest-authors-and-consumers.md) | Claude Code skills for authors and consumers |
 | [Skills Implementation (IMPL-0002)](docs/impl/0002-claude-skills-for-libtftest-authors-and-consumers.md) | Phased plan for the skills above |
+| [Investigation (INV-0001)](docs/investigation/0001-terratest-10-context-variant-migration.md) | terratest 1.0 `*Context` migration analysis |
+| [Context Migration (IMPL-0003)](docs/impl/0003-terratest-10-context-migration.md) | Phased plan that produced the paired-method API |
 
 ## Using Claude Code with libtftest
 
