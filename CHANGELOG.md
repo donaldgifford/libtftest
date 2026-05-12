@@ -1,67 +1,115 @@
 # Changelog
 
-All notable changes to libtftest will be documented in this file.
+All notable changes to libtftest are documented here. The format is
+based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
+this project adheres to [Semantic Versioning](https://semver.org/).
+While the library is pre-1.0, minor-version bumps may contain
+breaking changes; the API freeze begins at v1.0.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and libtftest adheres to [Semantic Versioning](https://semver.org/). While
-the library is pre-1.0, minor-version bumps may contain breaking changes;
-the API freeze begins at v1.0.
+This file is regenerated from conventional commits by `git-cliff`.
+Manual edits will be overwritten by the `Changelog Regen` workflow on
+each push to `main` — author release notes via conventional commit
+subjects and bodies instead.
 
-## [Unreleased]
+## [unreleased]
 
-## [0.2.0] - 2026-05-12
+### Features
 
-Tracks IMPL-0003. Adopts terratest v1.0's `*Context` paired-method API
-across `TestCase`, `assert/`, and `fixtures/`. Non-context methods
-remain as permanent shims that forward to the `*Context` variant with
-`tb.Context()`. Cleanup paths use `context.WithoutCancel(tb.Context())`
-so destroy + fixture teardown survive test-end cancellation.
+- *(testcase)* Add *Context API surface (IMPL-0003 Phase 1)
+- *(assert)* Pair every method with *Context variant (IMPL-0003 Phase 2)
+- *(fixtures)* Pair every Seed* with *Context variant (IMPL-0003 Phase 3)
+- *(testcase)* Migrate remaining context.Background sites (IMPL-0003 Phase 4)
+- *(examples)* Runnable example tests (IMPL-0003 Phase 7)
 
-### Added
+### Bug Fixes
 
-- `TestCase.ApplyContext` / `ApplyContextE` / `PlanContext` /
-  `PlanContextE` / `OutputContext` — caller-supplied context variants
-- `assert/*` paired `*Context` methods for every helper:
-  `BucketExistsContext`, `BucketHasEncryptionContext`,
-  `BucketHasVersioningContext`, `BucketBlocksPublicAccessContext`,
-  `BucketHasTagContext`, `TableExistsContext`, `RoleExistsContext`
-  (Pro), `RoleHasInlinePolicyContext` (Pro), `ParameterExistsContext`,
-  `ParameterHasValueContext`, `FunctionExistsContext`
-- `fixtures/` paired `Seed*Context` functions for `SeedS3Object`,
-  `SeedSSMParameter`, `SeedSecret`, `SeedSQSMessage`. Cleanup callbacks
-  use `context.WithoutCancel(ctx)`
-- `docs/examples/07-cancellation.md` walking through the ctx API
-- `docs/examples/examples_integration_test.go` — runnable tests gated
-  by the `integration_examples` build tag
-- `make test-examples` target + CI step running the example tests
+- Forgot to add some permissions
 
-### Changed
+### Other
 
-- `terraform.InitAndApply`, `terraform.DestroyE`, etc. — all six call
-  sites migrated from the deprecated non-context terratest helpers to
-  their `*Context` variants
-- Container startup (`New()`) and container teardown (`stack.Stop` in
-  cleanup) now thread `tb.Context()` / `WithoutCancel(tb.Context())`
-  instead of `context.Background()`
-- Local skill templates (`libtftest:add-assertion`,
-  `libtftest:add-fixture`) emit paired methods by default
-- `.golangci.yml` — `context-as-argument` revive rule allows
-  `testing.{T,B,F,TB}` before `context.Context`
+- Additional plugins to .claude/settings.json
 
-### Removed
+### Documentation
 
-- Six `//nolint:staticcheck` SA1019 suppressions added by PR #8 (the
-  terratest v1.0 bump). The deprecated `*` non-context terratest
-  helpers are no longer called directly from libtftest
+- Add INV-0001 + IMPL-0003 for terratest 1.0 context migration
+- *(impl)* Mark Phase 5 verification complete in IMPL-0003
+- *(examples,skills)* Document paired ctx pattern (IMPL-0003 Phase 6)
+- *(impl)* Mark Phase 8 complete in IMPL-0003
+- *(changelog)* Draft v0.2.0 entry + mark IMPL-0003 complete
+- *(impl)* Check off satisfied IMPL-0003 testing plan items
+- *(readme)* Surface terratest 1.0 ctx API + IMPL-0003 docs
+- *(examples)* Swap pre-cancel PlanContextE pattern for SDK-level cancellation
 
-### Migration notes
+### Testing
 
-The non-context API is unchanged — existing tests calling `tc.Apply()`,
-`assert.S3.BucketExists`, `fixtures.SeedS3Object`, etc., continue to
-work without source modification. New tests should prefer the `*Context`
-variants when the test cares about deadlines, tracing, or external
-cancellation; otherwise the shim form is equivalent.
+- *(integration)* Replace pre-cancel plan test with custom-deadline test
 
-## [0.1.0] - TBD
+### Miscellaneous Tasks
 
-First public release. Tracked by IMPL-0001. Tag pending.
+- Bump docker/* actions to latest majors
+- Bump aquasecurity/trivy-action to v0.36.0
+- Add git-cliff changelog automation + workflow polish
+
+## [0.0.2] - 2026-05-11
+
+### Features
+
+- *(skills)* Add libtftest:add-awsx-client local skill
+- *(skills)* Add libtftest:add-assertion local skill
+- *(skills)* Add libtftest:add-fixture local skill
+- *(agents)* Add libtftest-reviewer review agent
+- *(skills)* Add Phase 5 libtftest operational skills
+
+### Documentation
+
+- *(design,impl)* Add 0002 claude skills design and implementation plan
+- *(impl)* Mark Phase 0 complete in IMPL-0002
+- *(impl)* Mark Phase 1 local skills complete in IMPL-0002
+- *(impl)* Mark Phase 2 consumer-scaffolding skills complete in IMPL-0002
+- *(impl)* Mark Phase 3 day-2 consumer skills complete in IMPL-0002
+- *(impl)* Mark Phase 4 review agents complete in IMPL-0002
+- *(impl)* Mark Phase 5 operational skills complete in IMPL-0002
+- *(skills)* Wire up Phase 6 discovery and CI
+- *(impl)* Mark Phase 6 discovery+CI complete in IMPL-0002
+- Update CLAUDE.md status for IMPL-0002 skills work
+
+### Miscellaneous Tasks
+
+- *(skills)* Scaffold .claude/ for local skill development
+
+## [0.0.1] - 2026-04-17
+
+### Features
+
+- Initialize Go module github.com/donaldgifford/libtftest
+- Scaffold package directory structure
+- *(naming)* Implement parallel-safe prefix generation
+- *(dockerx)* Implement Docker daemon detection with error classification
+- *(logx)* Implement structured logging and artifact dumping
+- *(localstack)* Add testcontainers-go dep and edition detection
+- *(localstack)* Implement health check parsing and edition detection
+- *(localstack)* Implement container lifecycle and init hooks
+- Add testdata/mod-s3 fixture Terraform module
+- *(localstack)* Add integration tests and pin default image to 4.4
+- *(tf)* Implement workspace copy, override injection, and options
+- Implement core TestCase API with Plan, Apply, and cleanup
+- Implement awsx clients, fixtures, and assertion helpers
+- *(harness)* Implement shared-container TestMain and Sidecar interface
+- *(sneakystack)* Implement Store, proxy, sidecar, and Docker packaging
+- Finalize CI pipeline, reusable workflow, and README
+
+### Bug Fixes
+
+- Use PortEndpoint for edge port and upgrade vulnerable xz dep
+- *(ci)* Add Terraform setup to integration test jobs
+
+### Documentation
+
+- Add IMPL-0001 and update DESIGN-0001 with current API patterns
+- Add development guide, usage examples, and expand README
+
+### Miscellaneous Tasks
+
+- Verify build, lint, and golangci config for Phase 1
+- Update testing plan checklist in IMPL-0001
+
