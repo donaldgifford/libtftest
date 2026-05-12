@@ -11,12 +11,11 @@ Manual edits will be overwritten by the `Changelog Sync` job in the
 `Release` workflow after each tagged release — author release notes
 via conventional commit subjects and bodies instead.
 
-## [unreleased]
+## [0.1.1] - 2026-05-12
 
 ### Miscellaneous Tasks
 
-- Consolidate changelog regen into release workflow (post-tag)
-- *(release)* Fix docker target + repo path + add cosign signing
+- Consolidate changelog regen into release workflow ([#10](https://github.com/donaldgifford/libtftest/issues/10))
 
 ## [0.1.0] - 2026-05-12
 
