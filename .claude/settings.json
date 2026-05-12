@@ -17,5 +17,37 @@
     "todo-comments@donaldgifford-claude-skills": true,
     "infrastructure-as-code@donaldgifford-claude-skills": true,
     "docz@donaldgifford-claude-skills": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(docz template:*)",
+      "Bash(docz create:*)",
+      "Bash(docz update:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(go mod:*)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(make fmt:*)",
+      "Bash(make lint:*)",
+      "Bash(go get:*)",
+      "Bash(make test:*)",
+      "Bash(make build:*)",
+      "Bash(make release-check:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh run:*)",
+      "Bash(docz --help)",
+      "Bash(claudelint run *)",
+      "Bash(git *)",
+      "Bash(make bump-localstack *)",
+      "Bash(make ci *)",
+      "Bash(gh label *)",
+      "Bash(go version *)",
+      "Bash(go vet *)",
+      "Bash(uv run *)",
+      "Bash(make test-plugin *)"
+    ]
   }
 }
