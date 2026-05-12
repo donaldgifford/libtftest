@@ -1,4 +1,5 @@
 ---
+# $schema=https://schemastore.org/https://www.schemastore.org/github-action.json
 name: Local Skills
 
 on:
@@ -51,7 +52,7 @@ jobs:
           done
 
       - name: Verify each agent has frontmatter
-        run: |
+        run: |-
           set -e
           for agent_md in .claude/agents/*.md; do
             agent_name="$(basename "$agent_md" .md)"

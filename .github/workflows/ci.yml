@@ -1,4 +1,5 @@
 ---
+# $schema=https://schemastore.org/https://www.schemastore.org/github-action.json
 name: CI
 
 on:
@@ -55,7 +56,7 @@ jobs:
         with:
           files: coverage.out
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: donaldgifford/
+          slug: donaldgifford/libtftest
         continue-on-error: true
 
   test-integration:
