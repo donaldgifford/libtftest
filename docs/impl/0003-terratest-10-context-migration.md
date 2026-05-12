@@ -1,7 +1,7 @@
 ---
 id: IMPL-0003
 title: "Terratest 1.0 Context Migration"
-status: Draft
+status: Completed
 author: Donald Gifford
 created: 2026-05-11
 ---
@@ -9,7 +9,7 @@ created: 2026-05-11
 
 # IMPL 0003: Terratest 1.0 Context Migration
 
-**Status:** Draft
+**Status:** Completed
 **Author:** Donald Gifford
 **Date:** 2026-05-11
 
@@ -403,19 +403,17 @@ path for any (currently zero) external consumers.
 
 #### Tasks
 
-- [ ] Add a `## [0.2.0]` section to `CHANGELOG.md` listing:
+- [x] Add a `## [0.2.0]` section to `CHANGELOG.md` listing:
   - Added: `*Context` paired methods on `TestCase`, `assert/`, `fixtures/`
   - Changed: non-context methods now delegate to `*Context` variants
     internally with `tb.Context()`; cleanup paths use
     `context.WithoutCancel`
   - Removed: the six SA1019 nolints from PR #8
-- [ ] Update `CLAUDE.md` Status line to mention IMPL-0003 complete /
-  in-progress as appropriate
-- [ ] Update `/Users/donaldgifford/.claude/projects/-Users-donaldgifford-code-libtftest/memory/MEMORY.md`
-  pointer to a new memory entry summarizing the migration shape (so
-  future sessions know about the paired pattern without re-deriving it)
-- [ ] Tag `v0.2.0` once IMPL is fully complete and merged (via
-  `libtftest:release` skill)
+- [x] Update `CLAUDE.md` Status line to mention IMPL-0003 complete
+- [ ] Update memory `MEMORY.md` pointer to a new memory entry
+  summarizing the migration shape (deferred to post-merge)
+- [ ] Tag `v0.2.0` once IMPL is fully complete and merged (deferred —
+  done via `libtftest:release` skill after PR merges)
 
 #### Success Criteria
 
