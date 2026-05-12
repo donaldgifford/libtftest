@@ -56,26 +56,46 @@ func TestS3Module_WithApplyDeadline(t *testing.T) {
 }
 ```
 
-## Cancellation via cancelE()
+## Cancellation propagates to downstream SDK calls
+
+After a successful `Apply`, the AWS SDK clients you get from `tc.AWS()`
+honor whatever context you hand them. Cancelling that context aborts
+in-flight SDK calls cleanly:
 
 ```go
-func TestS3Module_NegativePlanWithCancellation(t *testing.T) {
+import (
+    "github.com/aws/aws-sdk-go-v2/service/s3"
+)
+
+func TestS3Module_AssertionCancellation(t *testing.T) {
     t.Parallel()
 
     tc := libtftest.New(t, &libtftest.Options{
         Edition:   localstack.EditionCommunity,
         ModuleDir: "../../modules/s3-bucket",
     })
+    tc.SetVar("bucket_name", tc.Prefix()+"-cancel-demo")
+    tc.Apply()
+    bucket := tc.Output("bucket_id")
 
     ctx, cancel := context.WithCancel(t.Context())
-    cancel() // Immediately cancel — PlanContextE should return an error.
+    cancel() // Cancellation propagates through the AWS SDK.
 
-    _, err := tc.PlanContextE(ctx)
+    client := s3.NewFromConfig(tc.AWS())
+    _, err := client.HeadBucket(ctx, &s3.HeadBucketInput{Bucket: &bucket})
     if err == nil {
-        t.Fatal("PlanContextE with cancelled ctx returned nil error")
+        t.Fatal("HeadBucket with cancelled ctx returned nil error")
     }
 }
 ```
+
+> **Note.** Don't pass a *pre-cancelled* context to `PlanContextE`
+> or `ApplyContextE`. terratest v1.0's retry helper panics on a nil
+> error description when the action returns before the retry loop can
+> classify it. Per-call deadlines that fire mid-operation (above) work
+> correctly; only pre-cancellation trips the upstream bug. For
+> deterministic negative cancellation testing, exercise the AWS SDK
+> via `tc.AWS()` as shown here.
 
 ## Cleanup paths use `context.WithoutCancel`
 

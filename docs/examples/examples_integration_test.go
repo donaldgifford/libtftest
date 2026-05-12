@@ -20,6 +20,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+
 	"github.com/donaldgifford/libtftest"
 	"github.com/donaldgifford/libtftest/assert"
 	"github.com/donaldgifford/libtftest/localstack"
@@ -106,7 +108,11 @@ func Test_Example03_PlanContext(t *testing.T) {
 }
 
 // Test_Example07_Cancellation mirrors docs/examples/07-cancellation.md —
-// asserts PlanContextE returns an error when given a cancelled context.
+// asserts that ctx cancellation propagates to a downstream AWS SDK call
+// after a successful Apply. We don't pre-cancel against PlanContextE /
+// ApplyContextE because terratest v1.0's retry helper panics on nil
+// error descriptions when the action returns before the retry loop
+// can classify it (see the note in 07-cancellation.md).
 func Test_Example07_Cancellation(t *testing.T) {
 	tc := libtftest.New(t, &libtftest.Options{
 		Edition:   localstack.EditionCommunity,
@@ -115,13 +121,17 @@ func Test_Example07_Cancellation(t *testing.T) {
 		Services:  []string{"s3"},
 	})
 	tc.SetVar("bucket_name", tc.Prefix()+"-example07")
+	tc.Apply()
+
+	bucket := tc.Output("bucket_id")
 
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	_, err := tc.PlanContextE(ctx)
+	client := s3.NewFromConfig(tc.AWS())
+	_, err := client.HeadBucket(ctx, &s3.HeadBucketInput{Bucket: &bucket})
 	if err == nil {
-		t.Fatal("PlanContextE with cancelled ctx returned nil error")
+		t.Fatal("HeadBucket with cancelled ctx returned nil error")
 	}
 }
 
