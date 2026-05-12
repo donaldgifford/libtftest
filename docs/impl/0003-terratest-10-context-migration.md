@@ -369,31 +369,21 @@ templates and `tftest-add-test` — so users get consistent output.
 
 #### Tasks
 
-- [ ] Update `plugins/libtftest/skills/tftest-scaffold/references/layouts/single/module_test.go.tmpl`
-  to emit both the simple `tc.Apply()` call AND a commented-out
-  `tc.ApplyContext(ctx)` example with a brief explanation
-- [ ] Add a section to `tftest-scaffold/SKILL.md` describing the
-  paired pattern and when to reach for `*Context`
-- [ ] Update `tftest-add-assertion/SKILL.md` and its template to emit
-  the paired form by default
-- [ ] Update `tftest-add-fixture/SKILL.md` and its template to emit
-  paired `Seed*` and `Seed*Context` calls
-- [ ] Update `tftest-add-test/SKILL.md` and its scaffold logic to
-  generate ctx-aware tests by default (with the simple shim form
-  shown as the "minimal" variant for clarity)
-- [ ] Update `tftest-debug/SKILL.md` if it surfaces any
-  ctx-relevant guidance (e.g., cancellation/timeouts during debug)
-- [ ] Bump `plugins/libtftest/.claude-plugin/plugin.json` version to
-  `0.2.0`
-- [ ] Update `plugins/libtftest/CHANGELOG.md` with a `0.2.0` entry
-  describing the new pattern and the libtftest version pin
-- [ ] Update the version pin in each skill body — supports
-  `libtftest >= 0.2.0 < 1.0.0` now (encoded in skill bodies,
-  runtime-checked via `go list -m`)
-- [ ] Re-run the marketplace sync script
-  (`uv run python scripts/sync_readme_and_changelog.py`) and verify no
-  drift
-- [ ] Run `make test-plugin PLUGIN=libtftest`
+- [x] Update `plugins/libtftest/skills/tftest-scaffold/references/layouts/single/module_test.go.tmpl`
+  to emit both the simple `tc.Apply()` call AND a commented `*Context`
+  example with a brief explanation
+- [x] Update `tftest`, `tftest-add-assertion`, `tftest-add-fixture`,
+  `tftest-add-test` SKILL.md bodies to document the paired pattern
+- [x] `tftest-debug`, `tftest-enable-pro`, `tftest-enable-sneakystack`,
+  `tftest-scaffold`, `tftest-upgrade` had no API code blocks needing
+  ctx changes; their version range refs were updated
+- [x] Bump `plugins/libtftest/.claude-plugin/plugin.json` to `0.2.0`
+- [x] Update `plugins/libtftest/CHANGELOG.md` with a `0.2.0` entry
+- [x] Update the version pin from `>=0.1.0, <0.3.0` to
+  `>=0.2.0, <1.0.0` across every skill body, `_version-check.md`,
+  README, and the reviewer agent
+- [x] Re-run the marketplace sync (`scripts/sync_readme.py`) — no drift
+- [x] Run `make test-plugin PLUGIN=libtftest` — all 5 tests pass
 
 #### Success Criteria
 
