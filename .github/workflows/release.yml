@@ -122,6 +122,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [bump-version, release]
     if: needs.bump-version.outputs.skipped != 'true'
+    permissions:
+      contents: read
+      packages: write
+      # Required for cosign keyless signing (OIDC token).
+      id-token: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -132,6 +137,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
@@ -144,7 +152,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/donaldgifford/
+          images: ghcr.io/donaldgifford/sneakystack
           tags: |
             type=semver,pattern={{version}},value=${{ needs.bump-version.outputs.tag }}
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.bump-version.outputs.tag }}
@@ -153,7 +161,7 @@ jobs:
       - name: Build and push Docker images
         uses: docker/bake-action@v7
         with:
-          targets: release
+          targets: default
           source: .
           files: |
             docker-bake.hcl
@@ -162,3 +170,12 @@ jobs:
           set: |-
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+            *.output=type=registry
+
+      - name: Sign image with cosign (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |-
+          for tag in $(echo '${{ steps.meta.outputs.tags }}' | tr '\n' ' '); do
+            cosign sign --yes "$tag"
+          done
