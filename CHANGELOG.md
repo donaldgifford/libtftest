@@ -16,6 +16,7 @@ via conventional commit subjects and bodies instead.
 ### Miscellaneous Tasks
 
 - Consolidate changelog regen into release workflow (post-tag)
+- *(release)* Fix docker target + repo path + add cosign signing
 
 ## [0.1.0] - 2026-05-12
 
