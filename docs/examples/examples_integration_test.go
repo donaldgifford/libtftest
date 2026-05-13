@@ -20,11 +20,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/donaldgifford/libtftest"
 	s3assert "github.com/donaldgifford/libtftest/assert/s3"
 	ssmassert "github.com/donaldgifford/libtftest/assert/ssm"
+	tagsassert "github.com/donaldgifford/libtftest/assert/tags"
 	"github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -168,6 +170,21 @@ func Test_Example08_Idempotency(t *testing.T) {
 	if result := tc.Plan(); result.Changes.Add < 1 {
 		t.Errorf("Plan().Changes.Add = %d, want >= 1", result.Changes.Add)
 	}
+}
+
+// Test_Example09_TagPropagation mirrors docs/examples/09-tag-propagation.md.
+// Substantive coverage of the comparison logic lives in
+// assert/tags/tags_test.go (TestDiffTags + multi-arn aggregation). This
+// example test ensures the documented public surface compiles and the
+// shim/Context pair are reachable from a consumer-style import.
+func Test_Example09_TagPropagation(t *testing.T) {
+	t.Parallel()
+
+	//nolint:staticcheck // QF1011: explicit types are the assertion.
+	var (
+		_ func(testing.TB, aws.Config, map[string]string, ...string)                  = tagsassert.PropagatesFromRoot
+		_ func(testing.TB, context.Context, aws.Config, map[string]string, ...string) = tagsassert.PropagatesFromRootContext
+	)
 }
 
 // Test_AssertSurface is a compile-time guard that the per-service

@@ -38,6 +38,7 @@ terraform-aws-my-module/
 | [sneakystack Sidecar](06-sneakystack.md) | Fill LocalStack gaps with sneakystack |
 | [Cancellation and Deadlines](07-cancellation.md) | Per-call deadlines via the `*Context` API variants |
 | [Idempotency Assertions](08-idempotency.md) | `tc.AssertIdempotent` and `tc.AssertIdempotentApply` |
+| [Tag Propagation](09-tag-propagation.md) | `tagsassert.PropagatesFromRoot` via the Resource Groups Tagging API |
 
 ## Running the Examples
 

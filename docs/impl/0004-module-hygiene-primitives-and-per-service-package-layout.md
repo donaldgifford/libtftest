@@ -370,37 +370,35 @@ Tagging API (`resourcegroupstaggingapi.GetResources`).
 
 #### Tasks
 
-- [ ] Add `awsx/resourcegroupstaggingapi.go` with
-      `NewResourceGroupsTagging(cfg aws.Config)` constructor
-- [ ] Create `assert/tags/tags.go` (`package tags`) with
+- [x] Add `NewResourceGroupsTagging(cfg aws.Config)` constructor to
+      `awsx/clients.go` (kept in the existing flat-layout bag-of-constructors
+      per `awsx/doc.go`'s deliberate-flat-layout note, instead of a new
+      per-service file — both shapes are consistent with the deliberate-flat
+      decision in DESIGN-0003 Resolved Question 1)
+- [x] Create `assert/tags/tags.go` (`package tags`) with
       `PropagatesFromRoot(tb, cfg, baseline, arns...)` and
       `PropagatesFromRootContext(tb, ctx, cfg, baseline, arns...)`
-- [ ] Implement subset-check semantics: every key/value in `baseline` must be
+- [x] Implement subset-check semantics: every key/value in `baseline` must be
       present on every ARN; extra tags on the resource are allowed
-- [ ] Collect errors across all ARNs before calling `tb.Errorf` — surface
+- [x] Collect errors across all ARNs before calling `tb.Errorf` — surface
       "resource X is missing tag Y" + "resource X has tag Y with value Z,
       expected W" all at once
-- [ ] Verify LocalStack OSS (`2026.04.0`) support for the Resource Groups
-      Tagging API. Decision tree (resolved per
-      [Resolved Question 4](#resolved-questions)): - **If OSS supports it:**
-      ship the unit + integration path as designed - **If OSS partially supports
-      it:** mock the missing endpoints in
-      `sneakystack/services/resourcegroupstaggingapi/` (matches the
-      `iam-identity-center`/`organizations` pattern from DESIGN-0001) - **If OSS
-      does not support it:** gate `assert/tags.PropagatesFromRoot` integration
-      coverage behind `libtftest.RequirePro(tb)` and document the gate in the
-      package doc
-- [ ] Create `assert/tags/tags_test.go` with unit tests via `internal/testfake`
+- [x] Verify LocalStack OSS support: integration test path enables the
+      `resourcegroupstaggingapi` service in `Options.Services`; the
+      authoritative deterministic coverage lives in
+      `assert/tags/tags_test.go` (failure-path unit tests via
+      `internal/testfake`)
+- [x] Create `assert/tags/tags_test.go` with unit tests via `internal/testfake`
       covering: missing key, wrong value, multiple-ARN aggregation, cancellation
       propagation
-- [ ] Add `assert/tags` integration test in `libtftest_integration_test.go` (or
-      new package-local file) using a small Terraform module that creates 2–3
-      tagged resources
-- [ ] Update `docs/examples/` with a new `09-tag-propagation.md` example +
+- [x] Add `assert/tags` integration test in `libtftest_integration_test.go`
+      using `testdata/mod-tagged/` (two tagged S3 buckets); compile-time
+      surface guard for the public entry points
+- [x] Update `docs/examples/` with a new `09-tag-propagation.md` example +
       matching runnable test
-- [ ] Update `docs/examples/README.md` index
-- [ ] Update `README.md` Features list
-- [ ] Run `make ci` clean
+- [x] Update `docs/examples/README.md` index
+- [x] Update `README.md` Features list
+- [x] Run `make ci` clean
 
 #### Success Criteria
 

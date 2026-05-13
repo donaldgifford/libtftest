@@ -98,6 +98,11 @@ See [docs/examples](docs/examples/) for more complete examples.
   (Plan -> Apply -> Plan, both plans empty). Both ship `*Context` variants
   for per-call deadlines. See
   [docs/examples/08-idempotency.md](docs/examples/08-idempotency.md).
+- **Tag propagation assertion** -- `tagsassert.PropagatesFromRoot` calls the
+  AWS Resource Groups Tagging API once and verifies a baseline tag map is
+  present on every listed ARN. Subset check (extra tags allowed), aggregated
+  failure messages, paired `*Context` variant. See
+  [docs/examples/09-tag-propagation.md](docs/examples/09-tag-propagation.md).
 - **terratest 1.0 `*Context` API** -- every `TestCase` method, every
   per-service assertion, and every per-service fixture ships a paired `*Context`
   variant (`ApplyContext`, `BucketExistsContext`, `SeedObjectContext`,
