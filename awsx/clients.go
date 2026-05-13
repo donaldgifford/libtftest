@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -70,4 +71,9 @@ func NewKinesis(cfg aws.Config) *kinesis.Client {
 // NewSTS creates an STS client.
 func NewSTS(cfg aws.Config) *sts.Client {
 	return sts.NewFromConfig(cfg)
+}
+
+// NewResourceGroupsTagging creates a Resource Groups Tagging API client.
+func NewResourceGroupsTagging(cfg aws.Config) *resourcegroupstaggingapi.Client {
+	return resourcegroupstaggingapi.NewFromConfig(cfg)
 }

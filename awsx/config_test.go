@@ -68,3 +68,17 @@ func TestNewSTS(t *testing.T) {
 		t.Fatal("NewSTS() returned nil")
 	}
 }
+
+func TestNewResourceGroupsTagging(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := New(context.Background(), "http://localhost:4566")
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	client := NewResourceGroupsTagging(cfg)
+	if client == nil {
+		t.Fatal("NewResourceGroupsTagging() returned nil")
+	}
+}
