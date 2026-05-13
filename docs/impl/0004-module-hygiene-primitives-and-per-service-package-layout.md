@@ -192,18 +192,18 @@ without duplication.
 - [x] Create `assert/lambda/lambda.go` (`package lambda`) with `FunctionExists`,
       `FunctionExistsContext`
 - [x] Create `assert/lambda/lambda_test.go`
-- [ ] Delete `assert/s3.go`, `assert/dynamodb.go`, `assert/iam.go`,
+- [x] Delete `assert/s3.go`, `assert/dynamodb.go`, `assert/iam.go`,
       `assert/ssm.go`, `assert/lambda.go`
-- [ ] Delete `assert/assert.go` if it only held the zero-size struct vars
+- [x] Delete `assert/assert.go` if it only held the zero-size struct vars
       (`var S3 = s3Asserts{}` etc.); keep otherwise
-- [ ] Delete `assert/assert_test.go` once `fakeTB` is migrated and every
+- [x] Delete `assert/assert_test.go` once `fakeTB` is migrated and every
       per-service file has its coverage
-- [ ] Add `assert/s3/doc.go`, `assert/dynamodb/doc.go`, `assert/iam/doc.go`,
+- [x] Add `assert/s3/doc.go`, `assert/dynamodb/doc.go`, `assert/iam/doc.go`,
       `assert/ssm/doc.go`, `assert/lambda/doc.go`, and
       `internal/testfake/doc.go` — one per new package, each containing only the
       `package <name>` declaration and a multi-paragraph godoc-compliant package
       comment (per the [INV-0003][inv-0003] convention now adopted repo-wide)
-- [ ] Add `// libtftest:requires pro <reason>` markers on `assert/iam` functions
+- [x] Add `// libtftest:requires pro <reason>` markers on `assert/iam` functions
       that call `libtftest.RequirePro(tb)` (per the [INV-0004][inv-0004] marker
       convention)
 

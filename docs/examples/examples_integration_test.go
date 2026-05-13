@@ -23,7 +23,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/donaldgifford/libtftest"
-	"github.com/donaldgifford/libtftest/assert"
+	s3assert "github.com/donaldgifford/libtftest/assert/s3"
+	ssmassert "github.com/donaldgifford/libtftest/assert/ssm"
 	"github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -135,20 +136,20 @@ func Test_Example07_Cancellation(t *testing.T) {
 	}
 }
 
-// Test_AssertSurface is a compile-time guard that the assert.* shim and
-// *Context variants surfaced in examples 01, 02, 04 all still exist and
-// have the documented signatures.
+// Test_AssertSurface is a compile-time guard that the per-service
+// assert sub-packages and *Context variants surfaced in examples
+// 01, 02, 04 all still exist and have the documented signatures.
 func Test_AssertSurface(t *testing.T) {
 	t.Parallel()
 
-	// Compile-time only — references the methods to ensure they exist.
+	// Compile-time only — references the functions to ensure they exist.
 	//nolint:staticcheck // QF1011: explicit types are the assertion.
 	var (
-		_ = assert.S3.BucketExists
-		_ = assert.S3.BucketExistsContext
-		_ = assert.S3.BucketHasVersioning
-		_ = assert.S3.BucketHasVersioningContext
-		_ = assert.SSM.ParameterHasValue
-		_ = assert.SSM.ParameterHasValueContext
+		_ = s3assert.BucketExists
+		_ = s3assert.BucketExistsContext
+		_ = s3assert.BucketHasVersioning
+		_ = s3assert.BucketHasVersioningContext
+		_ = ssmassert.ParameterHasValue
+		_ = ssmassert.ParameterHasValueContext
 	)
 }
