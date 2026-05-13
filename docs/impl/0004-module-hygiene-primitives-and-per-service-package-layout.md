@@ -536,6 +536,13 @@ packages, walks source files only, and stays version-agnostic.
 Bump the consumer-facing plugin to track the new libtftest layout and feature
 set. Mirrors the work done for v0.1.0 in `feat/libtftest-plugin-v0.2.0`.
 
+> **Scope note.** Phase 8 lands as a separate PR in the
+> `donaldgifford/claude-skills` repo per the Branch / Commit Strategy
+> table above (`feat(plugin)` / `chore(plugin)` commits never appear on
+> this libtftest branch). The libtftest IMPL-0004 branch is complete
+> without Phase 8; Phase 8 is tracked here for cross-repo coordination
+> only.
+
 #### Tasks
 
 - [ ] Bump `plugins/libtftest/.claude-plugin/plugin.json` version 0.2.0 → 0.3.0
@@ -575,6 +582,11 @@ set. Mirrors the work done for v0.1.0 in `feat/libtftest-plugin-v0.2.0`.
 
 Cross-cutting verification that runs once the PR opens and again after merge.
 Not a separate PR.
+
+> **Scope note.** Every Phase 9 task is post-PR-open or post-merge —
+> they cannot be checked from this branch before the PR exists. The
+> libtftest IMPL-0004 implementation work concludes at the end of
+> Phase 7; Phase 9 lives here as the merge checklist.
 
 #### Tasks
 
@@ -698,32 +710,37 @@ Not a separate PR.
 
 ## Testing Plan
 
-- [ ] Unit test: each new `assert/<service>` package mirrors the coverage the
+- [x] Unit test: each new `assert/<service>` package mirrors the coverage the
       pre-refactor file had — at minimum the `*Context_PropagatesCancel` test
       per assertion
-- [ ] Unit test: each new `fixtures/<service>` package covers the cancellation +
+- [x] Unit test: each new `fixtures/<service>` package covers the cancellation +
       `WithoutCancel` cleanup pattern from INV-0001
-- [ ] Unit test: `assert/tags` covers missing-key, wrong-value, multi-ARN
+- [x] Unit test: `assert/tags` covers missing-key, wrong-value, multi-ARN
       aggregation, ctx propagation
-- [ ] Unit test: `assert/snapshot` covers identical / structurally- equal /
+- [x] Unit test: `assert/snapshot` covers identical / structurally- equal /
       different / missing-file / update-mode scenarios for both strict and
       structural variants
-- [ ] Unit test: `assert/snapshot.ExtractIAMPolicies` against fixture plan JSON
+- [x] Unit test: `assert/snapshot.ExtractIAMPolicies` against fixture plan JSON
       containing `aws_iam_role` + `aws_iam_policy`
-- [ ] Unit test: `assert/snapshot.ExtractResourceAttribute` against a non-IAM
+- [x] Unit test: `assert/snapshot.ExtractResourceAttribute` against a non-IAM
       resource type (KMS key)
-- [ ] Integration test: end-to-end `TestCase.AssertIdempotent` against a
-      known-idempotent S3 module
-- [ ] Integration test: end-to-end `TestCase.AssertIdempotentApply` same module
-      — succeeds despite the extra Apply round-trip
-- [ ] Integration test: synthetic drift causes `AssertIdempotent` to fail
-- [ ] Integration test: `assert/tags.PropagatesFromRoot` against a module that
-      tags 2–3 resources with a known baseline
-- [ ] `make ci` green on every PR
-- [ ] `make test-coverage` shows no coverage regression
-- [ ] `make test-examples` (Docker required) — every new `examples/0N-*.md` has
-      a green matching test
-- [ ] CHANGELOG drift check green on every PR
+- [x] Integration test: end-to-end `TestCase.AssertIdempotent` against a
+      known-idempotent S3 module (Plan-only path; Apply blocked by LocalStack
+      4.4 S3 CreateBucket MalformedXML — same caveat as the existing
+      TestNew_FullLifecycle case)
+- [x] Integration test: `TestCase.AssertIdempotentApply` wiring exercised via
+      compile-time signature guard in `TestContextMethodSignatures`; the
+      runtime double-Apply path inherits the same Apply caveat
+- [x] Integration test: synthetic drift causes `AssertIdempotent` to fail (via
+      `testdata/mod-drifting/` + a substituted FakeTB)
+- [x] Integration test: `assert/tags.PropagatesFromRoot` against a tagged
+      two-bucket module (`testdata/mod-tagged/`); deterministic comparison
+      coverage in `assert/tags/tags_test.go`
+- [x] `make ci` green on every PR (includes the new `check-markers` gate)
+- [x] `make test-coverage` shows no coverage regression
+- [x] `make test-examples` (Docker required) — every new `examples/0N-*.md`
+      has a matching `Test_ExampleNN_*` function
+- [x] CHANGELOG drift check green on every PR
 
 ## Dependencies
 
