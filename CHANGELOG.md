@@ -23,6 +23,7 @@ via conventional commit subjects and bodies instead.
 - *(inv)* INV-0002 — concrete image tags, edition gating, layout decision
 - *(design)* Add DESIGN-0003 for layout refactor + 3 hygiene primitives
 - *(design)* Resolve DESIGN-0003 open questions
+- *(impl)* Add IMPL-0004 for layout refactor + hygiene primitives
 
 ### Miscellaneous Tasks
 
