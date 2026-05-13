@@ -13,7 +13,7 @@ enabling:
 - **Tracing propagation** — pass an OTel context through so terraform
   operations show up in distributed traces
 
-Non-context methods (`tc.Apply`, `assert.S3.BucketExists`, `fixtures.SeedS3Object`,
+Non-context methods (`tc.Apply`, `s3assert.BucketExists`, `s3fix.SeedObject`,
 etc.) are permanent shims that internally call the `*Context` variant
 with `tb.Context()`. Use whichever fits the test.
 
@@ -30,7 +30,7 @@ import (
     "time"
 
     "github.com/donaldgifford/libtftest"
-    "github.com/donaldgifford/libtftest/assert"
+    s3assert "github.com/donaldgifford/libtftest/assert/s3"
     "github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -52,7 +52,7 @@ func TestS3Module_WithApplyDeadline(t *testing.T) {
     // Assertions can use either tb.Context() (via the shim) or an
     // explicit context — both are fine.
     bucket := tc.OutputContext(applyCtx, "bucket_id")
-    assert.S3.BucketExistsContext(t, applyCtx, tc.AWS(), bucket)
+    s3assert.BucketExistsContext(t, applyCtx, tc.AWS(), bucket)
 }
 ```
 
@@ -101,7 +101,7 @@ func TestS3Module_AssertionCancellation(t *testing.T) {
 
 The `terraform destroy` callback that libtftest registers via `t.Cleanup`
 uses `context.WithoutCancel(tb.Context())`. The same applies to
-`fixtures.Seed*Context` cleanup callbacks. This means:
+`fixtures/<service>.Seed*Context` cleanup callbacks. This means:
 
 - Cancelling the test context does **not** cancel the destroy step
 - Trace/value plumbing on `tb.Context()` is preserved through cleanup
@@ -110,7 +110,7 @@ uses `context.WithoutCancel(tb.Context())`. The same applies to
 Test starts                tb.Context() = ctxA  (cancelled on test end)
   ctx := WithTimeout(ctxA)              = ctxB  (also cancelled on ctxA cancel)
   tc.ApplyContext(ctx)                  // honors ctxB cancellation
-  fixtures.SeedS3ObjectContext(t, ctx, ...)
+  s3fix.SeedObjectContext(t, ctx, ...)
                                         // cleanup uses WithoutCancel(ctx)
                                         // -> survives test end
 Test ends                  // ctxA, ctxB cancel

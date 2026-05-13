@@ -260,18 +260,18 @@ touching call sites again.
 
 #### Tasks
 
-- [ ] `grep -rn 'assert\.\(S3\|DynamoDB\|IAM\|SSM\|Lambda\)\.' .` — enumerate
+- [x] `grep -rn 'assert\.\(S3\|DynamoDB\|IAM\|SSM\|Lambda\)\.' .` — enumerate
       every remaining call site (likely only in docs + examples after Phases
       1–2)
-- [ ] `grep -rn 'fixtures\.Seed' .` — enumerate every remaining seed-call call
+- [x] `grep -rn 'fixtures\.Seed' .` — enumerate every remaining seed-call call
       site
-- [ ] Update `docs/examples/01-basic-s3-test.md` to use new import shape
+- [x] Update `docs/examples/01-basic-s3-test.md` to use new import shape
       (`s3assert`, `s3fix`)
-- [ ] Update `docs/examples/03-plan-testing.md`
-- [ ] Update `docs/examples/04-fixtures.md`
-- [ ] Update `docs/examples/07-cancellation.md`
-- [ ] Update `docs/examples/README.md` if it has API surface examples
-- [ ] Update `docs/examples/examples_integration_test.go` — regenerate runnable
+- [x] Update `docs/examples/03-plan-testing.md`
+- [x] Update `docs/examples/04-fixtures.md`
+- [x] Update `docs/examples/07-cancellation.md`
+- [x] Update `docs/examples/README.md` if it has API surface examples
+- [x] Update `docs/examples/examples_integration_test.go` — regenerate runnable
       tests against the new layout; verify they still compile under
       `//go:build integration_examples`
 - [ ] Update `README.md` "Features", "Quick Start", "Package Overview", and any

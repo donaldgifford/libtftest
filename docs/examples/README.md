@@ -80,8 +80,8 @@ claude plugin install donaldgifford/claude-skills:libtftest
 | `tftest:scaffold`              | Bootstrap a `test/` directory (go.mod, TestMain, starter test, .gitignore) |
 | `tftest:setup-ci`              | Wire the reusable libtftest GitHub Actions workflow                       |
 | `tftest:add-test`              | Add a new `Test*` function                                                |
-| `tftest:add-fixture`           | Insert a `fixtures.Seed*` call before `tc.Apply()`                        |
-| `tftest:add-assertion`         | Insert an `assert.*` call after `tc.Apply()`                              |
+| `tftest:add-fixture`           | Insert a `fixtures/<service>.Seed*` call before `tc.Apply()`              |
+| `tftest:add-assertion`         | Insert an `assert/<service>.*` call after `tc.Apply()`                    |
 | `tftest:debug`                 | Triage failing/flaky libtftest tests                                      |
 | `tftest:enable-pro`            | Switch a suite to LocalStack Pro                                          |
 | `tftest:enable-sneakystack`    | Add the sneakystack sidecar for SSO/Orgs/CT services                      |

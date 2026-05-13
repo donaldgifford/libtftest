@@ -15,7 +15,8 @@ import (
     "testing"
 
     "github.com/donaldgifford/libtftest"
-    "github.com/donaldgifford/libtftest/assert"
+    ddbassert "github.com/donaldgifford/libtftest/assert/dynamodb"
+    s3assert "github.com/donaldgifford/libtftest/assert/s3"
     "github.com/donaldgifford/libtftest/harness"
     "github.com/donaldgifford/libtftest/localstack"
 )
@@ -39,7 +40,7 @@ func TestS3Bucket(t *testing.T) {
 
     tc.Apply()
 
-    assert.S3.BucketExists(t, tc.AWS(), tc.Output("bucket_id"))
+    s3assert.BucketExists(t, tc.AWS(), tc.Output("bucket_id"))
 }
 
 func TestDynamoDBTable(t *testing.T) {
@@ -52,7 +53,7 @@ func TestDynamoDBTable(t *testing.T) {
 
     tc.Apply()
 
-    assert.DynamoDB.TableExists(t, tc.AWS(), tc.Output("table_name"))
+    ddbassert.TableExists(t, tc.AWS(), tc.Output("table_name"))
 }
 ```
 

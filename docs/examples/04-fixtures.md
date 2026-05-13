@@ -15,8 +15,10 @@ import (
     "testing"
 
     "github.com/donaldgifford/libtftest"
-    "github.com/donaldgifford/libtftest/assert"
-    "github.com/donaldgifford/libtftest/fixtures"
+    ssmassert "github.com/donaldgifford/libtftest/assert/ssm"
+    s3fix "github.com/donaldgifford/libtftest/fixtures/s3"
+    secretsfix "github.com/donaldgifford/libtftest/fixtures/secretsmanager"
+    ssmfix "github.com/donaldgifford/libtftest/fixtures/ssm"
     "github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -31,13 +33,13 @@ func TestModule_ReadsSSMParameter(t *testing.T) {
 
     // Seed an SSM parameter that the module reads during apply.
     paramName := "/" + tc.Prefix() + "/config/db-host"
-    fixtures.SeedSSMParameter(t, tc.AWS(), paramName, "db.example.com", false)
+    ssmfix.SeedParameter(t, tc.AWS(), paramName, "db.example.com", false)
 
     tc.SetVar("config_prefix", "/"+tc.Prefix()+"/config")
     tc.Apply()
 
     // Verify the module read the parameter correctly.
-    assert.SSM.ParameterHasValue(t, tc.AWS(), paramName, "db.example.com")
+    ssmassert.ParameterHasValue(t, tc.AWS(), paramName, "db.example.com")
 }
 ```
 
@@ -58,7 +60,7 @@ func TestModule_ProcessesUploadedFile(t *testing.T) {
     tc.SetVar("input_bucket", bucketName)
     tc.Apply()
 
-    fixtures.SeedS3Object(t, tc.AWS(), bucketName, "test/input.json",
+    s3fix.SeedObject(t, tc.AWS(), bucketName, "test/input.json",
         []byte(`{"key": "value"}`))
 
     // ... assert on processing results
@@ -78,7 +80,7 @@ func TestModule_UsesSecret(t *testing.T) {
     })
 
     secretName := tc.Prefix() + "/api-key"
-    fixtures.SeedSecret(t, tc.AWS(), secretName, "sk-test-12345")
+    secretsfix.SeedSecret(t, tc.AWS(), secretName, "sk-test-12345")
 
     tc.SetVar("api_key_secret_name", secretName)
     tc.Apply()
@@ -91,12 +93,12 @@ Every `Seed*` function has a paired `Seed*Context` variant that accepts
 a `context.Context` as the second argument. The non-context variants are
 shims that pass `tb.Context()`.
 
-| Function | Context variant | What it seeds | Cleanup |
-| --- | --- | --- | --- |
-| `SeedS3Object(tb, cfg, bucket, key, body)` | `SeedS3ObjectContext(tb, ctx, ...)` | S3 object | Deletes the object |
-| `SeedSSMParameter(tb, cfg, name, value, secure)` | `SeedSSMParameterContext(tb, ctx, ...)` | SSM parameter (String or SecureString) | Deletes the parameter |
-| `SeedSecret(tb, cfg, name, value)` | `SeedSecretContext(tb, ctx, ...)` | Secrets Manager secret | Force-deletes the secret |
-| `SeedSQSMessage(tb, cfg, queueURL, body)` | `SeedSQSMessageContext(tb, ctx, ...)` | SQS message | None (consumed by test) |
+| Package | Function | Context variant | What it seeds | Cleanup |
+| --- | --- | --- | --- | --- |
+| `fixtures/s3` (alias `s3fix`) | `SeedObject(tb, cfg, bucket, key, body)` | `SeedObjectContext(tb, ctx, ...)` | S3 object | Deletes the object |
+| `fixtures/ssm` (alias `ssmfix`) | `SeedParameter(tb, cfg, name, value, secure)` | `SeedParameterContext(tb, ctx, ...)` | SSM parameter (String or SecureString) | Deletes the parameter |
+| `fixtures/secretsmanager` (alias `secretsfix`) | `SeedSecret(tb, cfg, name, value)` | `SeedSecretContext(tb, ctx, ...)` | Secrets Manager secret | Force-deletes the secret |
+| `fixtures/sqs` (alias `sqsfix`) | `SeedMessage(tb, cfg, queueURL, body)` | `SeedMessageContext(tb, ctx, ...)` | SQS message | None (consumed by test) |
 
 Cleanup callbacks use `context.WithoutCancel(ctx)` so they survive
 test-end cancellation.
@@ -107,5 +109,5 @@ test-end cancellation.
 ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 defer cancel()
 
-fixtures.SeedS3ObjectContext(t, ctx, tc.AWS(), bucket, "k", []byte("v"))
+s3fix.SeedObjectContext(t, ctx, tc.AWS(), bucket, "k", []byte("v"))
 ```
