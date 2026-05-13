@@ -20,6 +20,11 @@ via conventional commit subjects and bodies instead.
 - *(assert/tags)* Add service-agnostic tag-propagation assertion
 - *(assert/snapshot)* Add JSON snapshot testing + IAM policy extractor
 
+### Tooling
+
+- *(tools)* Add docgen marker scanner + feature-matrix renderer
+- *(tools)* Wire docs-matrix + check-markers into Make and CI
+
 ### Bug Fixes
 
 - *(release)* Wire up docker bake release target + cosign signing ([#11](https://github.com/donaldgifford/libtftest/issues/11))
