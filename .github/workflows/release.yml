@@ -118,7 +118,7 @@ jobs:
           git push origin HEAD:main
 
   docker:
-    name: Docker
+    name: Docker (multi-arch + cosign)
     runs-on: ubuntu-latest
     needs: [bump-version, release]
     if: needs.bump-version.outputs.skipped != 'true'
@@ -127,6 +127,8 @@ jobs:
       packages: write
       # Required for cosign keyless signing (OIDC token).
       id-token: write
+    outputs:
+      digest: ${{ steps.bake.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -159,9 +161,10 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push Docker images
+        id: bake
         uses: docker/bake-action@v7
         with:
-          targets: default
+          targets: release
           source: .
           files: |
             docker-bake.hcl

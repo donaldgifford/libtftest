@@ -11,6 +11,12 @@ Manual edits will be overwritten by the `Changelog Sync` job in the
 `Release` workflow after each tagged release — author release notes
 via conventional commit subjects and bodies instead.
 
+## [unreleased]
+
+### Bug Fixes
+
+- *(release)* Wire up docker bake release target + cosign signing
+
 ## [0.1.1] - 2026-05-12
 
 ### Miscellaneous Tasks
