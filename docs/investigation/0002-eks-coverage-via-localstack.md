@@ -31,8 +31,17 @@ created: 2026-05-13
 - [Snapshot-test IAM policies (LocalStack-independent)](#snapshot-test-iam-policies-localstack-independent)
 - [Recommended LocalStack config](#recommended-localstack-config)
 - [Open questions](#open-questions)
+- [Package layout decision](#package-layout-decision)
+  - [Options considered](#options-considered)
+  - [Decision: Option A2](#decision-option-a2)
+  - [Why not also refactor `awsx/`?](#why-not-also-refactor-awsx)
+  - [Migration shape](#migration-shape)
 - [Recommendation](#recommendation)
-  - [RFEs to spin out of this investigation](#rfes-to-spin-out-of-this-investigation)
+  - [Sequencing](#sequencing)
+  - [1. Package layout: `assert/{service}/`, `fixtures/{service}/`](#1-package-layout-assertservice-fixturesservice)
+  - [2. `TestCase.AssertIdempotent(ctx)`](#2-testcaseassertidempotentctx)
+  - [3. `assert/tags` package](#3-asserttags-package)
+  - [4. `assert/snapshot` package](#4-assertsnapshot-package)
   - [What this investigation does NOT recommend](#what-this-investigation-does-not-recommend)
   - [Next steps](#next-steps)
 - [References](#references)
@@ -42,18 +51,28 @@ created: 2026-05-13
 
 What does it take to make libtftest a viable harness for integration-testing
 **Terraform EKS modules** against LocalStack — without libtftest itself
-shipping the EKS test suite — and which of the patterns surfaced fall out as
-**generic libtftest features** rather than EKS-specific cookbook?
+shipping the EKS test suite — which of the patterns surfaced fall out as
+**generic libtftest features** rather than EKS-specific cookbook, and **does
+the current flat `assert/` / `fixtures/` package layout still scale** when
+we commit to 15+ AWS services?
 
 ## Hypothesis
 
-LocalStack Pro 4.10+ covers enough of the EKS control-plane surface (clusters,
-managed node groups, access entries, pod identity associations, IRSA / OIDC
-provider) that a consumer can stand up real integration coverage of their own
-EKS module using libtftest + the existing `assert/*`, `fixtures/*`, and
-`harness/*` primitives. Three patterns the EKS coverage matrix surfaces are
-not EKS-specific and would land cleaner as libtftest features
-(idempotency, tag propagation, IAM policy snapshotting).
+LocalStack Pro CalVer (`2026.5.0.dev121` locally) covers enough of the EKS
+control-plane surface (clusters, managed node groups, access entries, pod
+identity associations, IRSA / OIDC provider) that a consumer can stand up
+real integration coverage of their own EKS module using libtftest +
+the existing primitives.
+
+Three patterns the EKS coverage matrix surfaces are not EKS-specific and
+would land cleaner as libtftest features (idempotency, tag propagation,
+IAM policy snapshotting).
+
+Separately: the current flat package layout (`assert/s3.go` +
+`assert.S3.BucketExists` zero-size struct namespacing) does not scale
+past ~10 services without becoming unwieldy. A move to per-service
+sub-packages (Option A2 in the analysis below) is the right shape
+before the next wave of services lands.
 
 ## Context
 
@@ -73,11 +92,12 @@ RFE candidates land (or sooner, with local helpers).
 
 | Component | Version / Value |
 |-----------|-----------------|
-| LocalStack (local Pro/Ultimate) | `2026.5.0.dev121` (CalVer, post-`lstk` rename) |
-| LocalStack (CI, OSS) | `4.x` (libtftest's current `localstack/localstack:4.4` default; CalVer applies to Pro tags only) |
+| LocalStack Pro/Ultimate (local) | `localstack/localstack-pro:2026.5.0.dev121` (latest dev CalVer tag) |
+| LocalStack OSS (CI default) | `localstack/localstack:2026.04.0` (CalVer applies to both Pro and OSS — earlier 4.x SemVer is retired) |
 | k3d image tag | `EKS_K3S_IMAGE_TAG=v1.32.13-k3s1` (pin to the module's target K8s version) |
 | Docker socket mount | required — LocalStack spawns k3d containers from inside its own container |
 | `LOCALSTACK_AUTH_TOKEN` | required (EKS is not in Community) — libtftest's `RequirePro(t)` gate already handles auto-skip |
+| libtftest gating | both `Edition` (Community vs. Pro) and the underlying image tag need to match — see "Edition gating" under Open Questions |
 
 ## Architecture
 
@@ -225,78 +245,203 @@ them on the per-test container via `Options.Image` + `Options.Services`.
 ## Open questions
 
 1. **LocalStack default image bump.** libtftest's current default is
-   `localstack/localstack:4.4`. EKS Pod Identity / IRSA / the
-   `bootstrap_cluster_creator_admin_permissions` flag need 4.10+. Options:
-   - **(a)** Bump the global default to 4.10+ (broadest blast radius —
-     re-run the full integration matrix, watch for regressions on existing
-     S3/DynamoDB/etc. coverage).
-   - **(b)** Document `Options.Image` override as the per-EKS-test
-     idiom; default stays at 4.4 for non-EKS users.
-   - **(c)** Introduce a service-aware default selection in libtftest:
-     if `Services` includes `eks`, default to 4.10+.
-   - Recommendation: **(b)** for now (no churn), revisit when LocalStack
-     4.10+ has been stable for a quarter.
+   `localstack/localstack:4.4`. The OSS line is now on CalVer
+   (`2026.04.0`), and Pro EKS features need at least the equivalent of
+   the old 4.10+. Two distinct decisions:
+   - **(a)** Bump the OSS default from `4.4` to `2026.04.0` for the
+     non-Pro integration job (`integration-tests` in CI). Low risk —
+     CalVer renaming aside, the upstream behavior is largely the same.
+   - **(b)** Use `localstack/localstack-pro:2026.5.0.dev121` (or the
+     stable Pro CalVer once dev is rotated) for Pro-gated tests in
+     `integration-tests-pro`. Required for EKS coverage to mean anything.
+   - Recommendation: do both bumps as a coordinated change — see the
+     `libtftest:bump-localstack` skill playbook.
 
-2. **Runtime cost.** A single LocalStack EKS cluster create is 30–90 s
-   wall-clock (k3d image pull, k3s boot, EKS API stub bring-up). The
-   coverage matrix has ~15 distinct test surfaces. Full sweep is 15–30 min
-   even with shared-container mode + parallel sub-tests. Does the consumer
-   accept this as nightly-only? Per-PR-only-on-EKS-paths? Decision belongs
-   to the consumer, but libtftest should call it out in docs.
+2. **Edition gating must also track image variant.** Today `RequirePro(t)`
+   detects edition via the LocalStack health endpoint and skips
+   community-mode tests. With CalVer, the *image name* now diverges
+   too: `localstack/localstack` (OSS) vs.
+   `localstack/localstack-pro` (Pro). Two implications:
+   - Options should accept both — `Options.Image` covers this already.
+   - libtftest's auto-pull logic in `localstack/` should not assume the
+     suffix; verify `pull` works for both names.
+   - `harness.Run`'s edition-aware default selection (if any) needs
+     to pick the right base image. Today there's a single `DefaultImage`
+     constant; consider a tuple `{Community: ..., Pro: ...}` or derive
+     from `Edition`.
 
-3. **EKS-specific helper coverage.** None of `assert/*` currently has an
-   EKS namespace. Should there be a stub `assert.EKS.ClusterExistsContext`
-   etc., even if the runtime depth is shallow? Or is this purely consumer
-   territory?
+3. **Pro CI gating.** Existing `integration-tests-pro` job hits the OSS
+   default with a `LOCALSTACK_AUTH_TOKEN`. If EKS coverage materializes
+   upstream, that job needs to pin to `localstack/localstack-pro:<calver>`
+   and the `localstack/lstk` CLI may be useful (`mise.toml` already has
+   `lstk` available locally). Belongs to the `bump-localstack` playbook
+   work, flagged here for context.
 
-4. **Pro CI gating.** Existing `integration-tests-pro` job hits 4.4 with
-   a `LOCALSTACK_AUTH_TOKEN`. If EKS coverage materializes upstream, that
-   job needs to pin to a 4.10+ tag and the `localstack/lstk` CLI may be
-   useful (`mise.toml` already has `lstk` available locally). Out of scope
-   for this investigation; flagging for the bump-localstack playbook.
+## Package layout decision
+
+While working through the EKS coverage matrix it became clear that
+libtftest's current flat layout doesn't scale past ~10 services. With
+realistic forward-looking coverage spanning EKS, ECS, SNS, SQS, KMS,
+Secrets Manager, EventBridge, Step Functions, API Gateway, CloudWatch,
+Route53, RDS, and Cognito on top of the existing S3 / DynamoDB / IAM /
+SSM / Lambda set, libtftest is committing to 15+ services. The current
+zero-size struct namespacing trick (`assert.S3.BucketExists`) becomes
+a 200-line file with one struct per service.
+
+### Options considered
+
+| Layout | Verdict |
+|---|---|
+| **Status quo** — `assert/s3.go` + zero-size struct namespacing | Doesn't scale past ~10 services; awkward godoc per service; growing single file per package |
+| **Option A2** — per-service sub-packages: `assert/{service}/`, `fixtures/{service}/` | **Selected** |
+| **Option B with interfaces** — `service/{name}/{assert,fixtures}.go` + interfaces in top-level | Rejected — no substitution surface justifies the interface layer; ceremony without payoff |
+| **Option B without interfaces** — `service/{name}/{assert,fixtures}.go` co-located | Rejected — Go's package-as-namespace forces `eks.AssertCluster` / `eks.SeedCluster` disambiguation, losing the co-location win |
+
+### Decision: Option A2
+
+Adopt per-service sub-packages under the existing top-level package names:
+
+```text
+libtftest/
+├── assert/
+│   ├── s3/        — package s3: BucketExists, BucketExistsContext, ...
+│   ├── dynamodb/  — package dynamodb: TableExists, ...
+│   ├── iam/       — package iam: RoleExists, ...
+│   ├── ssm/
+│   ├── lambda/
+│   └── eks/       — (future) package eks: ClusterExists, ...
+└── fixtures/
+    ├── s3/        — package s3: SeedObject, SeedObjectContext, ...
+    ├── ssm/
+    ├── secretsmanager/
+    └── sqs/
+```
+
+Each service file becomes its own `package <service>` (matching the
+AWS SDK v2 `service/<name>` convention so consumers' import muscle
+memory carries over). Collisions with the AWS SDK package names are
+resolved by import alias at the call site:
+
+```go
+import (
+    s3sdk    "github.com/aws/aws-sdk-go-v2/service/s3"
+    s3assert "github.com/donaldgifford/libtftest/assert/s3"
+    s3fix    "github.com/donaldgifford/libtftest/fixtures/s3"
+)
+
+s3assert.BucketExists(t, tc.AWS(), bucket)
+s3fix.SeedObject(t, tc.AWS(), bucket, key, body)
+```
+
+### Why not also refactor `awsx/`?
+
+`awsx/` is already idiomatic Go — one file per service, ~10-line
+constructor per service, single flat package. There's no namespacing
+pain there because every export is `NewXxx(cfg)`. Leave it alone.
+
+### Migration shape
+
+Pre-1.0, do this as a single coordinated PR — no shim or re-export
+layer. The consumer-side breakage is one find-and-replace per call
+site (`assert.S3.BucketExists` → `s3assert.BucketExists`, etc.).
+
+Action items:
+
+- Move each `assert/<service>.go` into `assert/<service>/<service>.go`,
+  rewrite the zero-size struct methods as package-level functions,
+  delete the package-level `var S3 = s3Asserts{}` exports
+- Same for `fixtures/`
+- Keep the paired-method pattern (`Foo` + `FooContext`) — that's
+  unrelated to layout
+- Update `tftest:add-assertion` and `tftest:add-fixture` skill templates
+  in claude-skills to emit the new shape
+- Update `.claude/skills/libtftest-add-assertion` and
+  `libtftest-add-fixture` to emit the new shape
+- Update `docs/examples/` to use the new import shape
+- Update `README.md` API surface section
+- Bump minor — pre-1.0 SemVer permits breaking changes on minor
+- Plugin in claude-skills: bump pin range lower bound to match the new
+  libtftest minor
 
 ## Recommendation
 
 **Answer:** libtftest should not ship the EKS test framework, but should
-land three generic features that the EKS coverage matrix surfaces, so
-consumers can build the EKS suite (or any other "complex module" suite)
-without per-consumer reinvention.
+land **four** changes (one layout refactor + three generic features)
+that the EKS coverage matrix surfaces, so consumers can build the EKS
+suite (or any other "complex module" suite) without per-consumer
+reinvention.
 
-### RFEs to spin out of this investigation
+### Sequencing
 
-These three patterns came out of the EKS analysis but are not EKS-specific.
-They should each land as their own design/impl pair against libtftest core:
+The package-layout refactor needs to land **first**, so the three RFE
+features ship straight into the new layout instead of being migrated
+twice.
 
-1. **`tc.AssertIdempotent(ctx)`** — runs `apply` twice and asserts the
-   second plan reports zero changes. Catches `ignore_changes` bugs and
-   provider drift. Lives in the `TestCase` API. Likely a thin wrapper
-   around the existing `ApplyContext` + `PlanContext` plumbing.
+```text
+PR 1 — Layout refactor (Option A2)
+       ↓
+PR 2 — tc.AssertIdempotent
+PR 3 — assert/tags + assert/snapshot   (independent, can land in parallel)
+       ↓
+Optional: consumer publishes EKS test suite + a reference impl link
+          back into libtftest's docs/examples/
+```
 
-2. **`assert.Tags.*` namespace** — propagation assertions. Given a set
-   of resource ARNs and a baseline tag map, verify all resources carry
-   the baseline. Service-agnostic; AWS Resource Groups Tagging API is
-   the natural backend.
+### 1. Package layout: `assert/{service}/`, `fixtures/{service}/`
 
-3. **`assert/snapshot/` package** — generic JSON snapshot-testing for
-   structured output (IAM policy documents, plan JSON, Terraform output
-   values). LocalStack-independent. Two assertion forms: strict (byte
-   diff) and structural (normalized key order, comment-skipping). Save
-   snapshots to `testdata/snapshots/<test>.json` per convention.
+See [Package layout decision](#package-layout-decision) above. This is
+the prerequisite — every other RFE below assumes the new layout.
+
+### 2. `TestCase.AssertIdempotent(ctx)`
+
+Runs `apply` twice and asserts the second plan reports zero changes.
+Catches `ignore_changes` bugs and provider drift. Lives in the
+`TestCase` API. Thin wrapper around the existing `ApplyContext` +
+`PlanContext` plumbing.
+
+### 3. `assert/tags` package
+
+Root-tag propagation assertions. Given a set of resource ARNs and a
+baseline tag map, verify all resources carry the baseline. Service-agnostic
+backed by the AWS Resource Groups Tagging API.
+
+```go
+import tagsassert "github.com/donaldgifford/libtftest/assert/tags"
+
+tagsassert.PropagatesFromRoot(t, tc.AWS(), expectedTags, arns...)
+```
+
+### 4. `assert/snapshot` package
+
+Generic JSON snapshot-testing for structured output (IAM policy
+documents, plan JSON, Terraform output values). LocalStack-independent.
+Two assertion forms: strict (byte diff) and structural (normalized
+key order, comment-skipping). Save snapshots to
+`testdata/snapshots/<test>.json` per convention.
+
+```go
+import snapassert "github.com/donaldgifford/libtftest/assert/snapshot"
+
+snapassert.JSONStructural(t, planJSON, "testdata/snapshots/iam-trust-policy.json")
+```
 
 ### What this investigation does NOT recommend
 
 - A `cmd/eks-test-scaffold` generator or any EKS-specific scaffolding skill
-- An `assert.EKS` namespace (until a consumer use case shows up)
-- Bumping the default LocalStack image globally — too much churn for too
-  little upside while the matrix is still being explored
+- An `assert/eks` package (until a consumer use case shows up — then it
+  goes in the new layout naturally)
+- Refactoring `awsx/` — already idiomatic
+- Interface-based design for `assert/*` / `fixtures/*` — no substitution
+  surface justifies it
 
 ### Next steps
 
-- Open three small design docs (`DESIGN-0003/4/5`) or a single
-  `DESIGN-0003` covering the three RFEs, then per-feature `IMPL-NNNN` plans
-- Land them as small, independent PRs — they're orthogonal
-- Leave EKS-specific coverage to whichever consumer needs it; their tests
-  using libtftest + the three new features are a natural reference
+- One `DESIGN-0003` covering the four PRs above, then per-PR
+  `IMPL-NNNN` plans
+- Land PR 1 (layout) first; it's mostly mechanical
+- Land PRs 2–4 in any order — they're orthogonal
+- Leave EKS-specific coverage to whichever consumer needs it; their
+  tests using libtftest + the new features are a natural reference
   implementation worth linking from `docs/examples/`
 
 ## References
