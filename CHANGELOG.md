@@ -24,6 +24,7 @@ via conventional commit subjects and bodies instead.
 - *(design)* Add DESIGN-0003 for layout refactor + 3 hygiene primitives
 - *(design)* Resolve DESIGN-0003 open questions
 - *(impl)* Add IMPL-0004 for layout refactor + hygiene primitives
+- *(impl)* Resolve IMPL-0004 open questions + future-work INVs
 
 ### Miscellaneous Tasks
 
