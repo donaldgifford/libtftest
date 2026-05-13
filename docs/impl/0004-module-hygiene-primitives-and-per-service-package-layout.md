@@ -225,22 +225,22 @@ function names (the package name carries the service prefix).
 
 #### Tasks
 
-- [ ] Create `fixtures/s3/s3.go` (`package s3`) with `SeedObject`,
+- [x] Create `fixtures/s3/s3.go` (`package s3`) with `SeedObject`,
       `SeedObjectContext`
-- [ ] Create `fixtures/s3/s3_test.go` carrying forward the existing S3 fixture
+- [x] Create `fixtures/s3/s3_test.go` carrying forward the existing S3 fixture
       cancellation + cleanup-registered tests
-- [ ] Create `fixtures/ssm/ssm.go` (`package ssm`) with `SeedParameter`,
+- [x] Create `fixtures/ssm/ssm.go` (`package ssm`) with `SeedParameter`,
       `SeedParameterContext`
-- [ ] Create `fixtures/ssm/ssm_test.go`
-- [ ] Create `fixtures/secretsmanager/secretsmanager.go`
+- [x] Create `fixtures/ssm/ssm_test.go`
+- [x] Create `fixtures/secretsmanager/secretsmanager.go`
       (`package secretsmanager`) with `SeedSecret`, `SeedSecretContext`
-- [ ] Create `fixtures/secretsmanager/secretsmanager_test.go`
-- [ ] Create `fixtures/sqs/sqs.go` (`package sqs`) with `SeedMessage`,
+- [x] Create `fixtures/secretsmanager/secretsmanager_test.go`
+- [x] Create `fixtures/sqs/sqs.go` (`package sqs`) with `SeedMessage`,
       `SeedMessageContext`
-- [ ] Create `fixtures/sqs/sqs_test.go`
-- [ ] Each per-service test imports `internal/testfake`
-- [ ] Delete `fixtures/fixtures.go` and `fixtures/fixtures_test.go`
-- [ ] Verify `context.WithoutCancel(ctx)` cleanup pattern survives the move
+- [x] Create `fixtures/sqs/sqs_test.go`
+- [x] Each per-service test imports `internal/testfake`
+- [x] Delete `fixtures/fixtures.go` and `fixtures/fixtures_test.go`
+- [x] Verify `context.WithoutCancel(ctx)` cleanup pattern survives the move
 
 #### Success Criteria
 
