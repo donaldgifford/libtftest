@@ -179,9 +179,9 @@ without duplication.
       as package-level functions
 - [x] Create `assert/s3/s3_test.go` with the existing S3 test coverage using
       `internal/testfake.NewFakeTB(...)`
-- [ ] Create `assert/dynamodb/dynamodb.go` (`package dynamodb`) with
+- [x] Create `assert/dynamodb/dynamodb.go` (`package dynamodb`) with
       `TableExists`, `TableExistsContext`
-- [ ] Create `assert/dynamodb/dynamodb_test.go`
+- [x] Create `assert/dynamodb/dynamodb_test.go`
 - [ ] Create `assert/iam/iam.go` (`package iam`) with `RoleExists`,
       `RoleExistsContext`, `RoleHasInlinePolicy`, `RoleHasInlinePolicyContext`
       (preserve `libtftest.RequirePro(tb)` gates)
