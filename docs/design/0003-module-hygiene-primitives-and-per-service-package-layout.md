@@ -25,7 +25,7 @@ created: 2026-05-13
     - [After](#after)
     - [Function-name shape](#function-name-shape)
     - [Name collisions with AWS SDK](#name-collisions-with-aws-sdk)
-  - [Part 2 — TestCase.AssertIdempotent](#part-2--testcaseassertidempotent)
+  - [Part 2 — TestCase.AssertIdempotent and TestCase.AssertIdempotentApply](#part-2--testcaseassertidempotent-and-testcaseassertidempotentapply)
     - [API](#api)
     - [Why on TestCase rather than assert/idempotency](#why-on-testcase-rather-than-assertidempotency)
   - [Part 3 — assert/tags package](#part-3--asserttags-package)
@@ -35,6 +35,7 @@ created: 2026-05-13
     - [API](#api-2)
     - [Snapshot update protocol](#snapshot-update-protocol)
     - [Why not just cmp.Diff?](#why-not-just-cmpdiff)
+    - [Extraction helpers](#extraction-helpers)
 - [API / Interface Changes](#api--interface-changes)
   - [Removed (renamed)](#removed-renamed)
   - [Added](#added)
@@ -45,7 +46,7 @@ created: 2026-05-13
   - [Backwards compatibility](#backwards-compatibility)
   - [Consumer migration](#consumer-migration)
   - [Skill template updates](#skill-template-updates)
-- [Open Questions](#open-questions)
+- [Resolved Questions](#resolved-questions)
 - [References](#references)
 <!--toc:end-->
 
@@ -223,38 +224,80 @@ typically alongside `s3sdk` for the SDK). This is the same pattern
 consumers already use when importing multiple `s3` packages and matches
 testify's `assert` / `require` collision handling.
 
-### Part 2 — `TestCase.AssertIdempotent`
+### Part 2 — `TestCase.AssertIdempotent` and `TestCase.AssertIdempotentApply`
 
-Apply once, then call `terraform plan` again and assert zero
-resource changes. Catches `ignore_changes` bugs, provider drift,
-and computed-vs-known mismatches that only surface on the second
-plan.
+Two variants, both gated on the same notion of "module is idempotent":
+the cheap one runs a fresh Plan after the caller's existing Apply; the
+strict one performs the canonical **double-Apply** pattern
+(Apply → Plan → Apply → Plan, asserting both plans are empty).
+
+Catches different bug classes:
+
+| Variant | Catches |
+|---------|---------|
+| `AssertIdempotent` (Plan-only) | Bad `ignore_changes`, provider refresh-time drift, `known-after-apply` placeholders that didn't resolve |
+| `AssertIdempotentApply` (double-Apply) | Above + computed-vs-known mismatches that only surface on the second Apply, in-place updates the provider reports on Plan but reverts on Apply |
+
+`AssertIdempotent` is the default — cheap, surfaces 80% of bugs.
+`AssertIdempotentApply` is the rigorous variant for modules with
+suspicious refresh behavior (KMS keys, IAM policies with `for_each`,
+random resources with weird `triggers`).
 
 #### API
 
 ```go
-// AssertIdempotent runs Apply followed by Plan and fails the test if
-// the second plan reports any resource changes (add, change, or
-// destroy). Use this once per test after the initial Apply has
-// completed; it does NOT call Apply itself.
-//
-// Calls tb.Errorf on non-zero change count; the test continues running
-// so additional assertions can surface their own failures.
+// AssertIdempotent runs Plan and fails the test if the plan reports
+// any resource changes (add, change, or destroy). Use this once per
+// test after the initial Apply has completed; it does NOT call Apply
+// itself. Calls tb.Errorf on non-zero change count; the test
+// continues running so additional assertions can surface their own
+// failures.
 func (tc *TestCase) AssertIdempotent() {
     tc.tb.Helper()
     tc.AssertIdempotentContext(tc.tb.Context())
 }
 
-// AssertIdempotentContext is the context-aware variant. The context
-// is threaded into the inner PlanContext call.
 func (tc *TestCase) AssertIdempotentContext(ctx context.Context) {
     tc.tb.Helper()
     result := tc.PlanContext(ctx)
     if result.Changes.Add+result.Changes.Change+result.Changes.Destroy > 0 {
         tc.tb.Errorf(
-            "module is not idempotent: second plan shows add=%d change=%d destroy=%d",
+            "module is not idempotent: plan shows add=%d change=%d destroy=%d",
             result.Changes.Add, result.Changes.Change, result.Changes.Destroy,
         )
+    }
+}
+
+// AssertIdempotentApply performs the canonical double-Apply check:
+// runs Plan, fails if non-empty, then runs Apply again, then runs
+// Plan again, failing if that's non-empty. Catches a strictly
+// larger class of bugs than AssertIdempotent — including ones that
+// only surface on the second Apply — at the cost of one extra
+// terraform apply round-trip.
+//
+// Like AssertIdempotent, use this after the caller's initial Apply
+// has completed.
+func (tc *TestCase) AssertIdempotentApply() {
+    tc.tb.Helper()
+    tc.AssertIdempotentApplyContext(tc.tb.Context())
+}
+
+func (tc *TestCase) AssertIdempotentApplyContext(ctx context.Context) {
+    tc.tb.Helper()
+    // First plan — should be clean already.
+    if result := tc.PlanContext(ctx); result.Changes.Add+
+        result.Changes.Change+result.Changes.Destroy > 0 {
+        tc.tb.Errorf("first plan not idempotent: add=%d change=%d destroy=%d",
+            result.Changes.Add, result.Changes.Change, result.Changes.Destroy)
+        return
+    }
+    // Second Apply — should be a no-op.
+    tc.ApplyContext(ctx)
+    // Final plan — should be clean.
+    if result := tc.PlanContext(ctx); result.Changes.Add+
+        result.Changes.Change+result.Changes.Destroy > 0 {
+        tc.tb.Errorf("post-second-Apply plan not idempotent: add=%d change=%d destroy=%d",
+            result.Changes.Add, result.Changes.Change, result.Changes.Destroy)
     }
 }
 ```
@@ -357,6 +400,51 @@ already use.
   bake into every test
 - Update-on-env-var is the killer feature
 
+#### Extraction helpers
+
+Producing the JSON to snapshot is the caller's job, but the common
+case — pull IAM policy documents out of a `terraform show -json`
+dump — gets a turnkey helper. Generic JSON path extraction is the
+escape hatch for anything else.
+
+```go
+// ExtractIAMPolicies parses Terraform plan JSON (the output of
+// `terraform show -json plan.out`) and returns one entry per
+// aws_iam_role / aws_iam_policy / aws_iam_role_policy resource:
+// the assume role policy, inline policies, and any managed
+// policy attachments rendered as JSON documents. Keys are the
+// resource address (e.g. "aws_iam_role.eks_node[0]") + a suffix
+// distinguishing assume_role / inline:<name> / managed:<arn>.
+//
+// Use the returned bytes as the `actual` argument to
+// JSONStructural to lock down IAM policy shapes against a
+// golden file.
+func ExtractIAMPolicies(planJSON []byte) (map[string][]byte, error)
+
+// ExtractResourceAttribute returns the JSON bytes at the given
+// path under planned_values.root_module.resources for a specific
+// resource address. Use for non-IAM extraction when ExtractIAMPolicies
+// doesn't cover the resource type.
+//
+// Example:
+//   policy, _ := snapshot.ExtractResourceAttribute(
+//       planJSON,
+//       "aws_kms_key.main",
+//       "policy",
+//   )
+//   snapshot.JSONStructural(t, policy, "testdata/snapshots/kms-policy.json")
+func ExtractResourceAttribute(
+    planJSON []byte,
+    resourceAddress string,
+    attributePath string,
+) ([]byte, error)
+```
+
+`ExtractIAMPolicies` is the obvious EKS / IAM-heavy use case from
+INV-0002. `ExtractResourceAttribute` is the general-purpose escape
+hatch — covers KMS key policies, S3 bucket policies, etc., without
+forcing libtftest to ship a helper per service.
+
 ## API / Interface Changes
 
 ### Removed (renamed)
@@ -375,12 +463,12 @@ already use.
 | `assert/ssm` | `ParameterExists`, `ParameterHasValue`, + `*Context` variants |
 | `assert/lambda` | `FunctionExists`, `FunctionExistsContext` |
 | `assert/tags` | `PropagatesFromRoot`, `PropagatesFromRootContext` |
-| `assert/snapshot` | `JSONStrict`, `JSONStructural` |
+| `assert/snapshot` | `JSONStrict`, `JSONStructural`, `ExtractIAMPolicies`, `ExtractResourceAttribute` |
 | `fixtures/s3` | `SeedObject`, `SeedObjectContext` |
 | `fixtures/ssm` | `SeedParameter`, `SeedParameterContext` |
 | `fixtures/secretsmanager` | `SeedSecret`, `SeedSecretContext` |
 | `fixtures/sqs` | `SeedMessage`, `SeedMessageContext` |
-| `libtftest.TestCase` | `AssertIdempotent`, `AssertIdempotentContext` |
+| `libtftest.TestCase` | `AssertIdempotent`, `AssertIdempotentContext`, `AssertIdempotentApply`, `AssertIdempotentApplyContext` |
 
 `awsx/`, `localstack/`, `harness/`, `tf/`, `internal/`, and `sneakystack/`
 are not touched by this design.
@@ -473,31 +561,41 @@ In `claude-skills` repo (`plugins/libtftest/skills/`):
 - Plugin pin range: `>=0.1.0, <1.0.0` → `>=0.2.0, <1.0.0` (the new
   libtftest minor)
 
-## Open Questions
+## Resolved Questions
 
-1. **AWSX namespacing follows or stays flat?** Today `awsx/s3.go`
-   exports `NewS3(cfg)`. If we ever want to expose service-specific
-   helpers beyond the constructor (e.g., `awsx.S3.PresignedURL`),
-   we'd revisit. For now: stay flat. Note in the CHANGELOG so future
-   readers know it was a conscious choice, not an oversight.
+1. **AWSX namespacing follows or stays flat?**
+   **Resolved — stays flat.** `awsx/` is one ~10-line constructor per
+   service in a single flat package, already idiomatic Go. If a future
+   need arises to expose service-specific helpers beyond the
+   constructor, revisit then. CHANGELOG entry calls this out as a
+   deliberate non-change so future readers don't take it as an
+   oversight.
 
-2. **Should `assert/snapshot` ship a JSON-normalizer helper?**
-   Use case: caller does `terraform show -json`, wants the policy
-   document, doesn't want to write the jq path. Probably yes as a
-   later enhancement (`snapshot.ExtractIAMPolicies(planJSON)`); leave
-   out of this design to keep the surface minimal.
+2. **Should `assert/snapshot` ship a JSON-normalizer / extraction
+   helper?**
+   **Resolved — yes.** Ship `ExtractIAMPolicies(planJSON)` as the
+   turnkey IAM-extraction helper (the obvious EKS / IAM-heavy use
+   case) plus `ExtractResourceAttribute(planJSON, addr, path)` as a
+   general-purpose escape hatch for non-IAM extraction. Spec'd in
+   the [Part 4 Extraction helpers](#extraction-helpers) section.
 
 3. **Does `AssertIdempotent` also re-run Apply or just Plan?**
-   Currently designed as Plan-only (caller has already Applied). A
-   re-Apply would catch a narrower class of bugs (refresh-time drift)
-   at much higher cost. Plan-only is the right default; document the
-   re-Apply path as "call `tc.Apply(); tc.AssertIdempotent()` then
-   `tc.Apply()` again yourself" if a consumer needs it.
+   **Resolved — both.** Ship two variants:
+   - `AssertIdempotent` (Plan only) — cheap default, surfaces 80% of
+     bugs (bad `ignore_changes`, refresh-time drift, unresolved
+     `known-after-apply`).
+   - `AssertIdempotentApply` (double-Apply: Plan → Apply → Plan) —
+     rigorous variant, catches the additional class of
+     computed-vs-known mismatches that only surface on the second
+     Apply.
+   Spec'd in
+   [Part 2](#part-2--testcaseassertidempotent-and-testcaseassertidempotentapply).
 
-4. **Do we need a `_test.go` for each `_Context` variant in the new
-   layout, or one file per package?** Tested in INV-0001 with one
-   file per service top-level; same shape applies here with one
-   file per per-service package. Carry forward.
+4. **Do we need a `_test.go` per `*Context` variant, or one per
+   package?**
+   **Resolved — one per package.** Carries forward the INV-0001
+   pattern (one `<service>_test.go` per `<service>` package, with
+   `fakeTB` + `*Context_PropagatesCancel` style tests inside it).
 
 ## References
 
