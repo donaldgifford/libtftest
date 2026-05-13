@@ -286,7 +286,7 @@ touching call sites again.
 - [ ] Update `.claude/skills/libtftest-add-fixture/SKILL.md`
 - [ ] Update
       `.claude/skills/libtftest-add-fixture/references/fixture-template.go.tmpl`
-- [ ] **Repo-wide `doc.go` rollout** (per [INV-0003][inv-0003]): lift the
+- [x] **Repo-wide `doc.go` rollout** (per [INV-0003][inv-0003]): lift the
       existing `// Package <name>` comment from its current home (e.g.
       `assert.go`, `config.go`, `workspace.go`) into a dedicated `doc.go` for
       every pre-existing package, and expand the comment to a multi-paragraph
@@ -297,7 +297,7 @@ touching call sites again.
       `internal/dockerx/`, `internal/logx/`, `internal/naming/`, `localstack/`,
       `sneakystack/`, `sneakystack/services/`, `tf/`, `cmd/libtftest/`,
       `cmd/sneakystack/`
-- [ ] After the `doc.go` rollout, remove the `// Package <name>` comment from
+- [x] After the `doc.go` rollout, remove the `// Package <name>` comment from
       its previous home so it's not duplicated
 - [ ] Update `CLAUDE.md` Code Conventions section to list the
       `doc.go`-per-package rule and the `// libtftest:requires <tag>...` marker
