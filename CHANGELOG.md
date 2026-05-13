@@ -17,6 +17,7 @@ via conventional commit subjects and bodies instead.
 
 - *(internal/testfake)* Add shared FakeTB for per-service test packages
 - *(libtftest)* Add AssertIdempotent + AssertIdempotentApply
+- *(assert/tags)* Add service-agnostic tag-propagation assertion
 
 ### Bug Fixes
 
@@ -49,6 +50,7 @@ via conventional commit subjects and bodies instead.
 - *(skills)* Update add-assertion + add-fixture for per-service shape
 - *(impl-0004)* Mark Phase 3 quality gates green
 - Add idempotency example + README/CLAUDE updates
+- *(assert/tags)* Add example 09 + integration surface + README
 
 ### Miscellaneous Tasks
 
