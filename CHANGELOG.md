@@ -20,6 +20,7 @@ via conventional commit subjects and bodies instead.
 ### Documentation
 
 - *(inv)* Add INV-0002 for EKS coverage via LocalStack
+- *(inv)* INV-0002 — concrete image tags, edition gating, layout decision
 
 ### Miscellaneous Tasks
 
