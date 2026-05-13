@@ -103,6 +103,8 @@ Core external dependencies: `terratest`, `testcontainers-go`, `aws-sdk-go-v2`.
 - `golines` max line length: 150 chars
 - Comments on exported symbols must end with periods (godot linter)
 - `nolint` directives require both explanation and specific linter name
+- **Every package ships a `doc.go`** — one file per package containing only the `package <name>` declaration and a godoc-compliant multi-paragraph package comment. No imports, types, or constants belong in `doc.go`. See [INV-0003](docs/investigation/0003-package-documentation-convention-and-gomarkdoc-toolchain.md) for the convention and gap analysis vs. the `go-development` plugin. Rendering tooling (`gomarkdoc`) and CI enforcement are deferred follow-ups.
+- **Pro/mockta/external-dependency markers** — when a function calls `libtftest.RequirePro(tb)` (or any future equivalent gate), add a `// libtftest:requires <tag>[,<tag>...] <reason>` line to its doc comment. Tag list is comma-separated, no whitespace inside; reason is free text. Tracked under [INV-0004](docs/investigation/0004-pro-and-oss-feature-matrix-tooling.md).
 
 ## CI Pipeline
 

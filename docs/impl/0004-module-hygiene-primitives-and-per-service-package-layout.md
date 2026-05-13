@@ -201,13 +201,15 @@ per-service test file can import it without duplication.
       vars (`var S3 = s3Asserts{}` etc.); keep otherwise
 - [ ] Delete `assert/assert_test.go` once `fakeTB` is migrated and
       every per-service file has its coverage
-- [ ] Add `awsx/doc.go` with a package-level godoc comment that
-      documents the deliberate flat layout (matches the per-service
-      sub-package precedent set by `aws-sdk-go-v2/service/<name>`,
-      but `awsx/` stays flat since its constructors are 1:1 with
-      services and there's no per-service surface to namespace).
-      This is the seed of the broader `doc.go` convention tracked
-      in [Future Work — Item 1](#future-work)
+- [ ] Add `assert/s3/doc.go`, `assert/dynamodb/doc.go`,
+      `assert/iam/doc.go`, `assert/ssm/doc.go`, `assert/lambda/doc.go`,
+      and `internal/testfake/doc.go` — one per new package, each
+      containing only the `package <name>` declaration and a
+      multi-paragraph godoc-compliant package comment (per the
+      [INV-0003][inv-0003] convention now adopted repo-wide)
+- [ ] Add `// libtftest:requires pro <reason>` markers on
+      `assert/iam` functions that call `libtftest.RequirePro(tb)`
+      (per the [INV-0004][inv-0004] marker convention)
 
 #### Success Criteria
 
@@ -287,6 +289,24 @@ refactor is fully self-contained and the additive primitives
       zero-size struct + methods
 - [ ] Update `.claude/skills/libtftest-add-fixture/SKILL.md`
 - [ ] Update `.claude/skills/libtftest-add-fixture/references/fixture-template.go.tmpl`
+- [ ] **Repo-wide `doc.go` rollout** (per [INV-0003][inv-0003]):
+      lift the existing `// Package <name>` comment from its current
+      home (e.g. `assert.go`, `config.go`, `workspace.go`) into a
+      dedicated `doc.go` for every pre-existing package, and expand
+      the comment to a multi-paragraph godoc-compliant explanation
+      of package purpose. Packages: `assert/` (deprecated top-level
+      doc — leave a `// Package assert is deprecated.` note pointing
+      to `assert/<service>/`), `awsx/` (the deliberate-flat-layout
+      note already drafted), `fixtures/` (same deprecation note),
+      `harness/`, `internal/dockerx/`, `internal/logx/`,
+      `internal/naming/`, `localstack/`, `sneakystack/`,
+      `sneakystack/services/`, `tf/`, `cmd/libtftest/`,
+      `cmd/sneakystack/`
+- [ ] After the `doc.go` rollout, remove the `// Package <name>`
+      comment from its previous home so it's not duplicated
+- [ ] Update `CLAUDE.md` Code Conventions section to list the
+      `doc.go`-per-package rule and the
+      `// libtftest:requires <tag>...` marker rule (already drafted)
 - [ ] Run `claudelint run .claude/` clean (or verify the CI
       `skills.yml` job stays green if claudelint is not in the local
       toolchain)
@@ -300,6 +320,15 @@ refactor is fully self-contained and the additive primitives
   locally (or in CI if Docker isn't available)
 - Local skill templates emit per-service-package code by default
 - `make ci` clean
+- Every Go package in the repo has a `doc.go` and no other file in
+  the package carries a `// Package <name>` block:
+  `find . -type d -exec test -f {}/doc.go \;` covers every package
+  containing a `.go` file (modulo `cmd/` packages which keep
+  package main's documentation in `main.go` per Go convention if
+  no `doc.go` exists; we still add one for consistency)
+- `grep -rn '^// libtftest:requires ' assert/ fixtures/ libtftest.go`
+  catches every marker; every function in those files that calls
+  `libtftest.RequirePro(tb)` is accompanied by a marker
 
 ---
 
@@ -565,7 +594,31 @@ after merge. Not a separate PR.
 | `assert/snapshot/extract.go` + `_test.go` | IAM + generic plan-JSON extraction |
 | `assert/snapshot/testdata/plan-iam-kms.json` | Fixture plan JSON |
 | `awsx/resourcegroupstaggingapi.go` | New constructor for tags backend |
-| `awsx/doc.go` | Package-level godoc explaining the deliberate flat layout (seed of the Future-Work `doc.go` convention) |
+| `awsx/doc.go` | Package-level godoc explaining the deliberate flat layout |
+| `assert/doc.go` | Deprecated top-level package note pointing to per-service sub-packages |
+| `assert/s3/doc.go` | Per-service package comment |
+| `assert/dynamodb/doc.go` | Per-service package comment |
+| `assert/iam/doc.go` | Per-service package comment + Pro-only note |
+| `assert/ssm/doc.go` | Per-service package comment |
+| `assert/lambda/doc.go` | Per-service package comment |
+| `assert/tags/doc.go` | Package comment for new tags package |
+| `assert/snapshot/doc.go` | Package comment for new snapshot package |
+| `fixtures/doc.go` | Deprecated top-level package note pointing to per-service sub-packages |
+| `fixtures/s3/doc.go` | Per-service package comment |
+| `fixtures/ssm/doc.go` | Per-service package comment |
+| `fixtures/secretsmanager/doc.go` | Per-service package comment |
+| `fixtures/sqs/doc.go` | Per-service package comment |
+| `harness/doc.go` | Package comment lifted from existing inline source |
+| `internal/dockerx/doc.go` | Package comment lifted from existing inline source |
+| `internal/logx/doc.go` | Package comment lifted from existing inline source |
+| `internal/naming/doc.go` | Package comment lifted from existing inline source |
+| `internal/testfake/doc.go` | Package comment for new testfake package |
+| `localstack/doc.go` | Package comment lifted from existing inline source |
+| `sneakystack/doc.go` | Package comment lifted from existing inline source |
+| `sneakystack/services/doc.go` | Package comment lifted from existing inline source |
+| `tf/doc.go` | Package comment lifted from existing inline source |
+| `cmd/libtftest/doc.go` | Package main comment |
+| `cmd/sneakystack/doc.go` | Package main comment |
 | `fixtures/s3/s3.go` + `_test.go` | Migrated S3 fixtures |
 | `fixtures/ssm/ssm.go` + `_test.go` | Migrated SSM fixtures |
 | `fixtures/secretsmanager/secretsmanager.go` + `_test.go` | Migrated Secrets Manager fixtures |
@@ -717,29 +770,31 @@ These items came up while resolving IMPL-0004's open questions but
 are out of scope here. Each gets its own INV before the next IMPL
 plan is drafted.
 
-1. **Package-level `doc.go` convention + `gomarkdoc` toolchain.**
-   Establish a repo-wide convention that every package ships a
-   `doc.go` with a godoc-compliant package comment, and adopt
-   [`princjef/gomarkdoc`](https://github.com/princjef/gomarkdoc)
-   (or similar) to render package docs to markdown for inclusion
-   under `docs/`. Covers three goals at once:
-   - Documents package _intent_ (replaces the need for "deliberate
-     non-change" CHANGELOG markers like the one OQ3 was after)
-   - Forces godoc-compliant comments project-wide, which we already
-     mostly do but don't enforce
-   - Produces a renderable API surface page that lives alongside
-     the docz docs
-   Tracked under [INV-0003 — Package documentation convention and
-   gomarkdoc toolchain][inv-0003].
+1. **`gomarkdoc` rendering toolchain + CI doc.go enforcement.**
+   The `doc.go`-per-package _convention_ itself ships as part of
+   this IMPL (Phase 3 rollout — see [INV-0003][inv-0003], status
+   Concluded). What remains deferred is:
+   - Wiring [`princjef/gomarkdoc`](https://github.com/princjef/gomarkdoc)
+     (or a custom docgen) behind a `make docs` target to render
+     package docs to markdown under `docs/api/`
+   - A small CI check (`scripts/check-doc-go.sh` or Go program)
+     that fails when a package directory lacks a `doc.go`
+   - Pushing the gap fixes upstream into the `go-development`
+     plugin as new reference files
+   These need their own DESIGN+IMPL cycle and share docgen design
+   space with Future Work item 2.
 
-2. **Pro-feature matrix marker + docgen.** As more services land,
-   consumers need a quick reference for "what works on OSS
-   LocalStack vs. what requires Pro". Build-tags are a heavyweight
-   option — leaning toward a structured comment marker (something
-   like `// libtftest:requires-pro <reason>`) plus a small docgen
-   Go tool that scans the codebase and renders a markdown matrix
-   page. Tracked under [INV-0004 — Pro and OSS feature matrix
-   tooling][inv-0004].
+2. **External-dependency feature matrix docgen tool.** The
+   marker convention itself (`// libtftest:requires <tag>[,<tag>...] <reason>`
+   with multi-tag support — e.g. `pro,mockta`) ships as part of
+   this IMPL (Phase 1 IAM assertions + Phase 3 rollout note).
+   What remains deferred is the docgen Go tool that scans the
+   codebase for markers and renders a markdown matrix page
+   (`docs/feature-matrix.md`) with one column per encountered tag.
+   Also deferred: a `make check-markers` CI step that fails when
+   `RequirePro` (or an equivalent gate) is called without an
+   accompanying marker comment. Tracked under [INV-0004 — Pro and
+   OSS feature matrix tooling][inv-0004].
 
 ## References
 

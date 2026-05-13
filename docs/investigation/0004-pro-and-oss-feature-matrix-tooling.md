@@ -17,9 +17,11 @@ created: 2026-05-13
 - [Question](#question)
 - [Hypothesis](#hypothesis)
 - [Context](#context)
+  - [Known external dependencies that will need their own tag](#known-external-dependencies-that-will-need-their-own-tag)
+  - [Multi-tag use case (concrete)](#multi-tag-use-case-concrete)
 - [Approach](#approach)
 - [Candidate marker shapes](#candidate-marker-shapes)
-  - [Option A: Structured comment](#option-a-structured-comment)
+  - [Option A: Structured comment (chosen — multi-tag form)](#option-a-structured-comment-chosen--multi-tag-form)
   - [Option B: Godoc-prefix convention](#option-b-godoc-prefix-convention)
   - [Option C: Centralised registry file](#option-c-centralised-registry-file)
 - [Open considerations](#open-considerations)
@@ -38,14 +40,20 @@ Pro / OSS feature matrix as markdown?
 Build tags are the wrong tool here — they gate compilation, but we
 don't want to *exclude* OSS users from compiling the Pro-only
 helpers; we want consumers to *know* at design time which calls
-will hit `t.Skip(...)` on OSS images via `libtftest.RequirePro`.
+will hit `t.Skip(...)` on OSS images via `libtftest.RequirePro` (or
+analogous future gates like `RequireMockta`).
 
-A lightweight structured comment marker (e.g.
-`// libtftest:requires-pro <short reason>`) on functions/methods
-that call `RequirePro(tb)` solves the design-time question without
-changing build behaviour. A small docgen Go tool scans for the
-marker, groups by package and service, and renders a markdown
-matrix.
+A lightweight structured comment marker that supports **a
+comma-separated set of tags** rather than a single fixed tag:
+
+```go
+// libtftest:requires <tag>[,<tag>...] <short reason>
+```
+
+A small docgen Go tool scans for the marker, groups by package and
+service, and renders a markdown matrix with one column per
+encountered tag (today: `pro`, `mockta`; tomorrow: whatever else
+we add).
 
 ## Context
 
@@ -58,6 +66,36 @@ Pro.
 Today, the only way to discover Pro-gating is to read source for
 `RequirePro(tb)` calls or hit the skip at runtime. Neither is
 discoverable.
+
+### Known external dependencies that will need their own tag
+
+The matrix is not strictly Pro-vs-OSS — it's "what external
+auxiliary do I need to run this assertion?". Concrete examples:
+
+| Tag | What it covers | Status |
+|-----|----------------|--------|
+| `pro` | Features that hit `libtftest.RequirePro(tb)` because they require a LocalStack Pro auth token | Today |
+| `mockta` | Features that wrap **mockta**, an external Okta-mocking tool/service that `libtftest` will eventually wrap to test Okta-integrated modules | Planned |
+| (future) | `auth-token`, `lambda-docker`, etc. as we add more gates | TBD |
+
+The marker must accept arbitrary tag names so we can add new
+external dependencies without changing the marker grammar.
+
+### Multi-tag use case (concrete)
+
+A single assertion may need both LocalStack Pro **and** mockta —
+e.g. an EKS module that uses Okta for OIDC federation, where the
+EKS side needs Pro and the Okta side needs mockta. That assertion
+should be marked:
+
+```go
+// SomeOktaEKSAssertion asserts ...
+// libtftest:requires pro,mockta Combines Pro EKS gates and mockta OIDC stubs
+func SomeOktaEKSAssertion(tb testing.TB, ...) { ... }
+```
+
+The rendered matrix should show the assertion in **both** the
+`pro` and `mockta` columns.
 
 ## Approach
 
@@ -84,16 +122,45 @@ discoverable.
 
 ## Candidate marker shapes
 
-### Option A: Structured comment
+### Option A: Structured comment (chosen — multi-tag form)
 
 ```go
 // PolicyAttachedToRole asserts ...
-// libtftest:requires-pro IAM IdC managed policy ARNs only resolve under Pro
+// libtftest:requires pro IAM IdC managed policy ARNs only resolve under Pro
 func PolicyAttachedToRole(tb testing.TB, ...) { ... }
 ```
 
-- Pro: trivially greppable, survives `gofmt`, no AST work.
-- Pro: same shape can encode reasons.
+Multi-tag example:
+
+```go
+// OktaFederatedRoleHasTrust asserts ...
+// libtftest:requires pro,mockta EKS + Okta federation needs both Pro and mockta
+func OktaFederatedRoleHasTrust(tb testing.TB, ...) { ... }
+```
+
+Marker grammar:
+
+```text
+// libtftest:requires <tag>[,<tag>...] <free-text reason>
+```
+
+- Tags are a comma-separated list with no whitespace inside the
+  list — keeps the regex simple and avoids ambiguity with the
+  reason text.
+- Reason is everything after the tag list. May contain commas, spaces,
+  ASCII punctuation. Single line.
+- Order within the tag list is not significant.
+- Scanner emits one matrix row per function, one cell per
+  distinct tag encountered across the codebase.
+
+Why Option A:
+
+- Pro: trivially greppable, survives `gofmt`, no AST work needed
+  for a v1 scanner.
+- Pro: same shape encodes reasons and arbitrary tags.
+- Pro: extensible without changing the marker grammar — adding a
+  new external dependency tag (e.g. `lambda-docker`) is just a
+  marker-text change.
 - Con: the linter has to understand a non-Go convention; needs a
   shared library file (similar to how we'd handle the
   `libtftest:` namespace).
@@ -133,10 +200,11 @@ useful "Reason" column in the matrix.
   comment ensures the matrix stays current. Open question whether
   this lives in `golangci-lint` (custom linter) or a standalone
   Go program.
-- **Multi-tier gating.** Today we only have Pro vs. OSS. Future
-  may add "Pro Enterprise" or "requires `LAMBDA_DOCKER_FLAGS` env
-  var" or "requires `LOCALSTACK_AUTH_TOKEN`". Marker convention
-  should leave room for additional categories without rework.
+- **Multi-tier / multi-dependency gating.** _Resolved._ The
+  marker accepts a comma-separated list of arbitrary tags, so
+  adding a new tier or external dependency (mockta, lambda-docker,
+  Pro Enterprise, etc.) is just a marker-text change with no
+  grammar rework.
 
 ## References
 
