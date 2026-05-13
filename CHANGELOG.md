@@ -11,11 +11,11 @@ Manual edits will be overwritten by the `Changelog Sync` job in the
 `Release` workflow after each tagged release — author release notes
 via conventional commit subjects and bodies instead.
 
-## [unreleased]
+## [0.1.2] - 2026-05-13
 
 ### Bug Fixes
 
-- *(release)* Wire up docker bake release target + cosign signing
+- *(release)* Wire up docker bake release target + cosign signing ([#11](https://github.com/donaldgifford/libtftest/issues/11))
 
 ## [0.1.1] - 2026-05-12
 
