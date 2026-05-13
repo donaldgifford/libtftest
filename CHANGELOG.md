@@ -26,6 +26,7 @@ via conventional commit subjects and bodies instead.
 - *(impl)* Add IMPL-0004 for layout refactor + hygiene primitives
 - *(impl)* Resolve IMPL-0004 open questions + future-work INVs
 - Conclude INV-0003, refine INV-0004, fold convention into IMPL-0004
+- Conclude INV-0004 and fold tools/docgen into IMPL-0004
 
 ### Miscellaneous Tasks
 
