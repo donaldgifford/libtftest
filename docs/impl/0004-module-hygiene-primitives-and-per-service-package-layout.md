@@ -182,10 +182,10 @@ without duplication.
 - [x] Create `assert/dynamodb/dynamodb.go` (`package dynamodb`) with
       `TableExists`, `TableExistsContext`
 - [x] Create `assert/dynamodb/dynamodb_test.go`
-- [ ] Create `assert/iam/iam.go` (`package iam`) with `RoleExists`,
+- [x] Create `assert/iam/iam.go` (`package iam`) with `RoleExists`,
       `RoleExistsContext`, `RoleHasInlinePolicy`, `RoleHasInlinePolicyContext`
       (preserve `libtftest.RequirePro(tb)` gates)
-- [ ] Create `assert/iam/iam_test.go`
+- [x] Create `assert/iam/iam_test.go`
 - [ ] Create `assert/ssm/ssm.go` (`package ssm`) with `ParameterExists`,
       `ParameterExistsContext`, `ParameterHasValue`, `ParameterHasValueContext`
 - [ ] Create `assert/ssm/ssm_test.go`
