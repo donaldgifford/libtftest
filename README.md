@@ -174,6 +174,7 @@ func TestMyModule(t *testing.T) {
 | [Cancellation & ctx](docs/examples/07-cancellation.md) | `*Context` paired API, deadlines, `WithoutCancel` cleanup |
 | [Idempotency](docs/examples/08-idempotency.md) | `tc.AssertIdempotent` and `tc.AssertIdempotentApply` |
 | [CHANGELOG](CHANGELOG.md) | Released versions and migration notes |
+| [Feature Matrix](docs/feature-matrix.md) | Generated table of Pro / mockta / multi-tag gated functions |
 | [Development Guide](docs/development/) | How to develop, test, and contribute to libtftest |
 | [Design Doc (DESIGN-0001)](docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md) | Architecture and API design |
 | [Implementation Plan (IMPL-0001)](docs/impl/0001-libtftest-v010-core-library-implementation.md) | Phased implementation plan |

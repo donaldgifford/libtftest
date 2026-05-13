@@ -487,31 +487,36 @@ packages, walks source files only, and stays version-agnostic.
 
 #### Tasks
 
-- [ ] Create `tools/docgen/main.go` (`package main`) with a `scan` subcommand
-      that: - Walks the repo's `.go` files (respecting `.gitignore`) - Pairs
-      each `// libtftest:requires <tags> <reason>` line with the immediately
-      following function declaration (parses with `go/parser` for declaration
-      positions only — keeps the regex/AST boundary clean) - Emits a JSON
-      intermediate representation (function name, package path, tags, reason,
-      source location)
-- [ ] Add a `render` subcommand that consumes the JSON IR and writes
-      `docs/feature-matrix.md` — one row per function, one column per distinct
-      tag encountered, with the reason rendered alongside
-- [ ] Add a `check` subcommand that: - Walks the repo for calls to
-      `libtftest.RequirePro(` (regex plus simple scope detection — the enclosing
-      function) - Fails (exit non-zero, log the offending file:line) when any
-      such function lacks a `// libtftest:requires` marker
-- [ ] Add `make docs-matrix` target that runs `tools/docgen render`
-- [ ] Add `make check-markers` target that runs `tools/docgen check`
-- [ ] Wire `make check-markers` into `make ci`
-- [ ] Add `tools/docgen/main_test.go` with table-driven tests covering:
+- [x] Create `tools/docgen/main.go` (`package main`) with a `scan` subcommand
+      that: walks the repo's `.go` files (skipping `.git`, `vendor`, `build`,
+      `.claude`, `node_modules`, `.docz`); parses each file with `go/parser` +
+      `go/ast`; pairs each `// libtftest:requires <tags> <reason>` doc comment
+      line with the function the doc is attached to; emits a stable-sorted
+      JSON intermediate representation (function, receiver, package, tags,
+      reason, source file/line)
+- [x] Add a `render` subcommand that consumes the JSON IR (or runs `scan`
+      itself when neither `-in` nor a piped stdin is provided) and writes
+      `docs/feature-matrix.md` — one row per marker, with a summary block
+      counting per-tag totals, pipe characters in the Reason column escaped,
+      and tags rendered as sorted bold tokens
+- [x] Add a `check` subcommand that walks the repo (skipping `_test.go`
+      files), inspects every `*ast.FuncDecl`, and fails with `file:line` when
+      a function calls `libtftest.RequirePro(` without a `// libtftest:requires`
+      marker on its doc. Functions with a marker but no `RequirePro` call are
+      permitted — markers may anticipate future gates
+- [x] Add `make docs-matrix` target that runs `tools/docgen render`
+- [x] Add `make check-markers` target that runs `tools/docgen check`
+- [x] Wire `make check-markers` into `make ci`
+- [x] Add `tools/docgen/main_test.go` with table-driven tests covering:
       single-tag marker, multi-tag marker, missing marker (caught by `check`),
-      function with marker but no `RequirePro` call (allowed — markers may
-      anticipate future gates)
-- [ ] Add `tools/doc.go` documenting the directory's purpose
-- [ ] Run `tools/docgen render` and commit the initial `docs/feature-matrix.md`
-- [ ] Update `README.md` to link to `docs/feature-matrix.md`
-- [ ] Update `CLAUDE.md` to mention the `tools/docgen` location
+      function with marker but no `RequirePro` call (allowed), test files
+      ignored by `check`, stable sort order across runs, render determinism,
+      pipe escaping, multi-tag sort
+- [x] Add `tools/doc.go` and `tools/docgen/doc.go` documenting the layout
+- [x] Run `tools/docgen render` and commit the initial `docs/feature-matrix.md`
+      (4 markers, all currently on assert/iam functions)
+- [x] Update `README.md` to link to `docs/feature-matrix.md`
+- [x] Update `CLAUDE.md` to mention the `tools/docgen` location
 
 #### Success Criteria
 
