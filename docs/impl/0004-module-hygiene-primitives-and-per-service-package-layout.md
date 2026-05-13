@@ -186,9 +186,9 @@ without duplication.
       `RoleExistsContext`, `RoleHasInlinePolicy`, `RoleHasInlinePolicyContext`
       (preserve `libtftest.RequirePro(tb)` gates)
 - [x] Create `assert/iam/iam_test.go`
-- [ ] Create `assert/ssm/ssm.go` (`package ssm`) with `ParameterExists`,
+- [x] Create `assert/ssm/ssm.go` (`package ssm`) with `ParameterExists`,
       `ParameterExistsContext`, `ParameterHasValue`, `ParameterHasValueContext`
-- [ ] Create `assert/ssm/ssm_test.go`
+- [x] Create `assert/ssm/ssm_test.go`
 - [ ] Create `assert/lambda/lambda.go` (`package lambda`) with `FunctionExists`,
       `FunctionExistsContext`
 - [ ] Create `assert/lambda/lambda_test.go`
