@@ -103,6 +103,13 @@ See [docs/examples](docs/examples/) for more complete examples.
   present on every listed ARN. Subset check (extra tags allowed), aggregated
   failure messages, paired `*Context` variant. See
   [docs/examples/09-tag-propagation.md](docs/examples/09-tag-propagation.md).
+- **JSON snapshot testing** -- `snapshot.JSONStrict` and
+  `snapshot.JSONStructural` lock down deterministic JSON payloads against
+  a golden file. `LIBTFTEST_UPDATE_SNAPSHOTS=1` regenerates snapshots in
+  place. `snapshot.ExtractIAMPolicies` and
+  `snapshot.ExtractResourceAttribute` pull policy documents out of
+  `terraform show -json plan.out` output. See
+  [docs/examples/10-snapshot-iam.md](docs/examples/10-snapshot-iam.md).
 - **terratest 1.0 `*Context` API** -- every `TestCase` method, every
   per-service assertion, and every per-service fixture ships a paired `*Context`
   variant (`ApplyContext`, `BucketExistsContext`, `SeedObjectContext`,

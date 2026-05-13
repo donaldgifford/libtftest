@@ -416,37 +416,40 @@ JSON.
 
 #### Tasks
 
-- [ ] Create `assert/snapshot/snapshot.go` (`package snapshot`) with
+- [x] Create `assert/snapshot/snapshot.go` (`package snapshot`) with
       `JSONStrict(tb, actual, path)` and `JSONStructural(tb, actual, path)`
-- [ ] Implement structural normalization: recursively sort keys, strip
+- [x] Implement structural normalization: recursively sort keys, strip
       insignificant whitespace, normalize numeric types where JSON's spec is
       ambiguous
-- [ ] Wire `LIBTFTEST_UPDATE_SNAPSHOTS=1` rewrite protocol — on mismatch,
+- [x] Wire `LIBTFTEST_UPDATE_SNAPSHOTS=1` rewrite protocol — on mismatch,
       overwrite `path` with `actual` and pass the test; log via `tb.Logf` so CI
       runs surface what was overwritten
-- [ ] Implement `ExtractIAMPolicies(planJSON []byte) (map[string][]byte, error)`
+- [x] Implement `ExtractIAMPolicies(planJSON []byte) (map[string][]byte, error)`
       — walks `planned_values.root_module.resources` for `aws_iam_role`,
-      `aws_iam_policy`, `aws_iam_role_policy`; returns one entry per role per
-      policy keyed by
-      `<resource_address>.<assume_role|inline:<name>|managed:<arn>>`
-- [ ] Implement `ExtractResourceAttribute(planJSON, addr, path) ([]byte, error)`
+      `aws_iam_policy`, `aws_iam_role_policy`, `aws_iam_role_policy_attachment`;
+      returns one entry per role per policy keyed by
+      `<resource_address>.<assume_role|inline:<name>|managed:<arn>|policy>`
+- [x] Implement `ExtractResourceAttribute(planJSON, addr, path) ([]byte, error)`
       — generic JSON path extraction under
       `planned_values.root_module.resources[?address==addr].values.<path>`
-- [ ] Create `assert/snapshot/snapshot_test.go` covering: identical JSON,
+- [x] Create `assert/snapshot/snapshot_test.go` covering: identical JSON,
       byte-different-but-structurally-equal (strict fails, structural passes),
       missing snapshot file (without update mode → fail; with update mode →
       write + pass), structurally different JSON (both forms fail)
-- [ ] Create `assert/snapshot/extract_test.go` covering: extract IAM policies
+- [x] Create `assert/snapshot/extract_test.go` covering: extract IAM policies
       from a fixture plan JSON, extract a KMS key policy via the generic helper,
       missing resource address (returns error)
-- [ ] Generate fixture plan JSON for tests: small Terraform module with one IAM
-      role + one KMS key, capture `terraform show -json plan.out` as
-      `testdata/plan-iam-kms.json`
-- [ ] Update `docs/examples/` with a new `10-snapshot-iam.md` example + matching
-      runnable test
-- [ ] Update `docs/examples/README.md` index
-- [ ] Update `README.md` Features list
-- [ ] Run `make ci` clean
+- [x] Generate fixture plan JSON for tests:
+      `assert/snapshot/testdata/plan-iam-kms.json` — hand-crafted minimal
+      `terraform show -json` payload covering an IAM role with
+      assume-role + inline + managed attachment, a standalone IAM policy, a
+      KMS key, and a tagged S3 bucket (no external Terraform dependency
+      required to run the tests)
+- [x] Update `docs/examples/` with a new `10-snapshot-iam.md` example +
+      matching `Test_Example10_SnapshotIAM` in `examples_integration_test.go`
+- [x] Update `docs/examples/README.md` index
+- [x] Update `README.md` Features list
+- [x] Run `make ci` clean
 
 **Determinism note (managed policies).** `ExtractIAMPolicies` must produce a
 deterministic output. Inline policies are extracted as full JSON document

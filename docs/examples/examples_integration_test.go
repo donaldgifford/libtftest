@@ -25,6 +25,7 @@ import (
 
 	"github.com/donaldgifford/libtftest"
 	s3assert "github.com/donaldgifford/libtftest/assert/s3"
+	"github.com/donaldgifford/libtftest/assert/snapshot"
 	ssmassert "github.com/donaldgifford/libtftest/assert/ssm"
 	tagsassert "github.com/donaldgifford/libtftest/assert/tags"
 	"github.com/donaldgifford/libtftest/localstack"
@@ -184,6 +185,35 @@ func Test_Example09_TagPropagation(t *testing.T) {
 	var (
 		_ func(testing.TB, aws.Config, map[string]string, ...string)                  = tagsassert.PropagatesFromRoot
 		_ func(testing.TB, context.Context, aws.Config, map[string]string, ...string) = tagsassert.PropagatesFromRootContext
+	)
+}
+
+// Test_Example10_SnapshotIAM mirrors docs/examples/10-snapshot-iam.md.
+// The substantive coverage of snapshot comparison + extraction lives
+// in assert/snapshot/snapshot_test.go and assert/snapshot/extract_test.go;
+// this example test guards the public surface compiles and exercises
+// JSONStructural end-to-end against a hand-written plan-shape payload.
+func Test_Example10_SnapshotIAM(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	snapPath := filepath.Join(dir, "policy.json")
+
+	const policy = `{"Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"ec2.amazonaws.com"}}],"Version":"2012-10-17"}`
+
+	t.Setenv("LIBTFTEST_UPDATE_SNAPSHOTS", "1")
+	snapshot.JSONStructural(t, []byte(policy), snapPath)
+
+	t.Setenv("LIBTFTEST_UPDATE_SNAPSHOTS", "")
+	snapshot.JSONStructural(t, []byte(policy), snapPath)
+
+	//nolint:staticcheck // QF1011: explicit types are the assertion.
+	var (
+		_ = snapshot.JSONStrict
+		_ = snapshot.JSONStructural
+		_ = snapshot.NormalizeJSON
+		_ = snapshot.ExtractIAMPolicies
+		_ = snapshot.ExtractResourceAttribute
 	)
 }
 

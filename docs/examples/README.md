@@ -39,6 +39,7 @@ terraform-aws-my-module/
 | [Cancellation and Deadlines](07-cancellation.md) | Per-call deadlines via the `*Context` API variants |
 | [Idempotency Assertions](08-idempotency.md) | `tc.AssertIdempotent` and `tc.AssertIdempotentApply` |
 | [Tag Propagation](09-tag-propagation.md) | `tagsassert.PropagatesFromRoot` via the Resource Groups Tagging API |
+| [Snapshot Testing (IAM)](10-snapshot-iam.md) | `snapshot.JSONStrict` / `JSONStructural` with `ExtractIAMPolicies` |
 
 ## Running the Examples
 
