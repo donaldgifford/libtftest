@@ -58,6 +58,7 @@ via conventional commit subjects and bodies instead.
 - Add idempotency example + README/CLAUDE updates
 - *(assert/tags)* Add example 09 + integration surface + README
 - *(assert/snapshot)* Add example 10 + README/index updates
+- *(impl-0004)* Close Testing Plan checkboxes and note Phase 8/9 scope
 
 ### Miscellaneous Tasks
 
