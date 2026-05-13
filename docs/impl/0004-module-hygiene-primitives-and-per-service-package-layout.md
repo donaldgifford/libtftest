@@ -274,9 +274,9 @@ touching call sites again.
 - [x] Update `docs/examples/examples_integration_test.go` — regenerate runnable
       tests against the new layout; verify they still compile under
       `//go:build integration_examples`
-- [ ] Update `README.md` "Features", "Quick Start", "Package Overview", and any
+- [x] Update `README.md` "Features", "Quick Start", "Package Overview", and any
       other API-surface sections
-- [ ] Update `CLAUDE.md` status line + Context API surface section
+- [x] Update `CLAUDE.md` status line + Context API surface section
 - [ ] Update `.claude/skills/libtftest-add-assertion/SKILL.md` to describe the
       new shape
 - [ ] Update
@@ -299,7 +299,7 @@ touching call sites again.
       `cmd/sneakystack/`
 - [x] After the `doc.go` rollout, remove the `// Package <name>` comment from
       its previous home so it's not duplicated
-- [ ] Update `CLAUDE.md` Code Conventions section to list the
+- [x] Update `CLAUDE.md` Code Conventions section to list the
       `doc.go`-per-package rule and the `// libtftest:requires <tag>...` marker
       rule (already drafted)
 - [ ] Run `claudelint run .claude/` clean (or verify the CI `skills.yml` job

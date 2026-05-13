@@ -39,7 +39,7 @@ import (
     "testing"
 
     "github.com/donaldgifford/libtftest"
-    "github.com/donaldgifford/libtftest/assert"
+    s3assert "github.com/donaldgifford/libtftest/assert/s3"
     "github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -55,8 +55,8 @@ func TestS3Module(t *testing.T) {
     tc.Apply()
 
     bucket := tc.Output("bucket_id")
-    assert.S3.BucketExists(t, tc.AWS(), bucket)
-    assert.S3.BucketHasVersioning(t, tc.AWS(), bucket)
+    s3assert.BucketExists(t, tc.AWS(), bucket)
+    s3assert.BucketHasVersioning(t, tc.AWS(), bucket)
 }
 ```
 
@@ -84,15 +84,17 @@ See [docs/examples](docs/examples/) for more complete examples.
   Pro-only assertions call it internally
 - **AWS SDK v2 clients** -- pre-configured `awsx` constructors for S3, DynamoDB,
   IAM, SSM, Secrets Manager, SQS, SNS, Lambda, KMS, Kinesis, STS
-- **Assertion helpers** -- `assert.S3`, `assert.IAM`, `assert.DynamoDB`,
-  `assert.SSM`, `assert.Lambda`
-- **Fixture seeding** -- `fixtures.SeedS3Object`, `fixtures.SeedSSMParameter`,
-  `fixtures.SeedSecret`, `fixtures.SeedSQSMessage` with automatic `t.Cleanup`
+- **Assertion helpers** -- per-service packages under `assert/`:
+  `s3assert`, `ddbassert`, `iamassert` (Pro), `ssmassert`, `lambdaassert`
+  (importable as aliases to coexist with the AWS SDK)
+- **Fixture seeding** -- per-service packages under `fixtures/`:
+  `s3fix.SeedObject`, `ssmfix.SeedParameter`, `secretsfix.SeedSecret`,
+  `sqsfix.SeedMessage` with automatic `t.Cleanup`
 - **Plan testing** -- `tc.Plan()` returns parsed `PlanResult` with resource
   change counts for golden-file testing
 - **terratest 1.0 `*Context` API** -- every `TestCase` method, every
-  `assert.*` helper, and every `fixtures.Seed*` ships a paired `*Context`
-  variant (`ApplyContext`, `BucketExistsContext`, `SeedS3ObjectContext`,
+  per-service assertion, and every per-service fixture ships a paired `*Context`
+  variant (`ApplyContext`, `BucketExistsContext`, `SeedObjectContext`,
   etc.); non-context forms are permanent shims that forward to the
   `*Context` variant with `tb.Context()`. Cleanup paths use
   `context.WithoutCancel` so destroy + teardown survive test-end

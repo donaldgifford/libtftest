@@ -8,7 +8,7 @@ libtftest is a Go library (`github.com/donaldgifford/libtftest`) that wraps Terr
 
 The module also includes `sneakystack`, a Go HTTP proxy that fills gaps in LocalStack's AWS API coverage (IAM Identity Center, Organizations, Control Tower). sneakystack ships as both an importable package and a standalone Docker container (`cmd/sneakystack/`).
 
-**Status**: IMPL-0001 (core library) merged to main. IMPL-0002 (Claude Code skills) shipped. PR #8 bumped terratest to v1.0.0. IMPL-0003 (terratest 1.0 context migration) complete on `docs/inv-0001-terratest-context-migration` — paired-method `*Context` API across `TestCase`, `assert/`, `fixtures/`; v0.2.0 CHANGELOG drafted; consumer plugin bumped to 0.2.0 on `feat/libtftest-plugin-v0.2.0` in claude-skills repo. Pending: v0.1.0 + v0.2.0 tags, sneakystack service handlers (sso_admin, organizations).
+**Status**: IMPL-0001 (core library) merged. IMPL-0002 (skills) shipped. IMPL-0003 (terratest 1.0 context migration) shipped as v0.1.0 + v0.1.1. IMPL-0004 (per-service package layout + module hygiene primitives + `doc.go` convention + `tools/docgen` marker scanner) in progress on `inv/eks-localstack-coverage` — Phases 1–2 complete (`assert/<service>/` + `fixtures/<service>/` per-service packages with paired `*Context` shape); Phase 3 (cross-cutting docs + doc.go rollout) underway. Targets a single `v0.2.0` release.
 
 - Design doc (core): `docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md`
 - Impl plan (core): `docs/impl/0001-libtftest-v010-core-library-implementation.md`
@@ -16,6 +16,11 @@ The module also includes `sneakystack`, a Go HTTP proxy that fills gaps in Local
 - Impl plan (skills): `docs/impl/0002-claude-skills-for-libtftest-authors-and-consumers.md`
 - Investigation (terratest 1.0 ctx): `docs/investigation/0001-terratest-10-context-variant-migration.md`
 - Impl plan (terratest 1.0 ctx): `docs/impl/0003-terratest-10-context-migration.md`
+- Investigation (EKS coverage / package layout): `docs/investigation/0002-eks-coverage-via-localstack.md`
+- Investigation (doc.go convention): `docs/investigation/0003-package-documentation-convention-and-gomarkdoc-toolchain.md`
+- Investigation (Pro/mockta marker matrix): `docs/investigation/0004-pro-and-oss-feature-matrix-tooling.md`
+- Design doc (layout + hygiene primitives): `docs/design/0003-module-hygiene-primitives-and-per-service-package-layout.md`
+- Impl plan (layout + hygiene primitives): `docs/impl/0004-module-hygiene-primitives-and-per-service-package-layout.md`
 - Development guide: `docs/development/README.md`
 - Examples: `docs/examples/`
 
@@ -31,6 +36,38 @@ Non-context methods are permanent shims that forward to the `*Context`
 variant with `tb.Context()`. They are NOT marked `// Deprecated:`. The
 destroy cleanup uses `context.WithoutCancel(tb.Context())` so it survives
 test-end cancellation.
+
+### Per-service package layout (post-IMPL-0004 Phases 1–2)
+
+Assertions and fixtures live in per-service sub-packages, not the
+old flat layout. Import them with aliases to coexist with the AWS
+SDK packages of the same name:
+
+```go
+import (
+    s3assert  "github.com/donaldgifford/libtftest/assert/s3"
+    ddbassert "github.com/donaldgifford/libtftest/assert/dynamodb"
+    iamassert "github.com/donaldgifford/libtftest/assert/iam"   // Pro
+    ssmassert "github.com/donaldgifford/libtftest/assert/ssm"
+    lambdaassert "github.com/donaldgifford/libtftest/assert/lambda"
+
+    s3fix      "github.com/donaldgifford/libtftest/fixtures/s3"
+    ssmfix     "github.com/donaldgifford/libtftest/fixtures/ssm"
+    secretsfix "github.com/donaldgifford/libtftest/fixtures/secretsmanager"
+    sqsfix     "github.com/donaldgifford/libtftest/fixtures/sqs"
+)
+```
+
+The function name drops the service prefix (the package carries
+it): `assert.S3.BucketExists` → `s3assert.BucketExists`,
+`fixtures.SeedS3Object` → `s3fix.SeedObject`, etc. Every function
+keeps its paired `*Context` variant from INV-0001.
+
+The top-level `assert/` and `fixtures/` packages have no exported
+surface — their `doc.go` files document the deprecation and the
+per-service migration map. Shared `FakeTB` for cross-package test
+reuse lives at `internal/testfake.FakeTB` /
+`internal/testfake.NewFakeTB()`.
 
 ## Build & Development Commands
 
