@@ -171,13 +171,13 @@ without duplication.
 - [x] Create `internal/testfake/testfake.go` with the existing `fakeTB` minimal
       `testing.TB` surface (Helper, Errorf, Error, Fatalf, Fatal, Skip, Skipf,
       SkipNow, Logf, Log, Context)
-- [ ] Create `assert/s3/s3.go` (`package s3`) with `BucketExists`,
+- [x] Create `assert/s3/s3.go` (`package s3`) with `BucketExists`,
       `BucketExistsContext`, `BucketHasEncryption`,
       `BucketHasEncryptionContext`, `BucketHasVersioning`,
       `BucketHasVersioningContext`, `BucketBlocksPublicAccess`,
       `BucketBlocksPublicAccessContext`, `BucketHasTag`, `BucketHasTagContext`
       as package-level functions
-- [ ] Create `assert/s3/s3_test.go` with the existing S3 test coverage using
+- [x] Create `assert/s3/s3_test.go` with the existing S3 test coverage using
       `internal/testfake.NewFakeTB(...)`
 - [ ] Create `assert/dynamodb/dynamodb.go` (`package dynamodb`) with
       `TableExists`, `TableExistsContext`
