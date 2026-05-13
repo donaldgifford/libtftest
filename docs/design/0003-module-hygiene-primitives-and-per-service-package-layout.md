@@ -36,9 +36,21 @@ created: 2026-05-13
     - [Snapshot update protocol](#snapshot-update-protocol)
     - [Why not just cmp.Diff?](#why-not-just-cmpdiff)
     - [Extraction helpers](#extraction-helpers)
+  - [Part 5 — Repo-wide doc.go convention](#part-5--repo-wide-docgo-convention)
+    - [Rule](#rule)
+    - [Deprecated top-level packages](#deprecated-top-level-packages)
+    - [awsx/ flat-layout justification](#awsx-flat-layout-justification)
+    - [Tooling](#tooling)
+  - [Part 6 — tools/docgen marker scanner + feature matrix](#part-6--toolsdocgen-marker-scanner--feature-matrix)
+    - [Marker grammar](#marker-grammar)
+    - [Tool: tools/docgen](#tool-toolsdocgen)
+    - [Make targets](#make-targets)
+    - [Output location](#output-location)
+    - [Why regex + go/parser rather than pure AST](#why-regex--goparser-rather-than-pure-ast)
 - [API / Interface Changes](#api--interface-changes)
   - [Removed (renamed)](#removed-renamed)
   - [Added](#added)
+  - [Conventions added (repo-wide)](#conventions-added-repo-wide)
 - [Data Model](#data-model)
 - [Testing Strategy](#testing-strategy)
 - [Migration / Rollout Plan](#migration--rollout-plan)
@@ -53,10 +65,12 @@ created: 2026-05-13
 ## Overview
 
 Three orthogonal libtftest features fell out of [INV-0002][inv-0002]'s
-EKS coverage analysis, plus one prerequisite refactor. This design
-covers all four as a single coordinated design with independent
-implementation PRs. The refactor (Part 1) lands first; the three
-feature additions (Parts 2–4) land afterward in any order.
+EKS coverage analysis (Parts 2–4), plus one prerequisite refactor
+(Part 1). Two follow-on conventions emerged during IMPL-0004
+planning: a `doc.go`-per-package mandate (Part 5, from
+[INV-0003][inv-0003]) and a marker-scanner / feature-matrix tool
+(Part 6, from [INV-0004][inv-0004]). This design covers all six as
+a single coordinated v0.2.0 release.
 
 The story: when adding more services (EKS, ECS, SNS, SQS, KMS, …),
 the current flat `assert/{service}.go` layout with zero-size-struct
@@ -64,9 +78,14 @@ namespacing (`assert.S3.BucketExists`) doesn't scale. We switch to
 per-service sub-packages (`assert/s3/`, `fixtures/s3/`) that mirror
 the AWS SDK v2 convention. While the layout is being touched, three
 generic patterns from the EKS coverage matrix land as first-class
-features so consumers don't reinvent them.
+features, the package layout doubles as the rollout vehicle for a
+repo-wide `doc.go` convention, and a small in-tree docgen tool
+makes the "what needs Pro / mockta / X to run?" question
+answerable from a single rendered markdown page.
 
 [inv-0002]: ../investigation/0002-eks-coverage-via-localstack.md
+[inv-0003]: ../investigation/0003-package-documentation-convention-and-gomarkdoc-toolchain.md
+[inv-0004]: ../investigation/0004-pro-and-oss-feature-matrix-tooling.md
 
 ## Goals and Non-Goals
 
@@ -82,6 +101,11 @@ features so consumers don't reinvent them.
   ARNs (Resource Groups Tagging API backed)
 - Add `assert/snapshot` package for JSON snapshot testing
   (LocalStack-independent; first consumer is IAM trust policy diffing)
+- Adopt a repo-wide `doc.go`-per-package convention so every Go
+  package documents its intent in a canonical location
+- Add a `// libtftest:requires <tag>[,<tag>...] <reason>` marker
+  convention with a `tools/docgen` scanner that renders a
+  `docs/feature-matrix.md` page and a `make check-markers` CI gate
 - Update `tftest:add-assertion` / `tftest:add-fixture` plugin skills
   and the local `libtftest-add-assertion` / `libtftest-add-fixture`
   skills to emit the new shape
@@ -101,6 +125,12 @@ features so consumers don't reinvent them.
 - Generating IAM snapshots automatically — `assert/snapshot` only
   compares; producing the JSON is the caller's responsibility
   (typically `terraform show -json | jq '.planned_values...'`)
+- Wiring `gomarkdoc` (or any other godoc → markdown renderer) for
+  the `doc.go` content. The convention itself ships here; the
+  renderer ships in a follow-up DESIGN+IMPL
+- Pushing the marker convention upstream into the `go-development`
+  plugin. Lives in this repo until it's baked in for a release or
+  two
 
 ## Background
 
@@ -445,6 +475,158 @@ INV-0002. `ExtractResourceAttribute` is the general-purpose escape
 hatch — covers KMS key policies, S3 bucket policies, etc., without
 forcing libtftest to ship a helper per service.
 
+### Part 5 — Repo-wide `doc.go` convention
+
+Origin: [INV-0003][inv-0003], Concluded. The `go-development`
+plugin currently mentions `doc.go` exactly once (one line in
+`project-structure.md:226` as a suggestion in a file-layout
+listing) — no spec, no enforcement, no rendering guidance. We
+formalise it for this repo.
+
+#### Rule
+
+Every Go package in the repo (including `internal/...` and
+`cmd/...`) ships a dedicated `doc.go`:
+
+- Contains **only** the `package <name>` declaration and a
+  godoc-compliant multi-paragraph package comment
+- **No** imports, types, constants, or functions in `doc.go`
+- The package comment opens with `// Package <name> ...` per
+  godoc convention
+- The existing `// Package <name>` block in whatever random `.go`
+  file currently holds it (e.g. `assert/assert.go`,
+  `awsx/config.go`, `tf/workspace.go`) moves into `doc.go` and is
+  removed from the original file
+
+#### Deprecated top-level packages
+
+The Part 1 refactor leaves the top-level `assert/` and `fixtures/`
+packages without any user-facing surface. Each gets a `doc.go`
+that explicitly documents the deprecation and points readers to
+the per-service sub-packages:
+
+```go
+// Package assert is deprecated. Use the per-service sub-packages
+// instead:
+//
+//	import s3assert "github.com/donaldgifford/libtftest/assert/s3"
+//	s3assert.BucketExists(t, cfg, name)
+//
+// See assert/s3, assert/dynamodb, assert/iam, assert/ssm,
+// assert/lambda, assert/tags, assert/snapshot.
+package assert
+```
+
+#### `awsx/` flat-layout justification
+
+The Part 1 refactor explicitly does *not* break up `awsx/` into
+sub-packages (see the original Resolved Question 1). The
+`awsx/doc.go` file is where that intent gets documented — replaces
+the otherwise-needed "deliberate non-change" CHANGELOG marker
+that an earlier draft considered (and that triggered INV-0003 in
+the first place).
+
+#### Tooling
+
+- **Renderer (`gomarkdoc` or equivalent) — deferred.** A future
+  DESIGN+IMPL will wire a renderer behind `make docs` to emit the
+  package surface to `docs/api/`. Out of scope here.
+- **CI presence check — deferred.** A future tiny check
+  (`scripts/check-doc-go.sh` or a Go program) will fail when a
+  package directory lacks a `doc.go`. Out of scope here.
+
+The *convention itself* is what ships in this design; tooling
+follows once it's universal in the repo.
+
+### Part 6 — `tools/docgen` marker scanner + feature matrix
+
+Origin: [INV-0004][inv-0004], Concluded. Consumers can't discover
+which assertions require LocalStack Pro (or future externals like
+mockta for Okta) without reading source or hitting runtime skips.
+Part 6 ships a marker convention plus a small in-tree Go tool
+that renders a feature matrix and gates CI.
+
+#### Marker grammar
+
+```text
+// libtftest:requires <tag>[,<tag>...] <free-text reason>
+```
+
+- Sits on its own line in the function's doc comment block
+- Tags are a **comma-separated list with no whitespace inside**
+  the list — keeps the regex parser simple and avoids ambiguity
+  with the reason
+- Reason is everything after the tag list. May contain commas,
+  spaces, ASCII punctuation. Single line.
+- Order within the tag list is not significant
+- Tag set is open-ended — adding `mockta`, `lambda-docker`, etc.
+  is just a marker-text change, no grammar rework
+
+Example (single tag):
+
+```go
+// RoleHasInlinePolicy asserts that role has an inline policy named name.
+//
+// libtftest:requires pro IAM IdC managed policy ARNs only resolve under Pro
+func RoleHasInlinePolicy(tb testing.TB, cfg aws.Config, role, name string) { ... }
+```
+
+Example (multi-tag):
+
+```go
+// OktaFederatedRoleHasTrust asserts the role trusts the Okta IdP.
+//
+// libtftest:requires pro,mockta EKS + Okta federation needs both
+func OktaFederatedRoleHasTrust(tb testing.TB, ...) { ... }
+```
+
+#### Tool: `tools/docgen`
+
+Single `package main` Go binary with three subcommands. Lives in
+`tools/docgen/` and shares the libtftest go.mod — *not* a
+separate module. **Intentionally does not import any libtftest
+package**; scans source files with regex + `go/parser` for
+declaration positions only. That keeps the tool version-agnostic
+(no rebuild on library bumps) and avoids any import cycle.
+
+| Subcommand | What it does |
+|------------|--------------|
+| `scan` | Walks `.go` files, pairs each marker line with the immediately following function declaration, emits a JSON IR (function name, package path, tags, reason, file:line). |
+| `render` | Consumes the JSON IR, writes `docs/feature-matrix.md` — one row per marked function, one column per distinct tag, plus a "reason" column. |
+| `check` | Walks for calls to `libtftest.RequirePro(` (regex + enclosing-function detection); fails non-zero with `file:line` when any such function lacks a marker. |
+
+#### Make targets
+
+```make
+docs-matrix:
+    go run ./tools/docgen render -o docs/feature-matrix.md
+
+check-markers:
+    go run ./tools/docgen check ./...
+
+ci: lint test build license-check check-markers
+```
+
+`make check-markers` joins `make ci` so PRs catch missing markers.
+`make docs-matrix` is invoked manually before tagged releases (or
+by the release workflow after `Bump Version`); the regenerated
+`docs/feature-matrix.md` lands in the release commit.
+
+#### Output location
+
+`docs/feature-matrix.md` at repo root level of `docs/`. Linked
+from the top-level `README.md`. Not regenerated on every push to
+avoid noisy diffs.
+
+#### Why regex + `go/parser` rather than pure AST
+
+The marker is a comment, not a Go construct. Regex scans the
+comment text directly. `go/parser` is used only to find function
+declaration positions so a marker can be unambiguously attached
+to the function that immediately follows it. This split keeps the
+scanner simple (~100 lines), fast (no full type-checking), and
+robust against syntax errors in the surrounding code.
+
 ## API / Interface Changes
 
 ### Removed (renamed)
@@ -469,9 +651,21 @@ forcing libtftest to ship a helper per service.
 | `fixtures/secretsmanager` | `SeedSecret`, `SeedSecretContext` |
 | `fixtures/sqs` | `SeedMessage`, `SeedMessageContext` |
 | `libtftest.TestCase` | `AssertIdempotent`, `AssertIdempotentContext`, `AssertIdempotentApply`, `AssertIdempotentApplyContext` |
+| `tools/docgen` | `package main` Go binary with `scan`, `render`, `check` subcommands |
+| `Makefile` | `docs-matrix` + `check-markers` targets; `check-markers` wired into `ci` |
+| `docs/feature-matrix.md` | Rendered output of `tools/docgen render` |
+| `cliff.toml` | New `Tooling` group above `Features` for `feat(tools)` / `chore(tools)` commits |
 
-`awsx/`, `localstack/`, `harness/`, `tf/`, `internal/`, and `sneakystack/`
-are not touched by this design.
+`awsx/`, `localstack/`, `harness/`, `tf/`, `internal/`, and
+`sneakystack/` have no semantic changes from this design, but each
+gains a dedicated `doc.go` as part of the Part 5 rollout.
+
+### Conventions added (repo-wide)
+
+| Convention | Applies to | Spec |
+|------------|-----------|------|
+| `doc.go` per package | Every Go package, including `internal/...` and `cmd/...` | [Part 5](#part-5--repo-wide-docgo-convention) |
+| `// libtftest:requires <tag>[,<tag>...] <reason>` marker | Every function that calls `libtftest.RequirePro(tb)` (or a future equivalent gate) | [Part 6](#part-6--toolsdocgen-marker-scanner--feature-matrix) |
 
 ## Data Model
 
@@ -501,27 +695,39 @@ convention.
 
 ### Sequencing
 
+**One feature branch, one PR, multiple commits, one release.**
+Pre-1.0 SemVer gives us latitude to bundle the breaking layout
+refactor with additive features; once we cross v1.0 we'll require
+strict per-feature minor bumps.
+
+The phase ordering within the branch matches IMPL-0004:
+
 ```text
-PR 1: Layout refactor (Part 1)
-        ↓
-PR 2: TestCase.AssertIdempotent (Part 2)
-        ↓ ← independent of 3, 4
-PR 3: assert/tags package (Part 3)
-        ↓ ← independent of 2, 4
-PR 4: assert/snapshot package (Part 4)
-        ↓ ← independent of 2, 3
-PR 5: claude-skills libtftest plugin bump (track 2 of issue #53)
+Phase 1: refactor(assert)      — per-service package split
+Phase 2: refactor(fixtures)    — per-service package split
+Phase 3: docs                  — examples, README, CLAUDE.md, doc.go rollout
+Phase 4: feat(libtftest)       — AssertIdempotent + AssertIdempotentApply
+Phase 5: feat(assert/tags)     — RGT-backed tag propagation
+Phase 6: feat(assert/snapshot) — JSON helpers + extraction
+Phase 7: feat(tools/docgen)    — marker scanner + feature matrix + CI gate
+Phase 8: (separate repo PR)    — claude-skills plugin v0.3.0
+Phase 9: (cross-cutting)       — release verification after merge
 ```
 
-PR 1 must land first because PRs 2–4 add packages in the new shape.
-PRs 2–4 are orthogonal and can land in parallel after PR 1.
+Phase 1 must land before Phases 4–6 because the new feature
+packages slot into the new layout. Phase 3 catches every
+remaining call site and rolls out the `doc.go` convention to
+existing packages. Phase 7 consumes the markers placed in
+Phase 1 (`assert/iam`) and any others added during the
+implementation.
 
 ### Backwards compatibility
 
-- **None.** Pre-1.0 SemVer. PR 1 is a breaking change for every
-  consumer call site that uses `assert.<Service>` or
-  `fixtures.Seed<Service><Resource>`. The CHANGELOG `[Changed]` entry
-  spells out the find-and-replace pattern.
+- **None.** Pre-1.0 SemVer. The Phase 1–2 refactor is a breaking
+  change for every consumer call site that uses
+  `assert.<Service>` or `fixtures.Seed<Service><Resource>`. The
+  CHANGELOG `[Changed]` entry spells out the find-and-replace
+  pattern.
 - No shim layer. Pre-1.0 the cost of carrying a deprecation tier is
   worse than the rip-the-bandaid PR cost.
 - Version bump: **minor** (`v0.1.1` → `v0.2.0`). Pre-1.0 SemVer
@@ -597,16 +803,70 @@ In `claude-skills` repo (`plugins/libtftest/skills/`):
    pattern (one `<service>_test.go` per `<service>` package, with
    `fakeTB` + `*Context_PropagatesCancel` style tests inside it).
 
+5. **Single PR + single minor bump, or split per part?**
+   **Resolved — single PR, single `v0.2.0` minor bump.** Pre-1.0
+   SemVer doesn't require strict per-feature minor splits; the
+   breaking layout refactor already forces a minor bump and the
+   three additive primitives (idempotency, tags, snapshot) plus
+   the two conventions (doc.go, marker matrix) ride along. Once
+   we cross v1.0 we'll revisit. See [IMPL-0004][impl-0004] for
+   the phase-by-phase commit story.
+
+6. **`fakeTB` location after the per-service split.**
+   **Resolved — `internal/testfake/`.** The existing
+   `assert/assert_test.go` stub becomes a shared package every
+   per-service test file can import. Avoids duplicating the same
+   fake `testing.TB` impl across `assert/s3/`, `assert/dynamodb/`,
+   `assert/iam/`, etc.
+
+7. **`ExtractIAMPolicies` return shape and managed-policy
+   handling.**
+   **Resolved — always deterministic, no network calls.** Inline
+   policies extract as their full JSON document. AWS-managed and
+   customer-managed policy attachments render as the canonical
+   ARN string (treated as an enum-like identifier — AWS owns the
+   managed ARNs, we don't, and fetching the live document at
+   extraction time would make the helper network-dependent).
+   Spec'd in [Part 4 Extraction helpers](#extraction-helpers).
+
+8. **LocalStack OSS support for the Resource Groups Tagging API
+   (Part 3 backend).**
+   **Resolved — pick at implementation time.** Decision tree
+   applied during Phase 5: if OSS supports it, ship as designed;
+   if it partially supports it, mock the gap in `sneakystack/`
+   (matches the IAM-IDC / Organizations pattern from DESIGN-0001);
+   if it doesn't support it, gate `assert/tags` integration
+   coverage behind `libtftest.RequirePro` and document the gate.
+   General rule: for API-call gaps, prefer mock-in-sneakystack or
+   `RequirePro` over standing up full alternatives.
+
+9. **One combined example or three separate examples for the new
+   primitives?**
+   **Resolved — three separate examples.** Existing pattern
+   (01-basic-s3 through 07-cancellation) is one concept per file,
+   2–5 KB each. Bundling all three primitives into a single
+   "module-hygiene" example would break the discoverability /
+   linking pattern. Ship 08-idempotency.md, 09-tag-propagation.md,
+   10-snapshot-iam.md.
+
+[impl-0004]: ../impl/0004-module-hygiene-primitives-and-per-service-package-layout.md
+
 ## References
 
-- [INV-0002 — EKS coverage via LocalStack][inv-0002] — origin of all
-  four parts of this design
+- [INV-0002 — EKS coverage via LocalStack][inv-0002] — origin of
+  Parts 1–4 of this design
+- [INV-0003 — Package documentation convention and gomarkdoc
+  toolchain][inv-0003] — origin of Part 5
+- [INV-0004 — Pro and OSS feature matrix tooling][inv-0004] —
+  origin of Part 6
+- [IMPL-0004 — Module hygiene primitives and per-service package
+  layout][impl-0004] — implementation plan for all six parts
 - [INV-0001 — terratest 1.0 context variant migration][inv-0001] —
   established the paired-method pattern this design preserves
 - `aws-sdk-go-v2/service/<name>` — naming and layout precedent
 - `testify/assert` and `testify/require` — flat per-package function
   precedent
-- Terratest `modules/aws` — the flat-monolith pattern this moves away
-  from
+- Terratest `modules/aws` — the flat-monolith pattern this moves
+  away from
 
 [inv-0001]: ../investigation/0001-terratest-10-context-variant-migration.md
