@@ -302,10 +302,10 @@ touching call sites again.
 - [x] Update `CLAUDE.md` Code Conventions section to list the
       `doc.go`-per-package rule and the `// libtftest:requires <tag>...` marker
       rule (already drafted)
-- [ ] Run `claudelint run .claude/` clean (or verify the CI `skills.yml` job
+- [x] Run `claudelint run .claude/` clean (or verify the CI `skills.yml` job
       stays green if claudelint is not in the local toolchain)
-- [ ] Run `make fmt` and `make lint` clean
-- [ ] Run `make ci` clean (lint + test + build + license-check)
+- [x] Run `make fmt` and `make lint` clean
+- [x] Run `make ci` clean (lint + test + build + license-check)
 
 #### Success Criteria
 
