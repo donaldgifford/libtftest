@@ -277,14 +277,14 @@ touching call sites again.
 - [x] Update `README.md` "Features", "Quick Start", "Package Overview", and any
       other API-surface sections
 - [x] Update `CLAUDE.md` status line + Context API surface section
-- [ ] Update `.claude/skills/libtftest-add-assertion/SKILL.md` to describe the
+- [x] Update `.claude/skills/libtftest-add-assertion/SKILL.md` to describe the
       new shape
-- [ ] Update
+- [x] Update
       `.claude/skills/libtftest-add-assertion/references/assertion-template.go.tmpl`
       — emit `package <service>` + package-level functions instead of zero-size
       struct + methods
-- [ ] Update `.claude/skills/libtftest-add-fixture/SKILL.md`
-- [ ] Update
+- [x] Update `.claude/skills/libtftest-add-fixture/SKILL.md`
+- [x] Update
       `.claude/skills/libtftest-add-fixture/references/fixture-template.go.tmpl`
 - [x] **Repo-wide `doc.go` rollout** (per [INV-0003][inv-0003]): lift the
       existing `// Package <name>` comment from its current home (e.g.
