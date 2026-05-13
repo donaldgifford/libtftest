@@ -14,6 +14,7 @@ Design docs, plans, and implementation docs can reference investigations by ID
 | ID | Title | Status | Date | Author | Link |
 |----|-------|--------|------|--------|------|
 | INV-0001 | Terratest 1.0 Context Variant Migration | Concluded | 2026-05-11 | Donald Gifford | [0001-terratest-10-context-variant-migration.md](0001-terratest-10-context-variant-migration.md) |
+| INV-0002 | EKS coverage via LocalStack | Open | 2026-05-13 | Donald Gifford | [0002-eks-coverage-via-localstack.md](0002-eks-coverage-via-localstack.md) |
 <!-- END DOCZ AUTO-GENERATED -->
 <!-- BEGIN DOCZ AUTO-GENERATED -->
 <!-- END DOCZ AUTO-GENERATED -->
