@@ -39,12 +39,15 @@ created: 2026-05-13
   - [Phase 6: assert/snapshot package](#phase-6-assertsnapshot-package)
     - [Tasks](#tasks-5)
     - [Success Criteria](#success-criteria-5)
-  - [Phase 7: claude-skills plugin sync](#phase-7-claude-skills-plugin-sync)
+  - [Phase 7: tools/docgen/ marker scanner + feature matrix](#phase-7-toolsdocgen-marker-scanner--feature-matrix)
     - [Tasks](#tasks-6)
     - [Success Criteria](#success-criteria-6)
-  - [Phase 8: Release verification](#phase-8-release-verification)
+  - [Phase 8: claude-skills plugin sync](#phase-8-claude-skills-plugin-sync)
     - [Tasks](#tasks-7)
     - [Success Criteria](#success-criteria-7)
+  - [Phase 9: Release verification](#phase-9-release-verification)
+    - [Tasks](#tasks-8)
+    - [Success Criteria](#success-criteria-8)
 - [File Changes](#file-changes)
   - [Created](#created)
   - [Modified](#modified)
@@ -131,9 +134,9 @@ covers the new tag).
   implementation phases as well.
 - Each phase lands as one or more conventional commits on this
   branch — no rebase between phases.
-- The PR opens once all 8 phases are complete; CI's `Bump Version`
+- The PR opens once all 9 phases are complete; CI's `Bump Version`
   job consumes the `minor` label and produces `v0.2.0`.
-- Plugin sync (Phase 7) lands as a separate PR in the
+- Plugin sync (Phase 8) lands as a separate PR in the
   `donaldgifford/claude-skills` repo because it lives in a different
   repository.
 
@@ -141,12 +144,13 @@ covers the new tag).
 |-------|-------------|-------|
 | 1 | `refactor(assert)` | per-service package split |
 | 2 | `refactor(fixtures)` | per-service package split |
-| 3 | `docs` | examples, README, CLAUDE.md updates |
+| 3 | `docs` | examples, README, CLAUDE.md, doc.go rollout |
 | 4 | `feat(libtftest)` | `AssertIdempotent` + `AssertIdempotentApply` |
 | 5 | `feat(assert/tags)` | RGT-backed tag propagation |
 | 6 | `feat(assert/snapshot)` | JSON strict/structural + extraction helpers |
-| 7 | (separate repo PR) | claude-skills plugin v0.3.0 |
-| 8 | (cross-cutting) | release verification after merge |
+| 7 | `feat(tools/docgen)` | marker scanner + feature matrix + CI gate (lands under the new `Tooling` cliff.toml group) |
+| 8 | (separate repo PR) | claude-skills plugin v0.3.0 |
+| 9 | (cross-cutting) | release verification after merge |
 
 ## Implementation Phases
 
@@ -494,7 +498,68 @@ managed policy lives in the module).
 
 ---
 
-### Phase 7: claude-skills plugin sync
+### Phase 7: `tools/docgen/` marker scanner + feature matrix
+
+Implement the docgen tool that consumes the
+`// libtftest:requires <tag>[,<tag>...] <reason>` markers (added
+in Phase 1 and the Phase 3 rollout) and renders a feature matrix
+to `docs/feature-matrix.md`. Add a `make check-markers` CI gate
+that fails when a function calls `libtftest.RequirePro(tb)`
+without an accompanying marker. Per [INV-0004][inv-0004]
+(Concluded).
+
+The tool is intentionally regex-based — it does NOT import any
+`libtftest` packages, walks source files only, and stays
+version-agnostic.
+
+#### Tasks
+
+- [ ] Create `tools/docgen/main.go` (`package main`) with a `scan`
+      subcommand that:
+      - Walks the repo's `.go` files (respecting `.gitignore`)
+      - Pairs each `// libtftest:requires <tags> <reason>` line
+        with the immediately following function declaration
+        (parses with `go/parser` for declaration positions only —
+        keeps the regex/AST boundary clean)
+      - Emits a JSON intermediate representation (function name,
+        package path, tags, reason, source location)
+- [ ] Add a `render` subcommand that consumes the JSON IR and
+      writes `docs/feature-matrix.md` — one row per function, one
+      column per distinct tag encountered, with the reason
+      rendered alongside
+- [ ] Add a `check` subcommand that:
+      - Walks the repo for calls to `libtftest.RequirePro(` (regex
+        plus simple scope detection — the enclosing function)
+      - Fails (exit non-zero, log the offending file:line) when
+        any such function lacks a `// libtftest:requires` marker
+- [ ] Add `make docs-matrix` target that runs `tools/docgen render`
+- [ ] Add `make check-markers` target that runs `tools/docgen check`
+- [ ] Wire `make check-markers` into `make ci`
+- [ ] Add `tools/docgen/main_test.go` with table-driven tests
+      covering: single-tag marker, multi-tag marker, missing
+      marker (caught by `check`), function with marker but no
+      `RequirePro` call (allowed — markers may anticipate future
+      gates)
+- [ ] Add `tools/doc.go` documenting the directory's purpose
+- [ ] Run `tools/docgen render` and commit the initial
+      `docs/feature-matrix.md`
+- [ ] Update `README.md` to link to `docs/feature-matrix.md`
+- [ ] Update `CLAUDE.md` to mention the `tools/docgen` location
+
+#### Success Criteria
+
+- `tools/docgen` binary builds and tests pass
+- `make check-markers` exits zero against the current tree (every
+  `RequirePro` caller has a marker)
+- `make docs-matrix` regenerates `docs/feature-matrix.md`
+  deterministically (same input → same output, run-to-run)
+- `docs/feature-matrix.md` exists, lists every marker function,
+  with `pro` (and any other) tags rendered as columns
+- `make ci` includes `check-markers` and stays green
+
+---
+
+### Phase 8: claude-skills plugin sync
 
 Bump the consumer-facing plugin to track the new libtftest layout
 and feature set. Mirrors the work done for v0.1.0 in
@@ -539,7 +604,7 @@ and feature set. Mirrors the work done for v0.1.0 in
 
 ---
 
-### Phase 8: Release verification
+### Phase 9: Release verification
 
 Cross-cutting verification that runs once the PR opens and again
 after merge. Not a separate PR.
@@ -555,7 +620,7 @@ after merge. Not a separate PR.
 - [ ] Multi-arch `sneakystack` image at
       `ghcr.io/donaldgifford/sneakystack:0.2.0` signed via cosign
       keyless
-- [ ] Plugin sync PR (Phase 7) in `donaldgifford/claude-skills`
+- [ ] Plugin sync PR (Phase 8) in `donaldgifford/claude-skills`
       lands; plugin v0.3.0 published; pin range covers libtftest
       `>=0.2.0, <1.0.0`
 - [ ] No `chore(deps)` dependabot PRs left orphaned
@@ -619,6 +684,11 @@ after merge. Not a separate PR.
 | `tf/doc.go` | Package comment lifted from existing inline source |
 | `cmd/libtftest/doc.go` | Package main comment |
 | `cmd/sneakystack/doc.go` | Package main comment |
+| `tools/docgen/main.go` | Marker scanner + matrix renderer + CI check (`scan`/`render`/`check` subcommands) |
+| `tools/docgen/main_test.go` | Table-driven coverage |
+| `tools/docgen/doc.go` | Package main comment |
+| `tools/doc.go` | Directory-purpose comment |
+| `docs/feature-matrix.md` | Rendered Pro/OSS/mockta/etc. matrix (generated by `make docs-matrix`) |
 | `fixtures/s3/s3.go` + `_test.go` | Migrated S3 fixtures |
 | `fixtures/ssm/ssm.go` + `_test.go` | Migrated SSM fixtures |
 | `fixtures/secretsmanager/secretsmanager.go` + `_test.go` | Migrated Secrets Manager fixtures |
@@ -642,6 +712,8 @@ after merge. Not a separate PR.
 | `README.md` | Features list + Quick Start + Package Overview |
 | `CLAUDE.md` | Status line + Context API surface |
 | `CHANGELOG.md` | Regenerated by git-cliff after each phase |
+| `cliff.toml` | Add `Tooling` group for `feat(tools)`/`chore(tools)` commits |
+| `Makefile` | New `docs-matrix` + `check-markers` targets; wire into `ci` |
 | `.claude/skills/libtftest-add-assertion/SKILL.md` + template | Emit per-service-package shape |
 | `.claude/skills/libtftest-add-fixture/SKILL.md` + template | Emit per-service-package shape |
 | (claude-skills) `plugins/libtftest/.claude-plugin/plugin.json` | Version 0.3.0 |
@@ -705,7 +777,7 @@ after merge. Not a separate PR.
   [Resolved Question 4](#resolved-questions) for the decision tree
 - AWS SDK v2 `resourcegroupstaggingapi` client (new direct dep for
   `awsx/resourcegroupstaggingapi.go`)
-- claude-skills repo PR landed (Phase 7) before the libtftest
+- claude-skills repo PR landed (Phase 8) before the libtftest
   `tftest:*` skills can be advertised as compatible
 
 ## Resolved Questions
@@ -784,17 +856,15 @@ plan is drafted.
    These need their own DESIGN+IMPL cycle and share docgen design
    space with Future Work item 2.
 
-2. **External-dependency feature matrix docgen tool.** The
-   marker convention itself (`// libtftest:requires <tag>[,<tag>...] <reason>`
-   with multi-tag support — e.g. `pro,mockta`) ships as part of
-   this IMPL (Phase 1 IAM assertions + Phase 3 rollout note).
-   What remains deferred is the docgen Go tool that scans the
-   codebase for markers and renders a markdown matrix page
-   (`docs/feature-matrix.md`) with one column per encountered tag.
-   Also deferred: a `make check-markers` CI step that fails when
-   `RequirePro` (or an equivalent gate) is called without an
-   accompanying marker comment. Tracked under [INV-0004 — Pro and
-   OSS feature matrix tooling][inv-0004].
+2. **Upstreaming the marker convention.** The marker convention,
+   the `tools/docgen` scanner, the `docs/feature-matrix.md`
+   render, and the `make check-markers` CI gate _all_ ship as
+   part of this IMPL (Phase 1, Phase 3, and Phase 7). [INV-0004
+   is Concluded][inv-0004]. What's left as future work is
+   pushing the marker grammar upstream — either into the
+   `go-development` plugin as a new reference file, or as a
+   shared convention across the donaldgifford toolbox — once it
+   has baked in this repo for a release or two.
 
 ## References
 

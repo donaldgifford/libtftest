@@ -1,7 +1,7 @@
 ---
 id: INV-0004
 title: "Pro and OSS feature matrix tooling"
-status: Open
+status: Concluded
 author: Donald Gifford
 created: 2026-05-13
 ---
@@ -9,7 +9,7 @@ created: 2026-05-13
 
 # INV 0004: Pro and OSS feature matrix tooling
 
-**Status:** Open
+**Status:** Concluded
 **Author:** Donald Gifford
 **Date:** 2026-05-13
 
@@ -24,7 +24,8 @@ created: 2026-05-13
   - [Option A: Structured comment (chosen — multi-tag form)](#option-a-structured-comment-chosen--multi-tag-form)
   - [Option B: Godoc-prefix convention](#option-b-godoc-prefix-convention)
   - [Option C: Centralised registry file](#option-c-centralised-registry-file)
-- [Open considerations](#open-considerations)
+- [Resolved considerations](#resolved-considerations)
+- [Recommendation](#recommendation)
 - [References](#references)
 <!--toc:end-->
 
@@ -189,22 +190,53 @@ Leaning toward **Option A** at draft time — the explicit marker is
 greppable, machine-readable, and lets the docgen tool produce a
 useful "Reason" column in the matrix.
 
-## Open considerations
+## Resolved considerations
 
-- **Coupling to INV-0003.** INV-0003 wants a docgen pipeline for
-  package-level docs. Both investigations should converge on a
-  single small Go tool that handles both, or use `gomarkdoc` for
-  package docs + a separate tiny scanner for the Pro-OSS matrix.
-- **CI enforcement.** Adding a `make check-pro-markers` target
-  that fails if a function calls `RequirePro` without the marker
-  comment ensures the matrix stays current. Open question whether
-  this lives in `golangci-lint` (custom linter) or a standalone
-  Go program.
+- **Marker shape.** _Resolved._ Option A — structured comment with
+  comma-separated multi-tag grammar
+  (`// libtftest:requires <tag>[,<tag>...] <reason>`). Greppable,
+  no AST work needed for the v1 scanner, extensible without
+  grammar changes.
+- **Coupling to INV-0003.** _Resolved._ The marker scanner is
+  intentionally decoupled from any AST/import-time work — it's a
+  regex pass over Go source files. That means it does NOT need to
+  share infrastructure with the gomarkdoc-style package-doc
+  renderer (INV-0003's deferred tool). They may eventually live
+  under `tools/` together, but they're independent programs.
+- **Version sync.** _Resolved._ The scanner is version-agnostic by
+  design — it doesn't import any libtftest packages, just scans
+  comment text. So it can ship in this repo (under `tools/docgen/`)
+  without needing to track library version per build.
+- **CI enforcement.** _Resolved._ Standalone Go program (no
+  `golangci-lint` custom linter), invoked via
+  `make check-markers`. Fails when a function calls
+  `libtftest.RequirePro(tb)` (detected by a regex over the same
+  source files) without an accompanying
+  `// libtftest:requires ...` marker on the same function. Wired
+  into `make ci` so PR CI catches missing markers.
 - **Multi-tier / multi-dependency gating.** _Resolved._ The
   marker accepts a comma-separated list of arbitrary tags, so
   adding a new tier or external dependency (mockta, lambda-docker,
   Pro Enterprise, etc.) is just a marker-text change with no
   grammar rework.
+- **Output location.** _Resolved._ Rendered matrix lives at
+  `docs/feature-matrix.md`, linked from `README.md`. Regenerated
+  via `make docs-matrix`. Not regenerated on every push — only
+  before tagged releases (and committed as `docs(feature-matrix):
+  regenerate for v<x.y.z>`).
+
+## Recommendation
+
+Both the marker convention and the scanner/CI gate fold into
+IMPL-0004 as a new Phase 9. The rendered matrix file
+(`docs/feature-matrix.md`) ships with the v0.2.0 release so
+consumers see immediate value alongside the layout refactor and
+new primitives.
+
+Pushing the marker grammar upstream into the `go-development`
+plugin (or as a shared convention across the donaldgifford
+toolbox) is deferred — let it bake in this repo for a release
+before generalising.
 
 ## References
 
