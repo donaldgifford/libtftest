@@ -16,6 +16,7 @@ via conventional commit subjects and bodies instead.
 ### Features
 
 - *(internal/testfake)* Add shared FakeTB for per-service test packages
+- *(libtftest)* Add AssertIdempotent + AssertIdempotentApply
 
 ### Bug Fixes
 
@@ -47,6 +48,7 @@ via conventional commit subjects and bodies instead.
 - Update README + CLAUDE.md for per-service layout
 - *(skills)* Update add-assertion + add-fixture for per-service shape
 - *(impl-0004)* Mark Phase 3 quality gates green
+- Add idempotency example + README/CLAUDE updates
 
 ### Miscellaneous Tasks
 
