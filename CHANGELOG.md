@@ -11,11 +11,25 @@ Manual edits will be overwritten by the `Changelog Sync` job in the
 `Release` workflow after each tagged release — author release notes
 via conventional commit subjects and bodies instead.
 
-## [unreleased]
+## [0.2.0] - 2026-05-13
+
+### Features
+
+- *(internal/testfake)* Add shared FakeTB for per-service test packages
 
 ### Bug Fixes
 
 - *(release)* Wire up docker bake release target + cosign signing ([#11](https://github.com/donaldgifford/libtftest/issues/11))
+
+### Refactor
+
+- *(assert/s3)* Migrate S3 assertions to per-service package
+- *(assert/dynamodb)* Migrate DynamoDB assertions to per-service package
+- *(assert/iam)* Migrate IAM assertions to per-service package
+- *(assert/ssm)* Migrate SSM Parameter Store assertions to per-service package
+- *(assert/lambda)* Migrate Lambda assertions to per-service package
+- *(assert)* Delete old flat-layout files; update example surface guard
+- *(fixtures)* Migrate fixtures to per-service packages
 
 ### Documentation
 
@@ -28,6 +42,11 @@ via conventional commit subjects and bodies instead.
 - Conclude INV-0003, refine INV-0004, fold convention into IMPL-0004
 - Conclude INV-0004 and fold tools/docgen into IMPL-0004
 - *(design)* Add Parts 5 + 6 to DESIGN-0003 for doc.go and tools/docgen
+- Roll out doc.go convention to all packages
+- *(examples)* Migrate example surface refs to per-service shape
+- Update README + CLAUDE.md for per-service layout
+- *(skills)* Update add-assertion + add-fixture for per-service shape
+- *(impl-0004)* Mark Phase 3 quality gates green
 
 ### Miscellaneous Tasks
 
