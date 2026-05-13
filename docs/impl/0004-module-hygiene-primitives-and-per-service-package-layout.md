@@ -19,35 +19,58 @@ created: 2026-05-13
   - [In Scope](#in-scope)
   - [Out of Scope](#out-of-scope)
 - [Versioning Strategy](#versioning-strategy)
-- [PR-to-Phase Mapping](#pr-to-phase-mapping)
+- [Branch / Commit Strategy](#branch--commit-strategy)
 - [Implementation Phases](#implementation-phases)
-  - [Phase 1: `assert/` per-service refactor](#phase-1-assert-per-service-refactor)
-  - [Phase 2: `fixtures/` per-service refactor](#phase-2-fixtures-per-service-refactor)
+  - [Phase 1: assert/ per-service refactor](#phase-1-assert-per-service-refactor)
+    - [Tasks](#tasks)
+    - [Success Criteria](#success-criteria)
+  - [Phase 2: fixtures/ per-service refactor](#phase-2-fixtures-per-service-refactor)
+    - [Tasks](#tasks-1)
+    - [Success Criteria](#success-criteria-1)
   - [Phase 3: Cross-cutting layout work](#phase-3-cross-cutting-layout-work)
-  - [Phase 4: `TestCase.AssertIdempotent` + `AssertIdempotentApply`](#phase-4-testcaseassertidempotent--assertidempotentapply)
-  - [Phase 5: `assert/tags` package](#phase-5-asserttags-package)
-  - [Phase 6: `assert/snapshot` package](#phase-6-assertsnapshot-package)
+    - [Tasks](#tasks-2)
+    - [Success Criteria](#success-criteria-2)
+  - [Phase 4: TestCase.AssertIdempotent + AssertIdempotentApply](#phase-4-testcaseassertidempotent--assertidempotentapply)
+    - [Tasks](#tasks-3)
+    - [Success Criteria](#success-criteria-3)
+  - [Phase 5: assert/tags package](#phase-5-asserttags-package)
+    - [Tasks](#tasks-4)
+    - [Success Criteria](#success-criteria-4)
+  - [Phase 6: assert/snapshot package](#phase-6-assertsnapshot-package)
+    - [Tasks](#tasks-5)
+    - [Success Criteria](#success-criteria-5)
   - [Phase 7: claude-skills plugin sync](#phase-7-claude-skills-plugin-sync)
+    - [Tasks](#tasks-6)
+    - [Success Criteria](#success-criteria-6)
   - [Phase 8: Release verification](#phase-8-release-verification)
+    - [Tasks](#tasks-7)
+    - [Success Criteria](#success-criteria-7)
 - [File Changes](#file-changes)
+  - [Created](#created)
+  - [Modified](#modified)
+  - [Deleted](#deleted)
 - [Testing Plan](#testing-plan)
 - [Dependencies](#dependencies)
-- [Open Questions](#open-questions)
+- [Resolved Questions](#resolved-questions)
+- [Future Work](#future-work)
 - [References](#references)
 <!--toc:end-->
 
 ## Objective
 
-Execute the four-PR plan defined in DESIGN-0003: a per-service package
-layout refactor followed by three module-hygiene primitives
+Execute the design defined in DESIGN-0003 — a per-service package
+layout refactor plus three module-hygiene primitives
 (`AssertIdempotent` + double-Apply variant, `assert/tags`,
-`assert/snapshot`), plus the matching `claude-skills` plugin update.
+`assert/snapshot`), plus the matching `claude-skills` plugin update
+— as a single feature branch landing one `v0.2.0` minor release.
 
 **Implements:** [DESIGN-0003][design-0003]
 (originated from [INV-0002][inv-0002])
 
 [design-0003]: ../design/0003-module-hygiene-primitives-and-per-service-package-layout.md
 [inv-0002]: ../investigation/0002-eks-coverage-via-localstack.md
+[inv-0003]: ../investigation/0003-package-documentation-convention-and-gomarkdoc-toolchain.md
+[inv-0004]: ../investigation/0004-pro-and-oss-feature-matrix-tooling.md
 
 ## Scope
 
@@ -85,36 +108,45 @@ layout refactor followed by three module-hygiene primitives
 
 ## Versioning Strategy
 
-DESIGN-0003 specifies a minor bump for the breaking layout change
-(`v0.1.1` → `v0.2.0`). The remaining three PRs ship additive features.
-Under this project's pre-1.0 SemVer (header in `CHANGELOG.md`), the
-two valid interpretations are:
+All four parts ship in a single `minor` bump: `v0.1.1` → `v0.2.0`.
 
-- **(a) Strict SemVer:** every new public surface is `minor` →
-  `v0.2.0` (Part 1), `v0.3.0` (Part 2), `v0.4.0` (Part 3), `v0.5.0`
-  (Part 4). Four releases.
-- **(b) "Minor for breaking, patch for additive" (pre-1.0
-  pragmatism):** `v0.2.0` (Part 1, breaking layout) → `v0.2.1`
-  (Part 2), `v0.2.2` (Part 3), `v0.2.3` (Part 4).
+Under pre-1.0 SemVer (header in `CHANGELOG.md`) we don't need to
+split additive features into their own minor tags — the breaking
+layout change already forces a minor bump, and the three additive
+primitives (idempotency, tags, snapshot) ride along in the same
+release. Once we cross v1.0 we'll revisit and require strict SemVer
+per public-surface addition.
 
-**Recommendation: (a) Strict SemVer.** Each new feature is a real
-addition to the public API surface and rewards consumers with a
-clean per-version changelog story. The existing labeler workflow
-already supports per-PR `minor` labels. See [open question
-1](#open-questions).
+Plugin manifest version (`plugins/libtftest` in
+`donaldgifford/claude-skills`) bumps independently: 0.2.0 → 0.3.0,
+pin range `>=0.2.0, <1.0.0` → `>=0.2.0, <1.0.0` (no change — still
+covers the new tag).
 
-## PR-to-Phase Mapping
+## Branch / Commit Strategy
 
-| PR | Phases | Bump | Target tag |
-|----|--------|------|------------|
-| **PR 1** — Layout refactor | 1, 2, 3 | minor (breaking) | v0.2.0 |
-| **PR 2** — `AssertIdempotent` + double-Apply | 4 | minor (additive) | v0.3.0 |
-| **PR 3** — `assert/tags` | 5 | minor (additive) | v0.4.0 |
-| **PR 4** — `assert/snapshot` | 6 | minor (additive) | v0.5.0 |
-| **PR 5** — claude-skills plugin sync | 7 | n/a (plugin SemVer) | plugin 0.3.0 |
+**One feature branch, one PR, multiple commits, one release.**
 
-Phase 8 (release verification) is cross-cutting and applies to every
-PR's CI.
+- Branch: `inv/eks-localstack-coverage` (current branch carrying
+  INV-0002 + DESIGN-0003 + IMPL-0004) is the working branch for the
+  implementation phases as well.
+- Each phase lands as one or more conventional commits on this
+  branch — no rebase between phases.
+- The PR opens once all 8 phases are complete; CI's `Bump Version`
+  job consumes the `minor` label and produces `v0.2.0`.
+- Plugin sync (Phase 7) lands as a separate PR in the
+  `donaldgifford/claude-skills` repo because it lives in a different
+  repository.
+
+| Phase | Commit type | Notes |
+|-------|-------------|-------|
+| 1 | `refactor(assert)` | per-service package split |
+| 2 | `refactor(fixtures)` | per-service package split |
+| 3 | `docs` | examples, README, CLAUDE.md updates |
+| 4 | `feat(libtftest)` | `AssertIdempotent` + `AssertIdempotentApply` |
+| 5 | `feat(assert/tags)` | RGT-backed tag propagation |
+| 6 | `feat(assert/snapshot)` | JSON strict/structural + extraction helpers |
+| 7 | (separate repo PR) | claude-skills plugin v0.3.0 |
+| 8 | (cross-cutting) | release verification after merge |
 
 ## Implementation Phases
 
@@ -169,6 +201,13 @@ per-service test file can import it without duplication.
       vars (`var S3 = s3Asserts{}` etc.); keep otherwise
 - [ ] Delete `assert/assert_test.go` once `fakeTB` is migrated and
       every per-service file has its coverage
+- [ ] Add `awsx/doc.go` with a package-level godoc comment that
+      documents the deliberate flat layout (matches the per-service
+      sub-package precedent set by `aws-sdk-go-v2/service/<name>`,
+      but `awsx/` stays flat since its constructors are 1:1 with
+      services and there's no per-service surface to namespace).
+      This is the seed of the broader `doc.go` convention tracked
+      in [Future Work — Item 1](#future-work)
 
 #### Success Criteria
 
@@ -218,8 +257,9 @@ short function names (the package name carries the service prefix).
 ### Phase 3: Cross-cutting layout work
 
 Update everything that referenced the old layout: docs, examples,
-local skill templates, internal callers. After Phase 3, PR 1 is
-ready to land.
+local skill templates, internal callers. After Phase 3, the layout
+refactor is fully self-contained and the additive primitives
+(Phases 4–6) can be added without touching call sites again.
 
 #### Tasks
 
@@ -260,7 +300,6 @@ ready to land.
   locally (or in CI if Docker isn't available)
 - Local skill templates emit per-service-package code by default
 - `make ci` clean
-- PR 1 ready to open with the `minor` label
 
 ---
 
@@ -302,7 +341,6 @@ Output) per DESIGN-0003's "lives on TestCase" rationale.
 - Both variants compile and have doc comments
 - Integration tests pass against LocalStack (`make test-integration`)
 - Synthetic drift test fails the assertion as expected
-- PR 2 ready to open with the `minor` label
 
 ---
 
@@ -324,10 +362,19 @@ Groups Tagging API (`resourcegroupstaggingapi.GetResources`).
 - [ ] Collect errors across all ARNs before calling `tb.Errorf` —
       surface "resource X is missing tag Y" + "resource X has tag Y
       with value Z, expected W" all at once
-- [ ] Verify LocalStack OSS support for the Resource Groups Tagging
-      API — if it's incomplete, add a Pro gate or fall back to
-      per-service `ListTagsForResource` (see [open question
-      4](#open-questions))
+- [ ] Verify LocalStack OSS (`2026.04.0`) support for the Resource
+      Groups Tagging API. Decision tree (resolved per
+      [Resolved Question 4](#resolved-questions)):
+      - **If OSS supports it:** ship the unit + integration path as
+        designed
+      - **If OSS partially supports it:** mock the missing endpoints
+        in `sneakystack/services/resourcegroupstaggingapi/` (matches
+        the `iam-identity-center`/`organizations` pattern from
+        DESIGN-0001)
+      - **If OSS does not support it:** gate
+        `assert/tags.PropagatesFromRoot` integration coverage behind
+        `libtftest.RequirePro(tb)` and document the gate in the
+        package doc
 - [ ] Create `assert/tags/tags_test.go` with unit tests via
       `internal/testfake` covering: missing key, wrong value,
       multiple-ARN aggregation, cancellation propagation
@@ -344,9 +391,8 @@ Groups Tagging API (`resourcegroupstaggingapi.GetResources`).
 #### Success Criteria
 
 - `assert/tags` package compiles and tests pass
-- Integration test against LocalStack passes (OSS or Pro per Q4
-  resolution)
-- PR 3 ready to open with the `minor` label
+- Integration test against LocalStack passes (OSS, sneakystack mock,
+  or Pro path per the decision tree above)
 
 ---
 
@@ -393,13 +439,29 @@ for Terraform plan JSON.
 - [ ] Update `README.md` Features list
 - [ ] Run `make ci` clean
 
+**Determinism note (managed policies).** `ExtractIAMPolicies` must
+produce a deterministic output. Inline policies are extracted as
+full JSON document strings. AWS managed policy attachments
+(`aws_iam_role_policy_attachment.policy_arn`) are emitted as the
+canonical ARN string (e.g.
+`arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess`). We **do not**
+fetch the live document for AWS-managed policies — those ARNs are
+effectively an enum (AWS owns them, they don't drift in
+test-relevant ways), and fetching them would make the helper
+network-dependent and non-deterministic. Customer-managed policies
+attached by ARN render as the ARN string for the same reason: the
+snapshot tests propagation of the attachment, not the policy
+document itself (that's a separate snapshot if the customer
+managed policy lives in the module).
+
 #### Success Criteria
 
 - `assert/snapshot` package compiles and tests pass (no LocalStack
   required)
 - Extraction helpers correctly parse the fixture plan JSON
 - `LIBTFTEST_UPDATE_SNAPSHOTS=1` mode works locally
-- PR 4 ready to open with the `minor` label
+- `ExtractIAMPolicies` output is deterministic across runs (no
+  network calls, no map-iteration sensitivity)
 
 ---
 
@@ -444,49 +506,45 @@ and feature set. Mirrors the work done for v0.1.0 in
 - Pin range points at libtftest minor that ships these features
 - All `tftest:*` skills emit per-service-package code by default
 - Plugin tests + sync-readme clean
-- PR 5 ready to open in the `claude-skills` repo
+- Separate PR ready to open in the `claude-skills` repo
 
 ---
 
 ### Phase 8: Release verification
 
-Cross-cutting verification that applies to every PR's CI and the
-final tagged releases. Not a separate PR; happens within each of
-PRs 1–5.
+Cross-cutting verification that runs once the PR opens and again
+after merge. Not a separate PR.
 
 #### Tasks
 
-- [ ] PR 1 CI green (lint, test, integration, docker, drift check,
+- [ ] PR CI green (lint, test, integration, docker, drift check,
       claudelint)
-- [ ] PR 1 merges, `Bump Version` + `Release` + `Changelog Sync` +
-      `Docker` jobs all green on the main-branch run; v0.2.0 tag +
-      GH Release published; multi-arch `sneakystack` image at
-      `ghcr.io/donaldgifford/sneakystack:0.2.0` signed
-- [ ] PR 2 CI green; v0.3.0 published the same way
-- [ ] PR 3 CI green; v0.4.0 published the same way
-- [ ] PR 4 CI green; v0.5.0 published the same way
-- [ ] PR 5 (claude-skills) CI green; plugin v0.3.0 merges; the
-      plugin's pin range now matches a real libtftest tag
+- [ ] PR merges to `main` with the `minor` label
+- [ ] `Bump Version` + `Release` + `Changelog Sync` + `Docker`
+      workflow jobs all green on the post-merge run
+- [ ] `v0.2.0` tag + GitHub Release published with goreleaser notes
+- [ ] Multi-arch `sneakystack` image at
+      `ghcr.io/donaldgifford/sneakystack:0.2.0` signed via cosign
+      keyless
+- [ ] Plugin sync PR (Phase 7) in `donaldgifford/claude-skills`
+      lands; plugin v0.3.0 published; pin range covers libtftest
+      `>=0.2.0, <1.0.0`
 - [ ] No `chore(deps)` dependabot PRs left orphaned
-- [ ] `CHANGELOG.md` on main reflects v0.2.0–v0.5.0 sections
-      produced by `git-cliff` without any manual fixups beyond the
-      `chore(awsx)` no-change marker (see [open question 3](#open-questions))
+- [ ] `CHANGELOG.md` on `main` reflects the v0.2.0 section produced
+      by `git-cliff` without any manual fixups
 - [ ] Update memory `MEMORY.md` pointer to a new memory entry
-      summarizing the layout-change shape (deferred to post-merge of
-      PR 4)
+      summarizing the layout-change shape (deferred to post-merge)
 
 #### Success Criteria
 
-- Five tags exist: libtftest v0.2.0, v0.3.0, v0.4.0, v0.5.0; plugin
-  0.3.0
-- Every tagged libtftest release has an associated GitHub Release
-  with goreleaser-rendered notes
-- Every tagged release has a signed multi-arch
-  `ghcr.io/donaldgifford/sneakystack:<tag>` image
+- One libtftest tag exists: `v0.2.0`
+- Plugin manifest at version 0.3.0
+- GitHub Release published for `v0.2.0` with goreleaser-rendered
+  notes
+- Signed multi-arch `ghcr.io/donaldgifford/sneakystack:0.2.0` image
 - IMPL-0004 doc status flipped to `Completed`
 - DESIGN-0003 doc status flipped to `Accepted`
-- INV-0002 doc status flipped to `Concluded` (it's already implied,
-  but explicit is better)
+- INV-0002 doc status flipped to `Concluded`
 
 ---
 
@@ -507,6 +565,7 @@ PRs 1–5.
 | `assert/snapshot/extract.go` + `_test.go` | IAM + generic plan-JSON extraction |
 | `assert/snapshot/testdata/plan-iam-kms.json` | Fixture plan JSON |
 | `awsx/resourcegroupstaggingapi.go` | New constructor for tags backend |
+| `awsx/doc.go` | Package-level godoc explaining the deliberate flat layout (seed of the Future-Work `doc.go` convention) |
 | `fixtures/s3/s3.go` + `_test.go` | Migrated S3 fixtures |
 | `fixtures/ssm/ssm.go` + `_test.go` | Migrated SSM fixtures |
 | `fixtures/secretsmanager/secretsmanager.go` + `_test.go` | Migrated Secrets Manager fixtures |
@@ -589,71 +648,98 @@ PRs 1–5.
 - LocalStack OSS `2026.04.0` (CI default) and Pro
   `2026.5.0.dev121` locally — see INV-0002. The
   `assert/tags` Resource Groups Tagging API coverage is the only
-  EKS-adjacent concern; see [open question 4](#open-questions)
+  EKS-adjacent concern; see
+  [Resolved Question 4](#resolved-questions) for the decision tree
 - AWS SDK v2 `resourcegroupstaggingapi` client (new direct dep for
   `awsx/resourcegroupstaggingapi.go`)
 - claude-skills repo PR landed (Phase 7) before the libtftest
   `tftest:*` skills can be advertised as compatible
 
-## Open Questions
+## Resolved Questions
 
-1. **Versioning strategy across PRs 1–4.** Per
-   [Versioning Strategy](#versioning-strategy):
-   - **(a) Four minor bumps:** v0.2.0 (layout), v0.3.0 (idempotency),
-     v0.4.0 (tags), v0.5.0 (snapshot). Each PR ships a clean
-     per-version changelog.
-   - **(b) One minor + three patches:** v0.2.0 (layout) → v0.2.1
-     (idempotency) → v0.2.2 (tags) → v0.2.3 (snapshot). Treats
-     additive features as patches under pre-1.0 "minor for
-     breaking, patch for additive" pragmatism.
-   - Recommendation: **(a)**. Per-feature minor bumps stay clean
-     even past v1.0 when this convention will outlast pre-1.0
-     SemVer's looseness.
+1. **Versioning strategy.** _Resolved 2026-05-13._ Ship as **one
+   `minor` bump (`v0.2.0`)** covering all four parts. Pre-1.0 SemVer
+   gives us latitude to bundle additive features with a breaking
+   layout change. We'll revisit strict per-feature minor bumps once
+   we cross v1.0.
 
-2. **`fakeTB` location.** Move to `internal/testfake/` so each
-   per-service test package can import it without duplication. Any
-   reason to prefer per-package duplication instead?
+2. **`fakeTB` location.** _Resolved 2026-05-13._ Move to
+   `internal/testfake/`. If a per-service package surfaces a need
+   to specialise the fake (e.g. capturing helper-call counts), we'll
+   split it then — not preemptively.
 
-3. **`awsx/` "deliberate non-change" CHANGELOG marker.** DESIGN-0003
-   says note in CHANGELOG that `awsx/` stays flat on purpose. Since
-   git-cliff drives CHANGELOG from commits, the only way to surface
-   this in the v0.2.0 section is a `chore(awsx): keep flat package
-   layout intentionally` empty commit. Worth doing? Or just rely on
-   DESIGN-0003 + INV-0002 for the historical record?
+3. **`awsx/` "deliberate non-change" CHANGELOG marker.** _Resolved
+   2026-05-13._ Skip the empty `chore(awsx)` commit. Instead,
+   document package intent via a future repo-wide **`doc.go`
+   convention + `gomarkdoc` toolchain** (see
+   [Future Work — Item 1](#future-work)). For this PR specifically,
+   we'll add a placeholder `awsx/doc.go` with a package-level godoc
+   comment explaining the deliberate flat layout — and the rest of
+   the convention rolls out in a follow-up INV.
 
-4. **LocalStack support for Resource Groups Tagging API.** Phase 5
-   depends on it. If OSS coverage is incomplete:
-   - **(a)** Gate `assert/tags` integration tests behind `RequirePro`
-   - **(b)** Implement a fallback path that falls back to per-service
-     `ListTagsForResource` calls
-   - **(c)** Ship `assert/tags` as unit-only and let consumers
-     provide their own integration coverage
-   - Need to verify against `localstack/localstack:2026.04.0` before
-     committing.
+4. **LocalStack support for Resource Groups Tagging API.** _Resolved
+   2026-05-13._ Phase 5's verification step picks the path at
+   implementation time:
+   - If OSS supports it → ship as designed
+   - If OSS partially supports it → mock the gap in `sneakystack`
+     (matches the existing IAM-IDC / Organizations pattern)
+   - If OSS does not support it → gate behind `libtftest.RequirePro`
+   The rule is "for API-call gaps, prefer mock-in-sneakystack or
+   `RequirePro` over standing up full alternatives".
 
-5. **`assert/snapshot.ExtractIAMPolicies` return shape.** Current
-   spec returns `map[string][]byte` keyed by
-   `<resource_address>.<assume_role|inline:<name>|managed:<arn>>`.
-   Concerns:
-   - Map ordering is non-deterministic in Go — but the *caller*
-     iterates and calls `JSONStructural` per entry, so ordering
-     doesn't affect the snapshot file. Probably fine.
-   - Managed policies live on the role only as ARN refs, not
-     embedded JSON. Either we don't include them (rename to
-     "PoliciesFromRole" with managed-arn references) or we fetch
-     the managed policy document via the AWS SDK at extraction time
-     (turns this into a "needs `aws.Config`" function). Pick one.
+5. **`ExtractIAMPolicies` return shape.** _Resolved 2026-05-13._
+   Always favour deterministic output. Inline policies render as
+   the full inline JSON document. AWS-managed and customer-managed
+   policy attachments render as the ARN string (treated as an
+   enum-like identifier — AWS doesn't change the well-known managed
+   ARNs in test-relevant ways, and we don't manage them). No
+   network calls at extraction time. See the Phase 6 determinism
+   note for the full spec.
 
-6. **Should each new module-hygiene primitive land with a new
-   `docs/examples/0N-*.md` runnable example?** I've planned 08, 09,
-   10. That's ~3 new examples + their runnable tests, which means
-   ~3 more LocalStack containers per CI run. Fine, or excessive?
+6. **`docs/examples/` count for the new primitives.** _Resolved
+   2026-05-13._ Ship **3 separate examples** (08-idempotency.md,
+   09-tag-propagation.md, 10-snapshot-iam.md). The existing
+   pattern is one concept per example file (01-basic-s3 through
+   07-cancellation), each in the 2–5 KB range. Bundling all three
+   primitives under a single "module-hygiene" example would break
+   the discoverability pattern — consumers cross-link a single
+   example URL when teaching a teammate, and a combined doc loses
+   that affordance. The CI cost (~3 more LocalStack containers per
+   integration run) is acceptable; the existing examples already
+   spin LocalStack per case.
 
-7. **Cross-phase rebase strategy.** PRs 2–4 are designed to be
-   independent of each other after PR 1 lands. If they land in
-   sequence, do PRs 3 and 4 each need to rebase on the latest main
-   after the previous merge? Mechanically yes; just flagging the
-   sequencing cost.
+7. **Cross-phase rebase strategy.** _Resolved 2026-05-13._ Single
+   PR, single branch, all commits land together. No rebase needed.
+
+## Future Work
+
+These items came up while resolving IMPL-0004's open questions but
+are out of scope here. Each gets its own INV before the next IMPL
+plan is drafted.
+
+1. **Package-level `doc.go` convention + `gomarkdoc` toolchain.**
+   Establish a repo-wide convention that every package ships a
+   `doc.go` with a godoc-compliant package comment, and adopt
+   [`princjef/gomarkdoc`](https://github.com/princjef/gomarkdoc)
+   (or similar) to render package docs to markdown for inclusion
+   under `docs/`. Covers three goals at once:
+   - Documents package _intent_ (replaces the need for "deliberate
+     non-change" CHANGELOG markers like the one OQ3 was after)
+   - Forces godoc-compliant comments project-wide, which we already
+     mostly do but don't enforce
+   - Produces a renderable API surface page that lives alongside
+     the docz docs
+   Tracked under [INV-0003 — Package documentation convention and
+   gomarkdoc toolchain][inv-0003].
+
+2. **Pro-feature matrix marker + docgen.** As more services land,
+   consumers need a quick reference for "what works on OSS
+   LocalStack vs. what requires Pro". Build-tags are a heavyweight
+   option — leaning toward a structured comment marker (something
+   like `// libtftest:requires-pro <reason>`) plus a small docgen
+   Go tool that scans the codebase and renders a markdown matrix
+   page. Tracked under [INV-0004 — Pro and OSS feature matrix
+   tooling][inv-0004].
 
 ## References
 
