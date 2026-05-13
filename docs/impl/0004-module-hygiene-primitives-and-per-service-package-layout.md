@@ -334,26 +334,26 @@ on TestCase" rationale.
 
 #### Tasks
 
-- [ ] Add `AssertIdempotent()` shim and `AssertIdempotentContext(ctx)` to
+- [x] Add `AssertIdempotent()` shim and `AssertIdempotentContext(ctx)` to
       `libtftest.go`
-- [ ] Add `AssertIdempotentApply()` shim and `AssertIdempotentApplyContext(ctx)`
+- [x] Add `AssertIdempotentApply()` shim and `AssertIdempotentApplyContext(ctx)`
       to `libtftest.go`
-- [ ] Doc comments must end with periods (godot linter); each shim must have a
+- [x] Doc comments must end with periods (godot linter); each shim must have a
       `// <Name> is a shim that calls <Name>Context with     tb.Context().` line
-- [ ] Add a unit test confirming both variants are wired (compile-time
+- [x] Add a unit test confirming both variants are wired (compile-time
       method-signature check, in the libtftest_test.go style)
-- [ ] Add `TestAssertIdempotent_S3Module` integration test in
+- [x] Add `TestAssertIdempotent_S3Module` integration test in
       `libtftest_integration_test.go` — happy path (idempotent S3 module passes
       both variants)
-- [ ] Add `TestAssertIdempotent_DetectsDrift` integration test — injects
-      synthetic drift via a `local-exec` provisioner that changes a non-managed
-      resource between Apply and the idempotency check, asserts the check fails
-- [ ] Update `docs/examples/` with a new `08-idempotency.md` example + matching
+- [x] Add `TestAssertIdempotent_DetectsDrift` integration test — injects
+      synthetic drift via `terraform_data` with a `timestamp()` input (built-in
+      Terraform resource, no provider download), asserts the check fails
+- [x] Update `docs/examples/` with a new `08-idempotency.md` example + matching
       `Test_Example08_Idempotency` in `examples_integration_test.go`
-- [ ] Update `docs/examples/README.md` index
-- [ ] Update `README.md` Features list to mention idempotency assertions
-- [ ] Update `CLAUDE.md` Context API surface section
-- [ ] Run `make ci` clean
+- [x] Update `docs/examples/README.md` index
+- [x] Update `README.md` Features list to mention idempotency assertions
+- [x] Update `CLAUDE.md` Context API surface section
+- [x] Run `make ci` clean
 
 #### Success Criteria
 

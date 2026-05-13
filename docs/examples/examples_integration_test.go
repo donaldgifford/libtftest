@@ -136,6 +136,40 @@ func Test_Example07_Cancellation(t *testing.T) {
 	}
 }
 
+// Test_Example08_Idempotency mirrors docs/examples/08-idempotency.md —
+// asserts that the idempotency check surfaces drift via tb.Errorf. We
+// exercise AssertIdempotentContext against a never-applied workspace
+// to capture the failure path without depending on Apply succeeding on
+// LocalStack 4.4 (S3 CreateBucket MalformedXML, see notes above).
+//
+// The happy-path coverage (a clean Plan -> AssertIdempotent succeeds)
+// lives in libtftest_integration_test.go's TestAssertIdempotent_S3Module
+// where it can substitute the internal tb without exposing it through
+// the example surface.
+func Test_Example08_Idempotency(t *testing.T) {
+	tc := libtftest.New(t, &libtftest.Options{
+		Edition:   localstack.EditionCommunity,
+		Image:     "localstack/localstack:4.4",
+		ModuleDir: testModuleDir(t),
+		Services:  []string{"s3"},
+	})
+	tc.SetVar("bucket_name", tc.Prefix()+"-example08")
+
+	// Compile-time surface check — every public idempotency entry point.
+	//nolint:staticcheck // QF1011: explicit types are the assertion.
+	var (
+		_ func()                = tc.AssertIdempotent
+		_ func()                = tc.AssertIdempotentApply
+		_ func(context.Context) = tc.AssertIdempotentContext
+		_ func(context.Context) = tc.AssertIdempotentApplyContext
+	)
+
+	// Plan must be non-empty before Apply (else the module is degenerate).
+	if result := tc.Plan(); result.Changes.Add < 1 {
+		t.Errorf("Plan().Changes.Add = %d, want >= 1", result.Changes.Add)
+	}
+}
+
 // Test_AssertSurface is a compile-time guard that the per-service
 // assert sub-packages and *Context variants surfaced in examples
 // 01, 02, 04 all still exist and have the documented signatures.

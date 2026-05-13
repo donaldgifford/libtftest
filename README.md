@@ -92,6 +92,12 @@ See [docs/examples](docs/examples/) for more complete examples.
   `sqsfix.SeedMessage` with automatic `t.Cleanup`
 - **Plan testing** -- `tc.Plan()` returns parsed `PlanResult` with resource
   change counts for golden-file testing
+- **Idempotency assertions** -- `tc.AssertIdempotent()` runs a fresh Plan and
+  fails the test if any changes are pending;
+  `tc.AssertIdempotentApply()` performs the rigorous double-Apply check
+  (Plan -> Apply -> Plan, both plans empty). Both ship `*Context` variants
+  for per-call deadlines. See
+  [docs/examples/08-idempotency.md](docs/examples/08-idempotency.md).
 - **terratest 1.0 `*Context` API** -- every `TestCase` method, every
   per-service assertion, and every per-service fixture ships a paired `*Context`
   variant (`ApplyContext`, `BucketExistsContext`, `SeedObjectContext`,
@@ -154,6 +160,7 @@ func TestMyModule(t *testing.T) {
 | --- | --- |
 | [Examples](docs/examples/) | Usage examples for common testing scenarios |
 | [Cancellation & ctx](docs/examples/07-cancellation.md) | `*Context` paired API, deadlines, `WithoutCancel` cleanup |
+| [Idempotency](docs/examples/08-idempotency.md) | `tc.AssertIdempotent` and `tc.AssertIdempotentApply` |
 | [CHANGELOG](CHANGELOG.md) | Released versions and migration notes |
 | [Development Guide](docs/development/) | How to develop, test, and contribute to libtftest |
 | [Design Doc (DESIGN-0001)](docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md) | Architecture and API design |

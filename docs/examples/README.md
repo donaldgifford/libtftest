@@ -37,6 +37,7 @@ terraform-aws-my-module/
 | [Custom Image and Pro Edition](05-custom-image.md) | Use Pro, airgapped mirrors, or custom images |
 | [sneakystack Sidecar](06-sneakystack.md) | Fill LocalStack gaps with sneakystack |
 | [Cancellation and Deadlines](07-cancellation.md) | Per-call deadlines via the `*Context` API variants |
+| [Idempotency Assertions](08-idempotency.md) | `tc.AssertIdempotent` and `tc.AssertIdempotentApply` |
 
 ## Running the Examples
 

@@ -31,6 +31,10 @@ The module also includes `sneakystack`, a Go HTTP proxy that fills gaps in Local
 - `ApplyContext(ctx) *terraform.Options` / `ApplyContextE` / `Apply` / `ApplyE`
 - `PlanContext(ctx) *PlanResult` / `PlanContextE` / `Plan` / `PlanE`
 - `OutputContext(ctx, name) string` / `Output(name)`
+- `AssertIdempotentContext(ctx)` / `AssertIdempotent()` — runs Plan once and
+  fails on a non-zero change count (uses `Errorf`, not `Fatalf`)
+- `AssertIdempotentApplyContext(ctx)` / `AssertIdempotentApply()` — rigorous
+  double-Apply check: Plan, Apply, Plan; both plans must be empty
 
 Non-context methods are permanent shims that forward to the `*Context`
 variant with `tb.Context()`. They are NOT marked `// Deprecated:`. The
