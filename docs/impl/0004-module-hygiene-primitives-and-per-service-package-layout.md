@@ -189,9 +189,9 @@ without duplication.
 - [x] Create `assert/ssm/ssm.go` (`package ssm`) with `ParameterExists`,
       `ParameterExistsContext`, `ParameterHasValue`, `ParameterHasValueContext`
 - [x] Create `assert/ssm/ssm_test.go`
-- [ ] Create `assert/lambda/lambda.go` (`package lambda`) with `FunctionExists`,
+- [x] Create `assert/lambda/lambda.go` (`package lambda`) with `FunctionExists`,
       `FunctionExistsContext`
-- [ ] Create `assert/lambda/lambda_test.go`
+- [x] Create `assert/lambda/lambda_test.go`
 - [ ] Delete `assert/s3.go`, `assert/dynamodb.go`, `assert/iam.go`,
       `assert/ssm.go`, `assert/lambda.go`
 - [ ] Delete `assert/assert.go` if it only held the zero-size struct vars
