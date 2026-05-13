@@ -168,7 +168,7 @@ without duplication.
 
 #### Tasks
 
-- [ ] Create `internal/testfake/testfake.go` with the existing `fakeTB` minimal
+- [x] Create `internal/testfake/testfake.go` with the existing `fakeTB` minimal
       `testing.TB` surface (Helper, Errorf, Error, Fatalf, Fatal, Skip, Skipf,
       SkipNow, Logf, Log, Context)
 - [ ] Create `assert/s3/s3.go` (`package s3`) with `BucketExists`,
