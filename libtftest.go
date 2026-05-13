@@ -237,6 +237,69 @@ func (tc *TestCase) Output(name string) string {
 	return tc.OutputContext(tc.tb.Context(), name)
 }
 
+// AssertIdempotentContext runs Plan and fails the test if the plan reports
+// any resource changes (add, change, or destroy). It does NOT call Apply
+// itself — call it after the caller's initial Apply has completed. It
+// calls tb.Errorf on a non-zero change count; the test continues so
+// additional assertions can surface their own failures.
+//
+// Catches: bad ignore_changes, provider refresh-time drift, and
+// known-after-apply placeholders that didn't resolve.
+func (tc *TestCase) AssertIdempotentContext(ctx context.Context) {
+	tc.tb.Helper()
+
+	result := tc.PlanContext(ctx)
+	if result.Changes.Add+result.Changes.Change+result.Changes.Destroy > 0 {
+		tc.tb.Errorf(
+			"module is not idempotent: plan shows add=%d change=%d destroy=%d",
+			result.Changes.Add, result.Changes.Change, result.Changes.Destroy,
+		)
+	}
+}
+
+// AssertIdempotent is a shim that calls AssertIdempotentContext with tb.Context().
+func (tc *TestCase) AssertIdempotent() {
+	tc.tb.Helper()
+	tc.AssertIdempotentContext(tc.tb.Context())
+}
+
+// AssertIdempotentApplyContext performs the canonical double-Apply check:
+// runs Plan (fails if non-empty), runs Apply again, then runs Plan a
+// second time (fails if non-empty). Catches a strictly larger class of
+// bugs than AssertIdempotentContext — including computed-vs-known
+// mismatches that only surface on the second Apply — at the cost of one
+// extra terraform apply round-trip.
+//
+// Use this after the caller's initial Apply has completed.
+func (tc *TestCase) AssertIdempotentApplyContext(ctx context.Context) {
+	tc.tb.Helper()
+
+	if result := tc.PlanContext(ctx); result.Changes.Add+
+		result.Changes.Change+result.Changes.Destroy > 0 {
+		tc.tb.Errorf(
+			"first plan not idempotent: add=%d change=%d destroy=%d",
+			result.Changes.Add, result.Changes.Change, result.Changes.Destroy,
+		)
+		return
+	}
+
+	tc.ApplyContext(ctx)
+
+	if result := tc.PlanContext(ctx); result.Changes.Add+
+		result.Changes.Change+result.Changes.Destroy > 0 {
+		tc.tb.Errorf(
+			"post-second-Apply plan not idempotent: add=%d change=%d destroy=%d",
+			result.Changes.Add, result.Changes.Change, result.Changes.Destroy,
+		)
+	}
+}
+
+// AssertIdempotentApply is a shim that calls AssertIdempotentApplyContext with tb.Context().
+func (tc *TestCase) AssertIdempotentApply() {
+	tc.tb.Helper()
+	tc.AssertIdempotentApplyContext(tc.tb.Context())
+}
+
 // AWS returns a cached aws.Config pointed at the LocalStack container.
 func (tc *TestCase) AWS() aws.Config {
 	return tc.awsCfg
