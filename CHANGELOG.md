@@ -11,6 +11,12 @@ Manual edits will be overwritten by the `Changelog Sync` job in the
 `Release` workflow after each tagged release — author release notes
 via conventional commit subjects and bodies instead.
 
+## [unreleased]
+
+### Documentation
+
+- *(impl-0004)* Check off all Phase 9 post-merge tasks
+
 ## [0.2.0] - 2026-05-14
 
 ### Features
