@@ -1,7 +1,7 @@
 ---
 id: IMPL-0004
 title: "Module hygiene primitives and per-service package layout"
-status: Draft
+status: Completed
 author: Donald Gifford
 created: 2026-05-13
 ---
@@ -10,7 +10,7 @@ created: 2026-05-13
 
 # IMPL 0004: Module hygiene primitives and per-service package layout
 
-**Status:** Draft **Author:** Donald Gifford **Date:** 2026-05-13
+**Status:** Completed **Author:** Donald Gifford **Date:** 2026-05-13
 
 <!--toc:start-->
 - [Objective](#objective)

@@ -1,7 +1,7 @@
 ---
 id: INV-0002
 title: "EKS coverage via LocalStack"
-status: Open
+status: Concluded
 author: Donald Gifford
 created: 2026-05-13
 ---
@@ -9,7 +9,7 @@ created: 2026-05-13
 
 # INV 0002: EKS coverage via LocalStack
 
-**Status:** Open
+**Status:** Concluded
 **Author:** Donald Gifford
 **Date:** 2026-05-13
 

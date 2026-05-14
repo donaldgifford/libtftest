@@ -1,7 +1,7 @@
 ---
 id: DESIGN-0003
 title: "Module hygiene primitives and per-service package layout"
-status: Draft
+status: Accepted
 author: Donald Gifford
 created: 2026-05-13
 ---
@@ -9,7 +9,7 @@ created: 2026-05-13
 
 # DESIGN 0003: Module hygiene primitives and per-service package layout
 
-**Status:** Draft
+**Status:** Accepted
 **Author:** Donald Gifford
 **Date:** 2026-05-13
 
