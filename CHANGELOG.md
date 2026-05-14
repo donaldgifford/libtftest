@@ -62,6 +62,7 @@ via conventional commit subjects and bodies instead.
 - *(impl-0004)* Close Testing Plan checkboxes and note Phase 8/9 scope
 - *(impl-0004)* Mark Phase 8 done (claude-skills plugin v0.3.0 shipped)
 - *(impl-0004)* Check off memory pointer (Phase 9 task)
+- *(impl-0004)* Check off PR CI green (Phase 9)
 
 ### Miscellaneous Tasks
 
