@@ -601,8 +601,8 @@ Not a separate PR.
 - [ ] No `chore(deps)` dependabot PRs left orphaned
 - [ ] `CHANGELOG.md` on `main` reflects the v0.2.0 section produced by
       `git-cliff` without any manual fixups
-- [ ] Update memory `MEMORY.md` pointer to a new memory entry summarizing the
-      layout-change shape (deferred to post-merge)
+- [x] Update memory `MEMORY.md` pointer to a new memory entry summarizing the
+      layout-change shape (`impl-0004-shape.md`)
 
 #### Success Criteria
 
