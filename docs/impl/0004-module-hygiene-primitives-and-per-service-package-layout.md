@@ -589,7 +589,7 @@ Not a separate PR.
 
 #### Tasks
 
-- [ ] PR CI green (lint, test, integration, docker, drift check, claudelint)
+- [x] PR CI green (lint, test, integration, docker, drift check, claudelint)
 - [ ] PR merges to `main` with the `minor` label
 - [ ] `Bump Version` + `Release` + `Changelog Sync` + `Docker` workflow jobs all
       green on the post-merge run
