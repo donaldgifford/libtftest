@@ -27,7 +27,6 @@ via conventional commit subjects and bodies instead.
 
 ### Bug Fixes
 
-- *(release)* Wire up docker bake release target + cosign signing ([#11](https://github.com/donaldgifford/libtftest/issues/11))
 - *(testfake)* Implement missing testing.TB methods to unblock CI
 
 ### Refactor
@@ -66,6 +65,12 @@ via conventional commit subjects and bodies instead.
 ### Miscellaneous Tasks
 
 - *(tooling)* Add lstk + just to mise
+
+## [0.1.2] - 2026-05-13
+
+### Bug Fixes
+
+- *(release)* Wire up docker bake release target + cosign signing ([#11](https://github.com/donaldgifford/libtftest/issues/11))
 
 ## [0.1.1] - 2026-05-12
 
