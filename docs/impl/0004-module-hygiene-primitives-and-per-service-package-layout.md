@@ -590,16 +590,16 @@ Not a separate PR.
 #### Tasks
 
 - [x] PR CI green (lint, test, integration, docker, drift check, claudelint)
-- [ ] PR merges to `main` with the `minor` label
-- [ ] `Bump Version` + `Release` + `Changelog Sync` + `Docker` workflow jobs all
+- [x] PR merges to `main` with the `minor` label
+- [x] `Bump Version` + `Release` + `Changelog Sync` + `Docker` workflow jobs all
       green on the post-merge run
-- [ ] `v0.2.0` tag + GitHub Release published with goreleaser notes
-- [ ] Multi-arch `sneakystack` image at
+- [x] `v0.2.0` tag + GitHub Release published with goreleaser notes
+- [x] Multi-arch `sneakystack` image at
       `ghcr.io/donaldgifford/sneakystack:0.2.0` signed via cosign keyless
-- [ ] Plugin sync PR (Phase 8) in `donaldgifford/claude-skills` lands; plugin
+- [x] Plugin sync PR (Phase 8) in `donaldgifford/claude-skills` lands; plugin
       v0.3.0 published; pin range covers libtftest `>=0.2.0, <1.0.0`
 - [x] No `chore(deps)` dependabot PRs left orphaned
-- [ ] `CHANGELOG.md` on `main` reflects the v0.2.0 section produced by
+- [x] `CHANGELOG.md` on `main` reflects the v0.2.0 section produced by
       `git-cliff` without any manual fixups
 - [x] Update memory `MEMORY.md` pointer to a new memory entry summarizing the
       layout-change shape (`impl-0004-shape.md`)
