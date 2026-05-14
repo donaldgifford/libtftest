@@ -28,6 +28,7 @@ via conventional commit subjects and bodies instead.
 ### Bug Fixes
 
 - *(release)* Wire up docker bake release target + cosign signing ([#11](https://github.com/donaldgifford/libtftest/issues/11))
+- *(testfake)* Implement missing testing.TB methods to unblock CI
 
 ### Refactor
 
