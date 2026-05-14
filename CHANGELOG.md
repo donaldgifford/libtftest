@@ -28,6 +28,7 @@ via conventional commit subjects and bodies instead.
 ### Bug Fixes
 
 - *(testfake)* Implement missing testing.TB methods to unblock CI
+- *(examples)* Drop t.Parallel from Test_Example10_SnapshotIAM
 
 ### Refactor
 
