@@ -20,10 +20,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/donaldgifford/libtftest"
-	"github.com/donaldgifford/libtftest/assert"
+	s3assert "github.com/donaldgifford/libtftest/assert/s3"
+	"github.com/donaldgifford/libtftest/assert/snapshot"
+	ssmassert "github.com/donaldgifford/libtftest/assert/ssm"
+	tagsassert "github.com/donaldgifford/libtftest/assert/tags"
 	"github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -135,20 +139,99 @@ func Test_Example07_Cancellation(t *testing.T) {
 	}
 }
 
-// Test_AssertSurface is a compile-time guard that the assert.* shim and
-// *Context variants surfaced in examples 01, 02, 04 all still exist and
-// have the documented signatures.
+// Test_Example08_Idempotency mirrors docs/examples/08-idempotency.md —
+// asserts that the idempotency check surfaces drift via tb.Errorf. We
+// exercise AssertIdempotentContext against a never-applied workspace
+// to capture the failure path without depending on Apply succeeding on
+// LocalStack 4.4 (S3 CreateBucket MalformedXML, see notes above).
+//
+// The happy-path coverage (a clean Plan -> AssertIdempotent succeeds)
+// lives in libtftest_integration_test.go's TestAssertIdempotent_S3Module
+// where it can substitute the internal tb without exposing it through
+// the example surface.
+func Test_Example08_Idempotency(t *testing.T) {
+	tc := libtftest.New(t, &libtftest.Options{
+		Edition:   localstack.EditionCommunity,
+		Image:     "localstack/localstack:4.4",
+		ModuleDir: testModuleDir(t),
+		Services:  []string{"s3"},
+	})
+	tc.SetVar("bucket_name", tc.Prefix()+"-example08")
+
+	// Compile-time surface check — every public idempotency entry point.
+	//nolint:staticcheck // QF1011: explicit types are the assertion.
+	var (
+		_ func()                = tc.AssertIdempotent
+		_ func()                = tc.AssertIdempotentApply
+		_ func(context.Context) = tc.AssertIdempotentContext
+		_ func(context.Context) = tc.AssertIdempotentApplyContext
+	)
+
+	// Plan must be non-empty before Apply (else the module is degenerate).
+	if result := tc.Plan(); result.Changes.Add < 1 {
+		t.Errorf("Plan().Changes.Add = %d, want >= 1", result.Changes.Add)
+	}
+}
+
+// Test_Example09_TagPropagation mirrors docs/examples/09-tag-propagation.md.
+// Substantive coverage of the comparison logic lives in
+// assert/tags/tags_test.go (TestDiffTags + multi-arn aggregation). This
+// example test ensures the documented public surface compiles and the
+// shim/Context pair are reachable from a consumer-style import.
+func Test_Example09_TagPropagation(t *testing.T) {
+	t.Parallel()
+
+	//nolint:staticcheck // QF1011: explicit types are the assertion.
+	var (
+		_ func(testing.TB, aws.Config, map[string]string, ...string)                  = tagsassert.PropagatesFromRoot
+		_ func(testing.TB, context.Context, aws.Config, map[string]string, ...string) = tagsassert.PropagatesFromRootContext
+	)
+}
+
+// Test_Example10_SnapshotIAM mirrors docs/examples/10-snapshot-iam.md.
+// The substantive coverage of snapshot comparison + extraction lives
+// in assert/snapshot/snapshot_test.go and assert/snapshot/extract_test.go;
+// this example test guards the public surface compiles and exercises
+// JSONStructural end-to-end against a hand-written plan-shape payload.
+//
+// Cannot be parallel: t.Setenv mutates process-global env (Go 1.26
+// panics on t.Setenv + t.Parallel).
+func Test_Example10_SnapshotIAM(t *testing.T) {
+	dir := t.TempDir()
+	snapPath := filepath.Join(dir, "policy.json")
+
+	const policy = `{"Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"ec2.amazonaws.com"}}],"Version":"2012-10-17"}`
+
+	t.Setenv("LIBTFTEST_UPDATE_SNAPSHOTS", "1")
+	snapshot.JSONStructural(t, []byte(policy), snapPath)
+
+	t.Setenv("LIBTFTEST_UPDATE_SNAPSHOTS", "")
+	snapshot.JSONStructural(t, []byte(policy), snapPath)
+
+	//nolint:staticcheck // QF1011: explicit types are the assertion.
+	var (
+		_ = snapshot.JSONStrict
+		_ = snapshot.JSONStructural
+		_ = snapshot.NormalizeJSON
+		_ = snapshot.ExtractIAMPolicies
+		_ = snapshot.ExtractResourceAttribute
+	)
+}
+
+// Test_AssertSurface is a compile-time guard that the per-service
+// assert sub-packages and *Context variants surfaced in examples
+// 01, 02, 04 all still exist and have the documented signatures.
 func Test_AssertSurface(t *testing.T) {
 	t.Parallel()
 
-	// Compile-time only — references the methods to ensure they exist.
+	// Compile-time only — references the functions to ensure they exist.
 	//nolint:staticcheck // QF1011: explicit types are the assertion.
 	var (
-		_ = assert.S3.BucketExists
-		_ = assert.S3.BucketExistsContext
-		_ = assert.S3.BucketHasVersioning
-		_ = assert.S3.BucketHasVersioningContext
-		_ = assert.SSM.ParameterHasValue
-		_ = assert.SSM.ParameterHasValueContext
+		_ = s3assert.BucketExists
+		_ = s3assert.BucketExistsContext
+		_ = s3assert.BucketHasVersioning
+		_ = s3assert.BucketHasVersioningContext
+		_ = ssmassert.ParameterHasValue
+		_ = ssmassert.ParameterHasValueContext
 	)
 }

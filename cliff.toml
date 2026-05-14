@@ -60,6 +60,8 @@ commit_preprocessors = [
 ]
 
 commit_parsers = [
+  { message = "^feat\\(tools", group = "<!-- 0a -->Tooling" },
+  { message = "^chore\\(tools", group = "<!-- 0a -->Tooling" },
   { message = "^feat", group = "<!-- 0 -->Features" },
   { message = "^fix", group = "<!-- 1 -->Bug Fixes" },
   { message = "^perf", group = "<!-- 2 -->Performance" },

@@ -10,6 +10,9 @@ golines = "latest"
 
 
 # Repo utilities
+just = "latest"
+"github:localstack/lstk" = "0.7.1"
+
 # Formatters and linters
 markdownlint-cli2 = "0.18.1"
 yamlfmt = "0.20.0"

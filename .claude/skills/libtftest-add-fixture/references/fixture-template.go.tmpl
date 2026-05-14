@@ -1,75 +1,144 @@
-// Template for a Seed* function in fixtures/fixtures.go.
+// Template for fixtures/{{servicelower}}/{{servicelower}}.go.
 //
 // Replace placeholders:
-//   {{Service}}       — TitleCase service name, e.g. DynamoDB
-//   {{servicepkg}}    — SDK package short name, e.g. dynamodb
-//   {{Verb}}          — Put, Create, Add, Send, etc.
-//   {{Resource}}      — TitleCase resource name, e.g. Item, Stream, Topic
-//   {{params...}}     — additional typed parameters specific to this seed
-//   {{<DeleteVerb>}}  — matching cleanup verb (Delete, Destroy, Remove)
+//   {{Service}}      — TitleCase service name, e.g. DynamoDB
+//   {{servicepkg}}   — SDK service package short name, e.g. dynamodb
+//   {{servicelower}} — lowercase service name (= package name), e.g. dynamodb
+//   {{Verb}}         — Put, Create, Add, Send, etc.
+//   {{Resource}}     — TitleCase resource name (drops service prefix), e.g.
+//                      Item (not DynamoDBItem), Stream (not KinesisStream)
+//   {{params...}}    — additional typed parameters specific to this seed
+//   {{<DeleteVerb>}} — matching cleanup verb (Delete, Destroy, Remove)
+//
+// Per the IMPL-0004 / DESIGN-0003 layout, each AWS service gets its
+// own fixtures/<service>/ sub-package with package-level functions.
+// Function names drop the service prefix (the package name carries it):
+//
+//   s3fix.SeedObject       (not fixtures.SeedS3Object)
+//   ssmfix.SeedParameter   (not fixtures.SeedSSMParameter)
+//   sqsfix.SeedMessage     (not fixtures.SeedSQSMessage)
+//
+// Don't forget the companion doc.go (one file per package). See
+// any existing fixtures/<service>/doc.go for the format.
 //
 // Pattern: every Seed function has a paired Seed*Context variant. The
 // shim form (no ctx) forwards to the *Context variant with tb.Context().
 // Cleanup callbacks use context.WithoutCancel(ctx) so they survive
 // test-end cancellation.
-//
-// Add both functions to fixtures/fixtures.go in alphabetical order by
-// service. Add the SDK import to the existing import block (alphabetical).
 
-import "github.com/aws/aws-sdk-go-v2/service/{{servicepkg}}"
+package {{servicelower}}
 
-// Seed{{Service}}{{Resource}}Context {{verb-phrase, e.g. "creates a DynamoDB item"}}
+import (
+	"context"
+	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	{{servicepkg}}sdk "github.com/aws/aws-sdk-go-v2/service/{{servicepkg}}"
+
+	"github.com/donaldgifford/libtftest/awsx"
+)
+
+// Seed{{Resource}}Context {{verb-phrase, e.g. "creates a DynamoDB item"}}
 // and registers cleanup (via context.WithoutCancel) to {{cleanup-phrase}}.
-func Seed{{Service}}{{Resource}}Context(tb testing.TB, ctx context.Context, cfg aws.Config, {{params...}}) {
+func Seed{{Resource}}Context(tb testing.TB, ctx context.Context, cfg aws.Config, {{params...}}) {
 	tb.Helper()
 
 	client := awsx.New{{Service}}(cfg)
 
-	_, err := client.{{Verb}}{{Resource}}(ctx, &{{servicepkg}}.{{Verb}}{{Resource}}Input{
+	_, err := client.{{Verb}}{{Resource}}(ctx, &{{servicepkg}}sdk.{{Verb}}{{Resource}}Input{
 		// fields based on params
 	})
 	if err != nil {
-		tb.Fatalf("Seed{{Service}}{{Resource}}({{format-args}}): %v", {{args}}, err)
+		tb.Fatalf("Seed{{Resource}}({{format-args}}): %v", {{args}}, err)
 	}
 
 	cleanupCtx := context.WithoutCancel(ctx)
 	tb.Cleanup(func() {
-		_, err := client.{{<DeleteVerb>}}{{Resource}}(cleanupCtx, &{{servicepkg}}.{{<DeleteVerb>}}{{Resource}}Input{
+		_, err := client.{{<DeleteVerb>}}{{Resource}}(cleanupCtx, &{{servicepkg}}sdk.{{<DeleteVerb>}}{{Resource}}Input{
 			// matching identifier fields
 		})
 		if err != nil {
-			tb.Errorf("cleanup Seed{{Service}}{{Resource}}({{format-args}}): %v", {{args}}, err)
+			tb.Errorf("cleanup Seed{{Resource}}({{format-args}}): %v", {{args}}, err)
 		}
 	})
 }
 
-// Seed{{Service}}{{Resource}} is a shim that calls Seed{{Service}}{{Resource}}Context with tb.Context().
-func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
+// Seed{{Resource}} is a shim that calls Seed{{Resource}}Context with tb.Context().
+func Seed{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
 	tb.Helper()
-	Seed{{Service}}{{Resource}}Context(tb, tb.Context(), cfg, {{args}})
+	Seed{{Resource}}Context(tb, tb.Context(), cfg, {{args}})
 }
+
+// --- Test stub for fixtures/{{servicelower}}/{{servicelower}}_test.go ---
+//
+// package {{servicelower}}_test
+//
+// import (
+//     "context"
+//     "testing"
+//     "time"
+//
+//     "github.com/aws/aws-sdk-go-v2/aws"
+//     "github.com/aws/aws-sdk-go-v2/credentials"
+//
+//     {{servicelower}}fix "github.com/donaldgifford/libtftest/fixtures/{{servicelower}}"
+//     "github.com/donaldgifford/libtftest/internal/testfake"
+// )
+//
+// func testCfg() aws.Config {
+//     return aws.Config{
+//         Region:       "us-east-1",
+//         BaseEndpoint: aws.String("http://127.0.0.1:1"),
+//         Credentials:  credentials.NewStaticCredentialsProvider("test", "test", ""),
+//     }
+// }
+//
+// func cancelledCtx(t *testing.T) context.Context {
+//     t.Helper()
+//     ctx, cancel := context.WithCancel(context.Background())
+//     cancel()
+//     return ctx
+// }
+//
+// func TestSeed{{Resource}}Context_PropagatesCancel(t *testing.T) {
+//     t.Parallel()
+//     tb := testfake.NewFakeTB()
+//     done := make(chan struct{})
+//     go func() {
+//         defer close(done)
+//         {{servicelower}}fix.Seed{{Resource}}Context(tb, cancelledCtx(t), testCfg(), /* params */)
+//     }()
+//     select {
+//     case <-done:
+//     case <-time.After(2 * time.Second):
+//         t.Fatal("Seed{{Resource}}Context did not honor cancelled ctx within 2s")
+//     }
+//     if !tb.Fatalled() {
+//         t.Error("Seed{{Resource}}Context with cancelled ctx did not call Fatalf")
+//     }
+// }
 
 // --- Variant: fire-and-forget (no cleanup; test consumes the payload) ---
 //
 // Only use this when the test will actually read and remove the seeded
-// payload itself (e.g., SeedSQSMessage). Document explicitly: "no cleanup
-// — consumed by test".
+// payload itself (e.g., sqsfix.SeedMessage). Document explicitly: "no
+// cleanup — consumed by test".
 //
-// func SeedSQSMessageContext(tb testing.TB, ctx context.Context, cfg aws.Config, queueURL, body string) {
+// func SeedMessageContext(tb testing.TB, ctx context.Context, cfg aws.Config, queueURL, body string) {
 //     tb.Helper()
 //     client := awsx.NewSQS(cfg)
-//     _, err := client.SendMessage(ctx, &sqs.SendMessageInput{
+//     _, err := client.SendMessage(ctx, &sqssdk.SendMessageInput{
 //         QueueUrl:    aws.String(queueURL),
 //         MessageBody: aws.String(body),
 //     })
 //     if err != nil {
-//         tb.Fatalf("SeedSQSMessage(%s): %v", queueURL, err)
+//         tb.Fatalf("SeedMessage(%s): %v", queueURL, err)
 //     }
 // }
 //
-// func SeedSQSMessage(tb testing.TB, cfg aws.Config, queueURL, body string) {
+// func SeedMessage(tb testing.TB, cfg aws.Config, queueURL, body string) {
 //     tb.Helper()
-//     SeedSQSMessageContext(tb, tb.Context(), cfg, queueURL, body)
+//     SeedMessageContext(tb, tb.Context(), cfg, queueURL, body)
 // }
 
 // --- Variant: force-delete required (Secrets Manager recovery window) ---
@@ -77,7 +146,7 @@ func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
 // func SeedSecretContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, value string) {
 //     tb.Helper()
 //     client := awsx.NewSecrets(cfg)
-//     _, err := client.CreateSecret(ctx, &secretsmanager.CreateSecretInput{
+//     _, err := client.CreateSecret(ctx, &secretsmanagersdk.CreateSecretInput{
 //         Name:         aws.String(name),
 //         SecretString: aws.String(value),
 //     })
@@ -86,7 +155,7 @@ func Seed{{Service}}{{Resource}}(tb testing.TB, cfg aws.Config, {{params...}}) {
 //     }
 //     cleanupCtx := context.WithoutCancel(ctx)
 //     tb.Cleanup(func() {
-//         _, err := client.DeleteSecret(cleanupCtx, &secretsmanager.DeleteSecretInput{
+//         _, err := client.DeleteSecret(cleanupCtx, &secretsmanagersdk.DeleteSecretInput{
 //             SecretId:                   aws.String(name),
 //             ForceDeleteWithoutRecovery: aws.Bool(true),
 //         })

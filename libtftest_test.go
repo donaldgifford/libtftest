@@ -31,6 +31,10 @@ func TestContextMethodSignatures(t *testing.T) {
 		_ func() *PlanResult                                = tc.Plan
 		_ func() (*PlanResult, error)                       = tc.PlanE
 		_ func(string) string                               = tc.Output
+		_ func(context.Context)                             = tc.AssertIdempotentContext
+		_ func(context.Context)                             = tc.AssertIdempotentApplyContext
+		_ func()                                            = tc.AssertIdempotent
+		_ func()                                            = tc.AssertIdempotentApply
 		_ func() aws.Config                                 = tc.AWS
 	)
 }

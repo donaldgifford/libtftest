@@ -44,7 +44,7 @@ import (
     "testing"
 
     "github.com/donaldgifford/libtftest"
-    "github.com/donaldgifford/libtftest/assert"
+    s3assert "github.com/donaldgifford/libtftest/assert/s3"
     "github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -62,8 +62,8 @@ func TestS3Bucket_CreatesWithVersioning(t *testing.T) {
     bucket := tc.Output("bucket_id")
 
     // Assert the bucket exists and has versioning enabled.
-    assert.S3.BucketExists(t, tc.AWS(), bucket)
-    assert.S3.BucketHasVersioning(t, tc.AWS(), bucket)
+    s3assert.BucketExists(t, tc.AWS(), bucket)
+    s3assert.BucketHasVersioning(t, tc.AWS(), bucket)
 }
 ```
 
@@ -87,7 +87,7 @@ go test -tags=integration -v -run TestS3Bucket ./test/...
 
 ## With caller-supplied context
 
-The example above uses `tc.Apply()`, `tc.Output()`, and `assert.S3.*` —
+The example above uses `tc.Apply()`, `tc.Output()`, and `s3assert.*` —
 shim methods that internally delegate to their `*Context` variants with
 `tb.Context()`. For per-call deadlines, tracing propagation, or explicit
 cancellation, call the `*Context` variants directly:
@@ -99,8 +99,8 @@ defer cancel()
 tc.ApplyContext(ctx)
 bucket := tc.OutputContext(ctx, "bucket_id")
 
-assert.S3.BucketExistsContext(t, ctx, tc.AWS(), bucket)
-assert.S3.BucketHasVersioningContext(t, ctx, tc.AWS(), bucket)
+s3assert.BucketExistsContext(t, ctx, tc.AWS(), bucket)
+s3assert.BucketHasVersioningContext(t, ctx, tc.AWS(), bucket)
 ```
 
 Both forms are first-class — pick whichever fits the test's needs.

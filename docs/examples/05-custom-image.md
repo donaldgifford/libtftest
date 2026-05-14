@@ -14,7 +14,7 @@ import (
     "testing"
 
     "github.com/donaldgifford/libtftest"
-    "github.com/donaldgifford/libtftest/assert"
+    iamassert "github.com/donaldgifford/libtftest/assert/iam"
     "github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -31,7 +31,7 @@ func TestIAMRole_ProEdition(t *testing.T) {
 
     // IAM assertions auto-skip on Community edition.
     // On Pro, they verify real IAM enforcement.
-    assert.IAM.RoleExists(t, tc.AWS(), tc.Output("role_name"))
+    iamassert.RoleExists(t, tc.AWS(), tc.Output("role_name"))
 }
 ```
 

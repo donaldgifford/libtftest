@@ -123,13 +123,23 @@ license-report: ## Generate CSV report of all dependency licenses
 
 ## CI/CD
 
-ci: lint test build license-check ## Run CI pipeline (lint + test + build + license check)
+ci: lint test build license-check check-markers ## Run CI pipeline (lint + test + build + license check + marker check)
 	@ $(MAKE) --no-print-directory log-$@
 	@echo "✓ CI pipeline complete"
 
 check: lint test ## Quick pre-commit check (lint + test)
 	@ $(MAKE) --no-print-directory log-$@
 	@echo "✓ Pre-commit checks passed"
+
+docs-matrix: ## Regenerate docs/feature-matrix.md from libtftest:requires markers
+	@ $(MAKE) --no-print-directory log-$@
+	@go run ./tools/docgen render -root . -out docs/feature-matrix.md
+	@echo "✓ Regenerated docs/feature-matrix.md"
+
+check-markers: ## Fail if any libtftest.RequirePro caller lacks a libtftest:requires marker
+	@ $(MAKE) --no-print-directory log-$@
+	@go run ./tools/docgen check -root .
+	@echo "✓ All RequirePro callers carry a marker"
 
 # =============================================================================
 # Release Targets

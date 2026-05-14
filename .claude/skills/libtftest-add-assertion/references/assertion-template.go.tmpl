@@ -1,43 +1,50 @@
-// Template for assert/<service>.go.
+// Template for assert/{{servicelower}}/{{servicelower}}.go.
 //
 // Replace placeholders:
-//   {{Service}}     — TitleCase service name, e.g. KMS
-//   {{servicepkg}}  — SDK service package short name, e.g. kms
-//   {{servicelower}} — lowercase service name, e.g. kms
+//   {{Service}}      — TitleCase service name, e.g. KMS
+//   {{servicepkg}}   — SDK service package short name, e.g. kms
+//   {{servicelower}} — lowercase service name (= package name), e.g. kms
 //
-// File goes at assert/{{servicelower}}.go.
+// Per the IMPL-0004 / DESIGN-0003 layout, each AWS service gets its
+// own assert/<service>/ sub-package with package-level functions —
+// NOT methods on a zero-size struct. The function names drop the
+// service prefix (the package name carries it):
 //
-// Then add to assert/assert.go (in alphabetical order with the existing vars):
+//   s3assert.BucketExists    (not assert.S3.BucketExists)
+//   ddbassert.TableExists    (not assert.DynamoDB.TableExists)
 //
-//   // {{Service}} provides {{Service}} assertion methods.
-//   var {{Service}} {{servicelower}}Asserts
+// Don't forget the companion doc.go (one file per package). See
+// any existing assert/<service>/doc.go for the format.
 //
-// Pattern: every assertion method has a paired *Context variant. The
-// shim form (no ctx) forwards to the *Context variant with tb.Context().
+// Pattern: every assertion has a paired *Context variant. The shim
+// form (no ctx) forwards to the *Context variant with tb.Context().
 // Cleanup paths (when applicable) use context.WithoutCancel(ctx).
+//
+// Pro-only assertions call libtftest.RequirePro(tb) AND carry a
+// `// libtftest:requires pro <reason>` marker comment per INV-0004.
 
-package assert
+package {{servicelower}}
 
 import (
 	"context"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/{{servicepkg}}"
+	{{servicepkg}}sdk "github.com/aws/aws-sdk-go-v2/service/{{servicepkg}}"
 
 	// "github.com/donaldgifford/libtftest"  // uncomment if Pro-only
 	"github.com/donaldgifford/libtftest/awsx"
 )
 
-type {{servicelower}}Asserts struct{}
-
-// ResourceExistsContext is the ctx-aware variant of ResourceExists.
-func ({{servicelower}}Asserts) ResourceExistsContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
+// ResourceExistsContext asserts that the named {{Service}} resource exists.
+//
+// libtftest:requires pro <reason>  // uncomment if Pro-only
+func ResourceExistsContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
 	tb.Helper()
 	// libtftest.RequirePro(tb)  // uncomment if Pro-only
 
 	client := awsx.New{{Service}}(cfg)
-	_, err := client.<DescribeOrGet>(ctx, &{{servicepkg}}.<Input>{
+	_, err := client.<DescribeOrGet>(ctx, &{{servicepkg}}sdk.<Input>{
 		<Field>: aws.String(name),
 	})
 	if err != nil {
@@ -46,18 +53,22 @@ func ({{servicelower}}Asserts) ResourceExistsContext(tb testing.TB, ctx context.
 }
 
 // ResourceExists is a shim that calls ResourceExistsContext with tb.Context().
-func (s {{servicelower}}Asserts) ResourceExists(tb testing.TB, cfg aws.Config, name string) {
+//
+// libtftest:requires pro <reason>  // uncomment if Pro-only
+func ResourceExists(tb testing.TB, cfg aws.Config, name string) {
 	tb.Helper()
-	s.ResourceExistsContext(tb, tb.Context(), cfg, name)
+	ResourceExistsContext(tb, tb.Context(), cfg, name)
 }
 
-// ResourceHasPropertyContext is the ctx-aware variant of ResourceHasProperty.
-func ({{servicelower}}Asserts) ResourceHasPropertyContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, want string) {
+// ResourceHasPropertyContext asserts that the named {{Service}} resource has the given property value.
+//
+// libtftest:requires pro <reason>  // uncomment if Pro-only
+func ResourceHasPropertyContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, want string) {
 	tb.Helper()
 	// libtftest.RequirePro(tb)  // uncomment if Pro-only
 
 	client := awsx.New{{Service}}(cfg)
-	out, err := client.<DescribeOrGet>(ctx, &{{servicepkg}}.<Input>{
+	out, err := client.<DescribeOrGet>(ctx, &{{servicepkg}}sdk.<Input>{
 		<Field>: aws.String(name),
 	})
 	if err != nil {
@@ -72,25 +83,58 @@ func ({{servicelower}}Asserts) ResourceHasPropertyContext(tb testing.TB, ctx con
 }
 
 // ResourceHasProperty is a shim that calls ResourceHasPropertyContext with tb.Context().
-func (s {{servicelower}}Asserts) ResourceHasProperty(tb testing.TB, cfg aws.Config, name, want string) {
+//
+// libtftest:requires pro <reason>  // uncomment if Pro-only
+func ResourceHasProperty(tb testing.TB, cfg aws.Config, name, want string) {
 	tb.Helper()
-	s.ResourceHasPropertyContext(tb, tb.Context(), cfg, name, want)
+	ResourceHasPropertyContext(tb, tb.Context(), cfg, name, want)
 }
 
-// --- Test stub for assert/{{servicelower}}_test.go ---
+// --- Test stub for assert/{{servicelower}}/{{servicelower}}_test.go ---
 //
-// package assert_test
+// package {{servicelower}}_test
 //
 // import (
+//     "context"
 //     "testing"
+//     "time"
 //
-//     "github.com/donaldgifford/libtftest/assert"
+//     "github.com/aws/aws-sdk-go-v2/aws"
+//     "github.com/aws/aws-sdk-go-v2/credentials"
+//
+//     {{servicelower}}assert "github.com/donaldgifford/libtftest/assert/{{servicelower}}"
+//     "github.com/donaldgifford/libtftest/internal/testfake"
 // )
 //
-// func TestResourceExists(t *testing.T) {
+// func testCfg() aws.Config {
+//     return aws.Config{
+//         Region:       "us-east-1",
+//         BaseEndpoint: aws.String("http://127.0.0.1:1"),
+//         Credentials:  credentials.NewStaticCredentialsProvider("test", "test", ""),
+//     }
+// }
+//
+// func cancelledCtx(t *testing.T) context.Context {
+//     t.Helper()
+//     ctx, cancel := context.WithCancel(context.Background())
+//     cancel()
+//     return ctx
+// }
+//
+// func TestResourceExistsContext_PropagatesCancel(t *testing.T) {
 //     t.Parallel()
-//     // Real exercise lives in the integration test that pairs with the
-//     // mod-{{servicelower}} testdata module. This is a smoke check that
-//     // the namespace var is wired correctly.
-//     _ = assert.{{Service}}
+//     tb := testfake.NewFakeTB()
+//     done := make(chan struct{})
+//     go func() {
+//         defer close(done)
+//         {{servicelower}}assert.ResourceExistsContext(tb, cancelledCtx(t), testCfg(), "any-name")
+//     }()
+//     select {
+//     case <-done:
+//     case <-time.After(2 * time.Second):
+//         t.Fatal("ResourceExistsContext did not honor cancelled ctx within 2s")
+//     }
+//     if !tb.Errored() {
+//         t.Error("ResourceExistsContext with cancelled ctx did not report Errorf")
+//     }
 // }

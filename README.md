@@ -39,7 +39,7 @@ import (
     "testing"
 
     "github.com/donaldgifford/libtftest"
-    "github.com/donaldgifford/libtftest/assert"
+    s3assert "github.com/donaldgifford/libtftest/assert/s3"
     "github.com/donaldgifford/libtftest/localstack"
 )
 
@@ -55,8 +55,8 @@ func TestS3Module(t *testing.T) {
     tc.Apply()
 
     bucket := tc.Output("bucket_id")
-    assert.S3.BucketExists(t, tc.AWS(), bucket)
-    assert.S3.BucketHasVersioning(t, tc.AWS(), bucket)
+    s3assert.BucketExists(t, tc.AWS(), bucket)
+    s3assert.BucketHasVersioning(t, tc.AWS(), bucket)
 }
 ```
 
@@ -84,15 +84,35 @@ See [docs/examples](docs/examples/) for more complete examples.
   Pro-only assertions call it internally
 - **AWS SDK v2 clients** -- pre-configured `awsx` constructors for S3, DynamoDB,
   IAM, SSM, Secrets Manager, SQS, SNS, Lambda, KMS, Kinesis, STS
-- **Assertion helpers** -- `assert.S3`, `assert.IAM`, `assert.DynamoDB`,
-  `assert.SSM`, `assert.Lambda`
-- **Fixture seeding** -- `fixtures.SeedS3Object`, `fixtures.SeedSSMParameter`,
-  `fixtures.SeedSecret`, `fixtures.SeedSQSMessage` with automatic `t.Cleanup`
+- **Assertion helpers** -- per-service packages under `assert/`:
+  `s3assert`, `ddbassert`, `iamassert` (Pro), `ssmassert`, `lambdaassert`
+  (importable as aliases to coexist with the AWS SDK)
+- **Fixture seeding** -- per-service packages under `fixtures/`:
+  `s3fix.SeedObject`, `ssmfix.SeedParameter`, `secretsfix.SeedSecret`,
+  `sqsfix.SeedMessage` with automatic `t.Cleanup`
 - **Plan testing** -- `tc.Plan()` returns parsed `PlanResult` with resource
   change counts for golden-file testing
+- **Idempotency assertions** -- `tc.AssertIdempotent()` runs a fresh Plan and
+  fails the test if any changes are pending;
+  `tc.AssertIdempotentApply()` performs the rigorous double-Apply check
+  (Plan -> Apply -> Plan, both plans empty). Both ship `*Context` variants
+  for per-call deadlines. See
+  [docs/examples/08-idempotency.md](docs/examples/08-idempotency.md).
+- **Tag propagation assertion** -- `tagsassert.PropagatesFromRoot` calls the
+  AWS Resource Groups Tagging API once and verifies a baseline tag map is
+  present on every listed ARN. Subset check (extra tags allowed), aggregated
+  failure messages, paired `*Context` variant. See
+  [docs/examples/09-tag-propagation.md](docs/examples/09-tag-propagation.md).
+- **JSON snapshot testing** -- `snapshot.JSONStrict` and
+  `snapshot.JSONStructural` lock down deterministic JSON payloads against
+  a golden file. `LIBTFTEST_UPDATE_SNAPSHOTS=1` regenerates snapshots in
+  place. `snapshot.ExtractIAMPolicies` and
+  `snapshot.ExtractResourceAttribute` pull policy documents out of
+  `terraform show -json plan.out` output. See
+  [docs/examples/10-snapshot-iam.md](docs/examples/10-snapshot-iam.md).
 - **terratest 1.0 `*Context` API** -- every `TestCase` method, every
-  `assert.*` helper, and every `fixtures.Seed*` ships a paired `*Context`
-  variant (`ApplyContext`, `BucketExistsContext`, `SeedS3ObjectContext`,
+  per-service assertion, and every per-service fixture ships a paired `*Context`
+  variant (`ApplyContext`, `BucketExistsContext`, `SeedObjectContext`,
   etc.); non-context forms are permanent shims that forward to the
   `*Context` variant with `tb.Context()`. Cleanup paths use
   `context.WithoutCancel` so destroy + teardown survive test-end
@@ -152,7 +172,9 @@ func TestMyModule(t *testing.T) {
 | --- | --- |
 | [Examples](docs/examples/) | Usage examples for common testing scenarios |
 | [Cancellation & ctx](docs/examples/07-cancellation.md) | `*Context` paired API, deadlines, `WithoutCancel` cleanup |
+| [Idempotency](docs/examples/08-idempotency.md) | `tc.AssertIdempotent` and `tc.AssertIdempotentApply` |
 | [CHANGELOG](CHANGELOG.md) | Released versions and migration notes |
+| [Feature Matrix](docs/feature-matrix.md) | Generated table of Pro / mockta / multi-tag gated functions |
 | [Development Guide](docs/development/) | How to develop, test, and contribute to libtftest |
 | [Design Doc (DESIGN-0001)](docs/design/0001-libtftest-shared-terratest-localstack-harness-for-aws-modules.md) | Architecture and API design |
 | [Implementation Plan (IMPL-0001)](docs/impl/0001-libtftest-v010-core-library-implementation.md) | Phased implementation plan |

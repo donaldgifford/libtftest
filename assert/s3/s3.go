@@ -1,24 +1,22 @@
-package assert
+package s3
 
 import (
 	"context"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3sdk "github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"github.com/donaldgifford/libtftest/awsx"
 )
 
-type s3Asserts struct{}
-
-// BucketExistsContext is the ctx-aware variant of BucketExists.
-func (s3Asserts) BucketExistsContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
+// BucketExistsContext asserts that the named S3 bucket exists.
+func BucketExistsContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
 	tb.Helper()
 
 	client := awsx.NewS3(cfg)
-	_, err := client.HeadBucket(ctx, &s3.HeadBucketInput{
+	_, err := client.HeadBucket(ctx, &s3sdk.HeadBucketInput{
 		Bucket: aws.String(name),
 	})
 	if err != nil {
@@ -27,17 +25,18 @@ func (s3Asserts) BucketExistsContext(tb testing.TB, ctx context.Context, cfg aws
 }
 
 // BucketExists is a shim that calls BucketExistsContext with tb.Context().
-func (s s3Asserts) BucketExists(tb testing.TB, cfg aws.Config, name string) {
+func BucketExists(tb testing.TB, cfg aws.Config, name string) {
 	tb.Helper()
-	s.BucketExistsContext(tb, tb.Context(), cfg, name)
+	BucketExistsContext(tb, tb.Context(), cfg, name)
 }
 
-// BucketHasEncryptionContext is the ctx-aware variant of BucketHasEncryption.
-func (s3Asserts) BucketHasEncryptionContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, algo string) {
+// BucketHasEncryptionContext asserts that the named S3 bucket has
+// server-side encryption configured with the given algorithm.
+func BucketHasEncryptionContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, algo string) {
 	tb.Helper()
 
 	client := awsx.NewS3(cfg)
-	out, err := client.GetBucketEncryption(ctx, &s3.GetBucketEncryptionInput{
+	out, err := client.GetBucketEncryption(ctx, &s3sdk.GetBucketEncryptionInput{
 		Bucket: aws.String(name),
 	})
 	if err != nil {
@@ -62,17 +61,18 @@ func (s3Asserts) BucketHasEncryptionContext(tb testing.TB, ctx context.Context, 
 }
 
 // BucketHasEncryption is a shim that calls BucketHasEncryptionContext with tb.Context().
-func (s s3Asserts) BucketHasEncryption(tb testing.TB, cfg aws.Config, name, algo string) {
+func BucketHasEncryption(tb testing.TB, cfg aws.Config, name, algo string) {
 	tb.Helper()
-	s.BucketHasEncryptionContext(tb, tb.Context(), cfg, name, algo)
+	BucketHasEncryptionContext(tb, tb.Context(), cfg, name, algo)
 }
 
-// BucketHasVersioningContext is the ctx-aware variant of BucketHasVersioning.
-func (s3Asserts) BucketHasVersioningContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
+// BucketHasVersioningContext asserts that the named S3 bucket has
+// versioning Enabled.
+func BucketHasVersioningContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
 	tb.Helper()
 
 	client := awsx.NewS3(cfg)
-	out, err := client.GetBucketVersioning(ctx, &s3.GetBucketVersioningInput{
+	out, err := client.GetBucketVersioning(ctx, &s3sdk.GetBucketVersioningInput{
 		Bucket: aws.String(name),
 	})
 	if err != nil {
@@ -86,17 +86,18 @@ func (s3Asserts) BucketHasVersioningContext(tb testing.TB, ctx context.Context, 
 }
 
 // BucketHasVersioning is a shim that calls BucketHasVersioningContext with tb.Context().
-func (s s3Asserts) BucketHasVersioning(tb testing.TB, cfg aws.Config, name string) {
+func BucketHasVersioning(tb testing.TB, cfg aws.Config, name string) {
 	tb.Helper()
-	s.BucketHasVersioningContext(tb, tb.Context(), cfg, name)
+	BucketHasVersioningContext(tb, tb.Context(), cfg, name)
 }
 
-// BucketBlocksPublicAccessContext is the ctx-aware variant of BucketBlocksPublicAccess.
-func (s3Asserts) BucketBlocksPublicAccessContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
+// BucketBlocksPublicAccessContext asserts that the named S3 bucket
+// has all four public-access-block flags set to true.
+func BucketBlocksPublicAccessContext(tb testing.TB, ctx context.Context, cfg aws.Config, name string) {
 	tb.Helper()
 
 	client := awsx.NewS3(cfg)
-	out, err := client.GetPublicAccessBlock(ctx, &s3.GetPublicAccessBlockInput{
+	out, err := client.GetPublicAccessBlock(ctx, &s3sdk.GetPublicAccessBlockInput{
 		Bucket: aws.String(name),
 	})
 	if err != nil {
@@ -125,17 +126,18 @@ func (s3Asserts) BucketBlocksPublicAccessContext(tb testing.TB, ctx context.Cont
 }
 
 // BucketBlocksPublicAccess is a shim that calls BucketBlocksPublicAccessContext with tb.Context().
-func (s s3Asserts) BucketBlocksPublicAccess(tb testing.TB, cfg aws.Config, name string) {
+func BucketBlocksPublicAccess(tb testing.TB, cfg aws.Config, name string) {
 	tb.Helper()
-	s.BucketBlocksPublicAccessContext(tb, tb.Context(), cfg, name)
+	BucketBlocksPublicAccessContext(tb, tb.Context(), cfg, name)
 }
 
-// BucketHasTagContext is the ctx-aware variant of BucketHasTag.
-func (s3Asserts) BucketHasTagContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, key, want string) {
+// BucketHasTagContext asserts that the named S3 bucket carries the
+// given tag key with the given value.
+func BucketHasTagContext(tb testing.TB, ctx context.Context, cfg aws.Config, name, key, want string) {
 	tb.Helper()
 
 	client := awsx.NewS3(cfg)
-	out, err := client.GetBucketTagging(ctx, &s3.GetBucketTaggingInput{
+	out, err := client.GetBucketTagging(ctx, &s3sdk.GetBucketTaggingInput{
 		Bucket: aws.String(name),
 	})
 	if err != nil {
@@ -156,7 +158,7 @@ func (s3Asserts) BucketHasTagContext(tb testing.TB, ctx context.Context, cfg aws
 }
 
 // BucketHasTag is a shim that calls BucketHasTagContext with tb.Context().
-func (s s3Asserts) BucketHasTag(tb testing.TB, cfg aws.Config, name, key, want string) {
+func BucketHasTag(tb testing.TB, cfg aws.Config, name, key, want string) {
 	tb.Helper()
-	s.BucketHasTagContext(tb, tb.Context(), cfg, name, key, want)
+	BucketHasTagContext(tb, tb.Context(), cfg, name, key, want)
 }
