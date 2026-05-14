@@ -539,33 +539,32 @@ set. Mirrors the work done for v0.1.0 in `feat/libtftest-plugin-v0.2.0`.
 > **Scope note.** Phase 8 lands as a separate PR in the
 > `donaldgifford/claude-skills` repo per the Branch / Commit Strategy
 > table above (`feat(plugin)` / `chore(plugin)` commits never appear on
-> this libtftest branch). The libtftest IMPL-0004 branch is complete
-> without Phase 8; Phase 8 is tracked here for cross-repo coordination
-> only.
+> this libtftest branch). Implemented on branch
+> `feat/libtftest-plugin-v0.3.0` in `donaldgifford/claude-skills`; the
+> libtftest IMPL-0004 branch tracks these tasks for cross-repo
+> coordination only.
 
 #### Tasks
 
-- [ ] Bump `plugins/libtftest/.claude-plugin/plugin.json` version 0.2.0 → 0.3.0
-- [ ] Matching bump in `.claude-plugin/marketplace.json`
-- [ ] Version-pin range across all `tftest:*` skill bodies, `_version-check.md`,
+- [x] Bump `plugins/libtftest/.claude-plugin/plugin.json` version 0.2.0 → 0.3.0
+- [x] Matching bump in `.claude-plugin/marketplace.json`
+- [x] Version-pin range across all `tftest:*` skill bodies, `_version-check.md`,
       `_frontmatter.md`, `README.md`, and the reviewer agent: `>=0.1.0, <1.0.0`
       → `>=0.2.0, <1.0.0`
-- [ ] Update `tftest:add-test` SKILL.md + scaffold to use the new import shape
-- [ ] Update `tftest:add-assertion` SKILL.md + scaffold to use the new
-      per-service-package shape
-- [ ] Update `tftest:add-fixture` SKILL.md + scaffold to use the new
-      per-service-package shape
-- [ ] Update `tftest:scaffold` (single-layout template) to use the new import
-      shape; add `AssertIdempotent` mention as a module-hygiene convention
-- [ ] Update umbrella `tftest` SKILL.md to surface the new module-hygiene
-      primitives (idempotency, tags, snapshot)
-- [ ] Update `plugins/libtftest/CHANGELOG.md` with a `[0.3.0]` entry explaining:
-      the libtftest v0.5.0 (or whichever final tag) API changes the plugin
-      tracks, what changed for skill consumers, and the SemVer split
-- [ ] Update `plugins/libtftest/README.md` API surface tables
-- [ ] Run `make test-plugin PLUGIN=libtftest` clean
-- [ ] Run `scripts/sync_readme.py` clean
-- [ ] Run `git-cliff -o CHANGELOG.md` and commit the result as
+- [x] Update `tftest:add-test` SKILL.md + scaffold to use the new import shape
+- [x] Update `tftest:add-assertion` SKILL.md + scaffold to use the new
+      per-service-package shape (`s3assert.BucketExists`, etc.)
+- [x] Update `tftest:add-fixture` SKILL.md + scaffold to use the new
+      per-service-package shape (`s3fix.SeedObject`, etc.)
+- [x] Update `tftest:scaffold` (single-layout template) to use the new import
+      shape; `AssertIdempotent` mentioned as a module-hygiene convention
+- [x] Update umbrella `tftest` SKILL.md to surface the new module-hygiene
+      primitives (idempotency, tags, snapshot) + feature-matrix pointer
+- [x] Update `plugins/libtftest/CHANGELOG.md` with a `[0.3.0]` entry
+- [x] Update `plugins/libtftest/README.md` API surface tables
+- [x] Run `make test-plugin PLUGIN=libtftest` clean
+- [x] Run `scripts/sync_readme.py` clean
+- [x] Run `git-cliff -o CHANGELOG.md` and commit the result as
       `chore(changelog): ...`
 
 #### Success Criteria
