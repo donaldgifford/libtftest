@@ -151,11 +151,13 @@ func TestAssertIdempotent_S3Module(t *testing.T) {
 	// AssertIdempotent against a never-applied workspace must surface the
 	// "module is not idempotent" Errorf (the initial Plan reports adds).
 	// Substitute the tb to capture the Errorf without failing this test.
+	// Restore via defer so the destroy cleanup runs against the real
+	// *testing.T even if AssertIdempotent panics or calls Fatal.
 	fake := testfake.NewFakeTB()
 	original := tc.tb
 	tc.tb = fake
+	defer func() { tc.tb = original }()
 	tc.AssertIdempotent()
-	tc.tb = original
 
 	if !fake.Errored() {
 		t.Error("AssertIdempotent on a never-applied workspace did not call Errorf")
@@ -219,8 +221,8 @@ func TestAssertIdempotent_DetectsDrift(t *testing.T) {
 	fake := testfake.NewFakeTB()
 	original := tc.tb
 	tc.tb = fake
+	defer func() { tc.tb = original }()
 	tc.AssertIdempotent()
-	tc.tb = original
 
 	if !fake.Errored() {
 		t.Error("AssertIdempotent on a drifting module did not call Errorf")

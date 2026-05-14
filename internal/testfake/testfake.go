@@ -2,6 +2,7 @@ package testfake
 
 import (
 	"context"
+	"os"
 	"sync"
 	"testing"
 )
@@ -146,3 +147,52 @@ func (f *FakeTB) NumCleanups() int {
 	defer f.mu.Unlock()
 	return len(f.cleanups)
 }
+
+// Name returns a fixed identifier. Terratest's logger calls Name on
+// every Logf invocation; the embedded nil [testing.TB] would panic, so
+// FakeTB returns a constant string.
+func (*FakeTB) Name() string {
+	return "FakeTB"
+}
+
+// Failed reports whether the test has been marked as failed via Error,
+// Errorf, Fatal, or Fatalf. Mirrors [testing.TB.Failed].
+func (f *FakeTB) Failed() bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.errored || f.fatalled
+}
+
+// Fail marks the test as failed without aborting. Mirrors [testing.TB.Fail].
+func (f *FakeTB) Fail() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.errored = true
+}
+
+// FailNow marks the test as failed. The real [testing.TB.FailNow] calls
+// runtime.Goexit; FakeTB does not, so the caller can observe the state
+// after the call.
+func (f *FakeTB) FailNow() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.fatalled = true
+}
+
+// TempDir returns the OS temporary directory. The real
+// [testing.TB.TempDir] returns a fresh per-test directory that gets
+// cleaned up automatically; FakeTB returns the bare temp root because
+// FakeTB never participates in real cleanup.
+func (*FakeTB) TempDir() string {
+	return os.TempDir()
+}
+
+// Setenv is a no-op. The real [testing.TB.Setenv] also registers a
+// cleanup to restore the prior value, which would be confusing for
+// tests that swap FakeTB in and out of a [TestCase]. Tests that need
+// env-var semantics should use [testing.T.Setenv] on the real
+// [testing.T] before substituting FakeTB.
+func (*FakeTB) Setenv(_, _ string) {}
+
+// Chdir is a no-op for the same reason as Setenv.
+func (*FakeTB) Chdir(_ string) {}
