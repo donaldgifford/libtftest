@@ -11,7 +11,7 @@ Manual edits will be overwritten by the `Changelog Sync` job in the
 `Release` workflow after each tagged release — author release notes
 via conventional commit subjects and bodies instead.
 
-## [0.2.0] - 2026-05-13
+## [0.2.0] - 2026-05-14
 
 ### Features
 
@@ -59,6 +59,7 @@ via conventional commit subjects and bodies instead.
 - *(assert/tags)* Add example 09 + integration surface + README
 - *(assert/snapshot)* Add example 10 + README/index updates
 - *(impl-0004)* Close Testing Plan checkboxes and note Phase 8/9 scope
+- *(impl-0004)* Mark Phase 8 done (claude-skills plugin v0.3.0 shipped)
 
 ### Miscellaneous Tasks
 
