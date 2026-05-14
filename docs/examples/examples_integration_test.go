@@ -193,9 +193,10 @@ func Test_Example09_TagPropagation(t *testing.T) {
 // in assert/snapshot/snapshot_test.go and assert/snapshot/extract_test.go;
 // this example test guards the public surface compiles and exercises
 // JSONStructural end-to-end against a hand-written plan-shape payload.
+//
+// Cannot be parallel: t.Setenv mutates process-global env (Go 1.26
+// panics on t.Setenv + t.Parallel).
 func Test_Example10_SnapshotIAM(t *testing.T) {
-	t.Parallel()
-
 	dir := t.TempDir()
 	snapPath := filepath.Join(dir, "policy.json")
 
