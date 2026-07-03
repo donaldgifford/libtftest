@@ -163,8 +163,10 @@ Integration tests require `hashicorp/setup-terraform@v3` in CI -- terratest v0.5
 
 ## LocalStack Notes
 
-- Default image pinned to `localstack/localstack:4.4` -- `:latest` now requires Pro auth token
-- S3 CreateBucket returns MalformedXML on 4.4 with current AWS provider version (Plan works, Apply has compat issues)
+- Default image pinned to `localstack/localstack:2026.06.1`. LocalStack moved to a single unified image with calendar versioning (`YYYY.MM.patch`, see the [CalVer](https://blog.localstack.cloud/switching-to-calendar-versioning/) and [single-image](https://blog.localstack.cloud/localstack-single-image-next-steps/) posts). There is no separate `localstack/localstack-pro` image anymore — Pro is unlocked at runtime via `LOCALSTACK_AUTH_TOKEN`, so `ResolveImage()` no longer branches on edition. Renovate keeps the pin current (customManager in `renovate.json5`); `make bump-localstack LS_VERSION=<calver>` is the manual escape hatch.
+- Local dev / shared-container mode uses the `lstk` CLI (in `mise.toml`): `make localstack-up|down|status|logs`. The testcontainers-managed lifecycle in `localstack/container.go` is unchanged.
+- `:latest`/`stable` require a LocalStack auth token — never pin to them; always use an explicit CalVer tag.
+- S3 CreateBucket returned MalformedXML on `4.4` with the then-current AWS provider version (Plan worked, Apply had compat issues) — re-verify against the CalVer image.
 - `AllServicesReady` signature is `func(io.Reader) bool` (not `func(*http.Response) bool`)
 
 ## Documentation

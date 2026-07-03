@@ -103,9 +103,12 @@ For each change, walk these rules. Skip rules that don't apply.
 
 ### LocalStack version pinning
 
-- The default image is pinned to `localstack/localstack:4.4`. Any change
-  that adds `localstack/localstack:latest` is a bug — `:latest` requires a
-  Pro auth token now.
+- The default image is pinned to `localstack/localstack:2026.06.1` (calendar
+  versioning, `YYYY.MM.patch`). Any change that adds
+  `localstack/localstack:latest` or `:stable` is a bug — those require an auth
+  token. Flag a reintroduced `localstack/localstack-pro:*` image too: the
+  single-image model unlocks Pro via `LOCALSTACK_AUTH_TOKEN`, not a `-pro`
+  image.
 
 ### Comment style
 

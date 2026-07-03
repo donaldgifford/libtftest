@@ -15,11 +15,15 @@ import (
 )
 
 const (
-	defaultImage    = "localstack/localstack:4.4"
-	defaultProImage = "localstack/localstack-pro:4.4"
-	edgePort        = "4566/tcp"
-	imageEnv        = "LIBTFTEST_LOCALSTACK_IMAGE"
-	startupTimeout  = 90 * time.Second
+	// defaultImage is the pinned LocalStack image. LocalStack ships a
+	// single unified image using calendar versioning (YYYY.MM.patch);
+	// Pro features are unlocked at runtime via LOCALSTACK_AUTH_TOKEN, not
+	// a separate localstack-pro image. Renovate keeps this pin current
+	// (see the customManager in renovate.json5).
+	defaultImage   = "localstack/localstack:2026.06.1"
+	edgePort       = "4566/tcp"
+	imageEnv       = "LIBTFTEST_LOCALSTACK_IMAGE"
+	startupTimeout = 90 * time.Second
 )
 
 // Container holds a running LocalStack container and its metadata.
@@ -41,7 +45,10 @@ type Config struct {
 }
 
 // ResolveImage returns the container image to use, checking (in order):
-// Config.Image, LIBTFTEST_LOCALSTACK_IMAGE env var, then edition-based default.
+// Config.Image, the LIBTFTEST_LOCALSTACK_IMAGE env var, then the pinned
+// default. LocalStack now ships a single image for both editions — Pro is
+// enabled via LOCALSTACK_AUTH_TOKEN (see Env), not a distinct image — so
+// the edition no longer affects image selection.
 func (c *Config) ResolveImage() string {
 	if c.Image != "" {
 		return c.Image
@@ -49,11 +56,6 @@ func (c *Config) ResolveImage() string {
 
 	if img := os.Getenv(imageEnv); img != "" {
 		return img
-	}
-
-	edition := DetectEdition(c.Edition)
-	if edition == EditionPro {
-		return defaultProImage
 	}
 
 	return defaultImage

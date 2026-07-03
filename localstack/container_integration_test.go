@@ -17,7 +17,7 @@ func TestContainerStart_Community(t *testing.T) {
 
 	cfg := &Config{
 		Edition:  EditionCommunity,
-		Image:    "localstack/localstack:4.4",
+		Image:    "localstack/localstack:2026.06.1",
 		Services: []string{"s3"},
 	}
 
@@ -69,7 +69,7 @@ func TestContainerStart_Community(t *testing.T) {
 
 func TestContainerStart_ImageOverride(t *testing.T) {
 	// This test verifies that LIBTFTEST_LOCALSTACK_IMAGE is respected.
-	t.Setenv("LIBTFTEST_LOCALSTACK_IMAGE", "localstack/localstack:4.4")
+	t.Setenv("LIBTFTEST_LOCALSTACK_IMAGE", "localstack/localstack:2026.06.1")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
@@ -81,8 +81,8 @@ func TestContainerStart_ImageOverride(t *testing.T) {
 
 	// Verify the image resolves to the env override.
 	got := cfg.ResolveImage()
-	if got != "localstack/localstack:4.4" {
-		t.Errorf("ResolveImage() = %q, want localstack/localstack:4.4", got)
+	if got != "localstack/localstack:2026.06.1" {
+		t.Errorf("ResolveImage() = %q, want localstack/localstack:2026.06.1", got)
 	}
 
 	ctr, err := Start(ctx, cfg)
@@ -106,7 +106,7 @@ func TestEditionDetection_FromHealthEndpoint(t *testing.T) {
 
 	cfg := &Config{
 		Edition:  EditionCommunity,
-		Image:    "localstack/localstack:4.4",
+		Image:    "localstack/localstack:2026.06.1",
 		Services: []string{"s3"},
 	}
 

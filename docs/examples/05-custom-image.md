@@ -5,6 +5,13 @@ this for Pro, airgapped mirrors, or custom images.
 
 ## Using LocalStack Pro
 
+LocalStack ships a **single image** (calendar-versioned, e.g.
+`localstack/localstack:2026.06.1`); there is no separate `-pro` image. Pro
+features are unlocked at runtime by setting `LOCALSTACK_AUTH_TOKEN` in the
+environment. `Edition: localstack.EditionPro` just declares the intent so
+Pro-only assertions run instead of auto-skipping — it does not change the
+image.
+
 ```go
 //go:build integration
 
@@ -40,12 +47,12 @@ func TestIAMRole_ProEdition(t *testing.T) {
 Set `LIBTFTEST_LOCALSTACK_IMAGE` to override the image for all tests:
 
 ```bash
-# Use a specific Pro version
-LIBTFTEST_LOCALSTACK_IMAGE=localstack/localstack-pro:4.4 \
+# Pin a specific LocalStack version (calendar-versioned, YYYY.MM.patch)
+LIBTFTEST_LOCALSTACK_IMAGE=localstack/localstack:2026.06.1 \
     go test -tags=integration -v ./test/...
 
 # Use an airgapped mirror
-LIBTFTEST_LOCALSTACK_IMAGE=registry.internal/localstack:4.4 \
+LIBTFTEST_LOCALSTACK_IMAGE=registry.internal/localstack:2026.06.1 \
     go test -tags=integration -v ./test/...
 ```
 
@@ -53,7 +60,7 @@ LIBTFTEST_LOCALSTACK_IMAGE=registry.internal/localstack:4.4 \
 
 ```go
 tc := libtftest.New(t, &libtftest.Options{
-    Image:     "localstack/localstack-pro:4.4",
+    Image:     "registry.internal/localstack:2026.06.1", // e.g. an airgapped mirror
     ModuleDir: "../../modules/my-module",
 })
 ```
@@ -82,6 +89,6 @@ func TestSomethingProOnly(t *testing.T) {
 
 1. `Options.Image` (explicit per-test override)
 2. `LIBTFTEST_LOCALSTACK_IMAGE` environment variable
-3. Default based on edition:
-   - Community: `localstack/localstack:4.4`
-   - Pro: `localstack/localstack-pro:4.4`
+3. Pinned default: `localstack/localstack:2026.06.1` — the same single image
+   for Community and Pro. Edition is decided by `LOCALSTACK_AUTH_TOKEN`, not
+   the image.

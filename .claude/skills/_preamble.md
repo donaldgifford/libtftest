@@ -45,8 +45,10 @@ body — `_preamble.md` itself is not auto-loaded.
 - terratest `terraform.Options.PlanFilePath` causes Apply to apply a plan file.
   Use `tf.BuildOptions` (no plan) for Apply, `tf.BuildPlanOptions` (with plan)
   for Plan.
-- LocalStack `:latest` requires a Pro auth token. Pin to
-  `localstack/localstack:4.4`.
+- LocalStack `:latest`/`stable` require an auth token. Pin to an explicit
+  CalVer tag — currently `localstack/localstack:2026.06.1`. LocalStack ships a
+  single image now (no `-pro` variant); Pro is unlocked via
+  `LOCALSTACK_AUTH_TOKEN`, not a different image.
 - `t.Setenv` conflicts with `t.Parallel()` — pick one.
 - `gosec G703` on env-derived paths (`HOME`, `XDG_CACHE_HOME`): annotate the
   `os.MkdirAll` / `os.Stat` line with `//nolint:gosec`, not the `os.Getenv`

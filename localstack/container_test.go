@@ -49,15 +49,17 @@ func TestConfig_ResolveImage_EnvOverride(t *testing.T) {
 	}
 }
 
-func TestConfig_ResolveImage_ProDefault(t *testing.T) {
+func TestConfig_ResolveImage_ProUsesSingleImage(t *testing.T) {
+	// LocalStack ships a single image for both editions; a Pro auth token
+	// unlocks features at runtime but does not change the image.
 	t.Setenv("LIBTFTEST_LOCALSTACK_IMAGE", "")
 	t.Setenv("LOCALSTACK_AUTH_TOKEN", "some-token")
 
 	cfg := Config{Edition: EditionAuto}
 	got := cfg.ResolveImage()
 
-	if got != defaultProImage {
-		t.Errorf("ResolveImage() with pro token = %q, want %q", got, defaultProImage)
+	if got != defaultImage {
+		t.Errorf("ResolveImage() with pro token = %q, want single image %q", got, defaultImage)
 	}
 }
 
