@@ -20,6 +20,7 @@ via conventional commit subjects and bodies instead.
 ### Bug Fixes
 
 - *(deps)* Bump golang.org/x/crypto to v0.52.0 for GO-2026 SSH advisories
+- *(localstack)* Token-aware default so community runs stay token-free
 
 ### Miscellaneous Tasks
 
