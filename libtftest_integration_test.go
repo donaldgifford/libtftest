@@ -27,7 +27,7 @@ func moduleDir(name string) string {
 func TestNew_FullLifecycle(t *testing.T) {
 	tc := New(t, &Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:2026.06.1",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testdataDir(),
 		Services:  []string{"s3"},
 	})
@@ -59,7 +59,7 @@ func TestNew_FullLifecycle(t *testing.T) {
 func TestNew_Plan(t *testing.T) {
 	tc := New(t, &Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:2026.06.1",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testdataDir(),
 		Services:  []string{"s3"},
 	})
@@ -90,7 +90,7 @@ func TestNew_Plan(t *testing.T) {
 func TestPlanContext_CustomDeadline(t *testing.T) {
 	tc := New(t, &Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:2026.06.1",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testdataDir(),
 		Services:  []string{"s3"},
 	})
@@ -137,7 +137,7 @@ func TestRequirePro_SkipsOnCommunity(t *testing.T) {
 func TestAssertIdempotent_S3Module(t *testing.T) {
 	tc := New(t, &Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:2026.06.1",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testdataDir(),
 		Services:  []string{"s3"},
 	})
@@ -173,7 +173,7 @@ func TestAssertIdempotent_S3Module(t *testing.T) {
 func TestPropagatesFromRoot_AgainstLocalStack(t *testing.T) {
 	tc := New(t, &Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:2026.06.1",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: moduleDir("mod-tagged"),
 		Services:  []string{"s3", "resourcegroupstaggingapi"},
 	})
@@ -203,7 +203,7 @@ func TestPropagatesFromRoot_AgainstLocalStack(t *testing.T) {
 func TestAssertIdempotent_DetectsDrift(t *testing.T) {
 	tc := New(t, &Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:2026.06.1",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: moduleDir("mod-drifting"),
 		Services:  []string{"s3"},
 	})

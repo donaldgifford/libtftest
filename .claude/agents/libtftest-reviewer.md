@@ -103,12 +103,14 @@ For each change, walk these rules. Skip rules that don't apply.
 
 ### LocalStack version pinning
 
-- The default image is pinned to `localstack/localstack:2026.06.1` (calendar
-  versioning, `YYYY.MM.patch`). Any change that adds
-  `localstack/localstack:latest` or `:stable` is a bug — those require an auth
-  token. Flag a reintroduced `localstack/localstack-pro:*` image too: the
-  single-image model unlocks Pro via `LOCALSTACK_AUTH_TOKEN`, not a `-pro`
-  image.
+- The default image is **token-aware**: `localstack/localstack:2026.06.1`
+  (calendar-versioned single image) when `LOCALSTACK_AUTH_TOKEN` is set, else
+  the token-free community tag `localstack/localstack:4.14`. The single image
+  won't boot without a token, so flag any change that makes a community/no-token
+  path (e.g. CI integration jobs) depend on the calver image. Adding
+  `localstack/localstack:latest`/`:stable` is a bug (they need a token too), as
+  is reintroducing a `localstack/localstack-pro:*` image — Pro unlocks via the
+  token, not a `-pro` image.
 
 ### Comment style
 

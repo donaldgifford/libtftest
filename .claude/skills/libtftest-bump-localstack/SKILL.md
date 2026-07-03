@@ -21,12 +21,15 @@ that humans always end up doing anyway.
 
 ## Repo conventions
 
-- Pinned image lives in the `localstack/container.go` `defaultImage`
-  constant. LocalStack ships a **single image** now (no `-pro` variant); Pro
-  is unlocked at runtime via `LOCALSTACK_AUTH_TOKEN`, so there is no
-  `defaultProImage` to keep in sync.
-- The image uses **calendar versioning** (`YYYY.MM.patch`, e.g. `2026.06.1`),
-  not semver. Pass the bare tag to `LS_VERSION`.
+- The pinned images live in `localstack/container.go`: `defaultImage` (the
+  calendar-versioned single image, used when `LOCALSTACK_AUTH_TOKEN` is set)
+  and `defaultCommunityImage` (the last token-free community tag, used without
+  a token — the single image won't boot without one). There is no
+  `defaultProImage`; Pro unlocks via the token.
+- The single image uses **calendar versioning** (`YYYY.MM.patch`, e.g.
+  `2026.06.1`), not semver. Pass the bare tag to `LS_VERSION`;
+  `make bump-localstack` bumps the calver single image. The community fallback
+  tag is a deliberate manual pin (not auto-bumped).
 - The same pin is repeated across Go sources (`container.go`, `doc.go`,
   integration tests), `CLAUDE.md`, and `docs/`. `make bump-localstack`
   sed-replaces every `localstack/localstack:<tag>` occurrence in one pass.

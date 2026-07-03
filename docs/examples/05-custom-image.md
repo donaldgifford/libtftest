@@ -47,8 +47,12 @@ func TestIAMRole_ProEdition(t *testing.T) {
 Set `LIBTFTEST_LOCALSTACK_IMAGE` to override the image for all tests:
 
 ```bash
-# Pin a specific LocalStack version (calendar-versioned, YYYY.MM.patch)
+# Pin the unified single image (calendar-versioned; needs LOCALSTACK_AUTH_TOKEN)
 LIBTFTEST_LOCALSTACK_IMAGE=localstack/localstack:2026.06.1 \
+    go test -tags=integration -v ./test/...
+
+# Pin the token-free community image (no account required)
+LIBTFTEST_LOCALSTACK_IMAGE=localstack/localstack:4.14 \
     go test -tags=integration -v ./test/...
 
 # Use an airgapped mirror
@@ -89,6 +93,8 @@ func TestSomethingProOnly(t *testing.T) {
 
 1. `Options.Image` (explicit per-test override)
 2. `LIBTFTEST_LOCALSTACK_IMAGE` environment variable
-3. Pinned default: `localstack/localstack:2026.06.1` — the same single image
-   for Community and Pro. Edition is decided by `LOCALSTACK_AUTH_TOKEN`, not
-   the image.
+3. Token-aware default:
+   - With `LOCALSTACK_AUTH_TOKEN`: `localstack/localstack:2026.06.1` — the
+     unified single image (also unlocks Pro).
+   - Without a token: `localstack/localstack:4.14` — the last token-free
+     community image. (The single image won't boot without a token.)

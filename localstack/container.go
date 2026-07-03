@@ -15,10 +15,15 @@ import (
 )
 
 const (
-	// defaultImage is the pinned LocalStack image. LocalStack ships a
-	// single unified image using calendar versioning (YYYY.MM.patch);
-	// Pro features are unlocked at runtime via LOCALSTACK_AUTH_TOKEN, not
-	// a separate localstack-pro image. Renovate keeps this pin current
+	// defaultCommunityImage is the token-free LocalStack image used when no
+	// LOCALSTACK_AUTH_TOKEN is configured. LocalStack's unified single image
+	// (defaultImage) requires an auth token even for free-tier use, so
+	// zero-config community runs stay on the last token-free legacy tag.
+	defaultCommunityImage = "localstack/localstack:4.14"
+	// defaultImage is the pinned LocalStack single image, used when an auth
+	// token is available. LocalStack ships one unified, calendar-versioned
+	// image (YYYY.MM.patch); Pro features unlock at runtime via the token,
+	// not a separate localstack-pro image. Renovate keeps this pin current
 	// (see the customManager in renovate.json5).
 	defaultImage   = "localstack/localstack:2026.06.1"
 	edgePort       = "4566/tcp"
@@ -45,10 +50,12 @@ type Config struct {
 }
 
 // ResolveImage returns the container image to use, checking (in order):
-// Config.Image, the LIBTFTEST_LOCALSTACK_IMAGE env var, then the pinned
-// default. LocalStack now ships a single image for both editions — Pro is
-// enabled via LOCALSTACK_AUTH_TOKEN (see Env), not a distinct image — so
-// the edition no longer affects image selection.
+// Config.Image, the LIBTFTEST_LOCALSTACK_IMAGE env var, then an
+// authentication-dependent default. LocalStack's unified single image
+// requires an auth token even for free-tier use, so when no token is
+// configured ResolveImage falls back to the last token-free community image
+// (defaultCommunityImage); with a token it uses the single image
+// (defaultImage), which also unlocks Pro features.
 func (c *Config) ResolveImage() string {
 	if c.Image != "" {
 		return c.Image
@@ -58,7 +65,17 @@ func (c *Config) ResolveImage() string {
 		return img
 	}
 
-	return defaultImage
+	if c.hasAuthToken() {
+		return defaultImage
+	}
+
+	return defaultCommunityImage
+}
+
+// hasAuthToken reports whether a LocalStack auth token is configured, either
+// on the Config or via the LOCALSTACK_AUTH_TOKEN environment variable.
+func (c *Config) hasAuthToken() bool {
+	return c.AuthToken != "" || os.Getenv("LOCALSTACK_AUTH_TOKEN") != ""
 }
 
 // Env builds the environment variable map for the container.

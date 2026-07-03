@@ -216,10 +216,13 @@ make localstack-down     # lstk stop
 ```
 
 LocalStack now ships a **single image** using calendar versioning
-(`YYYY.MM.patch`, e.g. `2026.06.1`) — there is no separate `-pro` image.
-Pro features are unlocked at runtime by exporting `LOCALSTACK_AUTH_TOKEN`
-before `make localstack-up` (or before running the Pro-tagged tests); the
-same token also flips libtftest's edition detection to Pro.
+(`YYYY.MM.patch`, e.g. `2026.06.1`) — there is no separate `-pro` image — but
+it **requires `LOCALSTACK_AUTH_TOKEN` even for free-tier use** (without one the
+container exits with code 55). libtftest's default is therefore token-aware:
+export a token before `make localstack-up` / the tests to get the single image
+(`2026.06.1`, which also unlocks Pro), or run token-free against the last
+community image (`localstack/localstack:4.14`) with no account required. Set
+the image explicitly via `LIBTFTEST_LOCALSTACK_IMAGE` to override either way.
 
 ## Release Process
 
@@ -248,7 +251,7 @@ make release TAG=v0.1.0
 | `LIBTFTEST_LOCALSTACK_IMAGE` | Override the default LocalStack container image |
 | `LIBTFTEST_PERSIST_ON_FAILURE` | Keep container alive on test failure for debugging |
 | `LIBTFTEST_ARTIFACT_DIR` | Additional directory for CI artifact collection |
-| `LOCALSTACK_AUTH_TOKEN` | LocalStack Pro auth token (enables Pro edition) |
+| `LOCALSTACK_AUTH_TOKEN` | LocalStack auth token — required by the unified single image; selects it over the token-free community image and enables Pro |
 | `TESTCONTAINERS_RYUK_DISABLED` | Disable Ryuk reaper (for rootless Docker / K8s runners) |
 | `DOCKER_HOST` | Custom Docker socket path |
 

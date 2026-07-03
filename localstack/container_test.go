@@ -3,12 +3,9 @@ package localstack
 import "testing"
 
 func TestConfig_ResolveImage(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name    string
 		cfg     Config
-		envImg  string
 		envAuth string
 		want    string
 	}{
@@ -18,15 +15,28 @@ func TestConfig_ResolveImage(t *testing.T) {
 			want: "custom/localstack:v1",
 		},
 		{
-			name: "default community image",
+			name: "community default without a token",
 			cfg:  Config{},
+			want: defaultCommunityImage,
+		},
+		{
+			name:    "single image with an env token",
+			cfg:     Config{},
+			envAuth: "some-token",
+			want:    defaultImage,
+		},
+		{
+			name: "single image with a config token",
+			cfg:  Config{AuthToken: "cfg-token"},
 			want: defaultImage,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Setenv (needed to neutralise ambient env) rules out t.Parallel.
+			t.Setenv("LIBTFTEST_LOCALSTACK_IMAGE", "")
+			t.Setenv("LOCALSTACK_AUTH_TOKEN", tt.envAuth)
 
 			got := tt.cfg.ResolveImage()
 			if got != tt.want {
@@ -46,20 +56,6 @@ func TestConfig_ResolveImage_EnvOverride(t *testing.T) {
 
 	if got != want {
 		t.Errorf("ResolveImage() with env = %q, want %q", got, want)
-	}
-}
-
-func TestConfig_ResolveImage_ProUsesSingleImage(t *testing.T) {
-	// LocalStack ships a single image for both editions; a Pro auth token
-	// unlocks features at runtime but does not change the image.
-	t.Setenv("LIBTFTEST_LOCALSTACK_IMAGE", "")
-	t.Setenv("LOCALSTACK_AUTH_TOKEN", "some-token")
-
-	cfg := Config{Edition: EditionAuto}
-	got := cfg.ResolveImage()
-
-	if got != defaultImage {
-		t.Errorf("ResolveImage() with pro token = %q, want single image %q", got, defaultImage)
 	}
 }
 

@@ -187,16 +187,17 @@ localstack-logs: ## Tail lstk-managed LocalStack logs
 	lstk logs
 
 # Renovate keeps the pinned image current automatically via the customManager
-# in renovate.json5; this target remains for manual/offline bumps. LocalStack
-# now ships a single image (calendar-versioned YYYY.MM.patch), so there is no
-# separate -pro image to update.
-bump-localstack: ## Bump pinned LocalStack image version (use with LS_VERSION=2026.06.1)
+# in renovate.json5; this target remains for manual/offline bumps. It bumps
+# the calendar-versioned single image (defaultImage). LocalStack ships one
+# image now (no separate -pro image); the token-free community fallback tag
+# (defaultCommunityImage) is a deliberate manual pin and left untouched here.
+bump-localstack: ## Bump pinned LocalStack single-image version (use with LS_VERSION=2026.06.1)
 	@ $(MAKE) --no-print-directory log-$@
 	@if [ -z "$(LS_VERSION)" ]; then \
 		echo "Error: LS_VERSION is required. Usage: make bump-localstack LS_VERSION=2026.06.1"; \
 		exit 1; \
 	fi
-	@OLD_VERSION="$$(grep -oE 'localstack/localstack:[0-9.]+' localstack/container.go | head -1 | cut -d: -f2)"; \
+	@OLD_VERSION="$$(grep -oE 'localstack/localstack:[0-9]{4}\.[0-9]{2}\.[0-9]+' localstack/container.go | head -1 | cut -d: -f2)"; \
 	if [ -z "$$OLD_VERSION" ]; then \
 		echo "Error: could not detect current pinned version in localstack/container.go"; \
 		exit 1; \
