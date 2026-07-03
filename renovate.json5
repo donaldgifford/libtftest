@@ -8,4 +8,22 @@
     "github>donaldgifford/renovate-config:mise",
     "github>donaldgifford/renovate-config:ci",
   ],
+  // The default LocalStack image is pinned as a string constant in Go
+  // source (localstack/container.go, doc.go), the integration tests, and
+  // CLAUDE.md — none of which the built-in Docker manager scans. This
+  // custom manager bumps every `localstack/localstack:<calver>` occurrence
+  // together, matching the reach of `make bump-localstack`. The image now
+  // uses calendar versioning (YYYY.MM.patch), so the version regex only
+  // matches a strict four-digit year to avoid the legacy semver tags.
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Track the pinned LocalStack image (Go sources + docs)",
+      managerFilePatterns: ["/\\.go$/", "/\\.md$/"],
+      matchStrings: ["localstack/localstack:(?<currentValue>\\d{4}\\.\\d{2}\\.\\d+)"],
+      datasourceTemplate: "docker",
+      depNameTemplate: "localstack/localstack",
+      versioningTemplate: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+    },
+  ],
 }
