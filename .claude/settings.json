@@ -9,13 +9,16 @@
     "git-cliff@donaldgifford-claude-skills": true,
     "systems-programming@donaldgifford-claude-skills": true,
     "docker@donaldgifford-claude-skills": true,
+    "kubebuilder@donaldgifford-claude-skills": true,
     "makefiles@donaldgifford-claude-skills": true,
     "justfile@donaldgifford-claude-skills": true,
     "mise@donaldgifford-claude-skills": true,
     "shell-scripting@donaldgifford-claude-skills": true,
     "skill-creator@donaldgifford-claude-skills": true,
+    "donald-loop@donaldgifford-claude-skills": true,
     "todo-comments@donaldgifford-claude-skills": true,
-    "infrastructure-as-code@donaldgifford-claude-skills": true,
+    "helm@donaldgifford-claude-skills": true,
+    "renovate@donaldgifford-claude-skills": true,
     "docz@donaldgifford-claude-skills": true
   },
   "permissions": {

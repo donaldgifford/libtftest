@@ -47,7 +47,7 @@ func testModuleDir(t *testing.T) string {
 func Test_Example01_BasicS3Test(t *testing.T) {
 	tc := libtftest.New(t, &libtftest.Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:4.4",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testModuleDir(t),
 		Services:  []string{"s3"},
 	})
@@ -73,7 +73,7 @@ func Test_Example01_BasicS3Test(t *testing.T) {
 func Test_Example03_PlanTesting(t *testing.T) {
 	tc := libtftest.New(t, &libtftest.Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:4.4",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testModuleDir(t),
 		Services:  []string{"s3"},
 	})
@@ -95,7 +95,7 @@ func Test_Example03_PlanTesting(t *testing.T) {
 func Test_Example03_PlanContext(t *testing.T) {
 	tc := libtftest.New(t, &libtftest.Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:4.4",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testModuleDir(t),
 		Services:  []string{"s3"},
 	})
@@ -120,7 +120,7 @@ func Test_Example03_PlanContext(t *testing.T) {
 func Test_Example07_Cancellation(t *testing.T) {
 	tc := libtftest.New(t, &libtftest.Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:4.4",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testModuleDir(t),
 		Services:  []string{"s3"},
 	})
@@ -152,7 +152,7 @@ func Test_Example07_Cancellation(t *testing.T) {
 func Test_Example08_Idempotency(t *testing.T) {
 	tc := libtftest.New(t, &libtftest.Options{
 		Edition:   localstack.EditionCommunity,
-		Image:     "localstack/localstack:4.4",
+		Image:     "localstack/localstack:4.14",
 		ModuleDir: testModuleDir(t),
 		Services:  []string{"s3"},
 	})

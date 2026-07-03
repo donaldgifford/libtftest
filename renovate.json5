@@ -1,0 +1,30 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "github>donaldgifford/renovate-config",
+    "github>donaldgifford/renovate-config:go",
+    "github>donaldgifford/renovate-config:docker",
+    "github>donaldgifford/renovate-config:terraform",
+    "github>donaldgifford/renovate-config:mise",
+    "github>donaldgifford/renovate-config:ci",
+  ],
+  // The LocalStack single image is pinned as a string constant in Go source
+  // (localstack/container.go, doc.go) and CLAUDE.md — none of which the
+  // built-in Docker manager scans. This custom manager bumps every
+  // `localstack/localstack:<calver>` occurrence together, matching the reach
+  // of `make bump-localstack`. The version regex requires a strict four-digit
+  // year so it only tracks the calendar-versioned single image; the
+  // token-free community fallback tag (localstack/localstack:4.14, legacy
+  // semver) is a deliberate manual pin and intentionally NOT auto-bumped.
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Track the pinned LocalStack image (Go sources + docs)",
+      managerFilePatterns: ["/\\.go$/", "/\\.md$/"],
+      matchStrings: ["localstack/localstack:(?<currentValue>\\d{4}\\.\\d{2}\\.\\d+)"],
+      datasourceTemplate: "docker",
+      depNameTemplate: "localstack/localstack",
+      versioningTemplate: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+    },
+  ],
+}

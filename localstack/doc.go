@@ -4,9 +4,15 @@
 // The package wraps the testcontainers-go LocalStack module with
 // libtftest-specific defaults:
 //
-//   - Image is pinned to localstack/localstack:2026.04.0 (OSS) by
-//     default; LIBTFTEST_LOCALSTACK_IMAGE or Options.Image overrides
-//     for Pro or custom images
+//   - The default image depends on authentication. LocalStack's
+//     unified single image (calendar-versioned YYYY.MM.patch, e.g.
+//     localstack/localstack:2026.06.1) requires an auth token even
+//     for free-tier use, so with LOCALSTACK_AUTH_TOKEN set the
+//     package uses it — Pro features unlock at runtime via the same
+//     token, and there is no separate localstack-pro image. Without
+//     a token it falls back to the last token-free community image,
+//     localstack/localstack:4.14. LIBTFTEST_LOCALSTACK_IMAGE or
+//     Options.Image override the pin for custom or mirrored images
 //   - Ports are bound via PortEndpoint with the explicit edge port
 //     rather than Endpoint(http) — the latter picks the lowest port,
 //     which is wrong for multi-port containers

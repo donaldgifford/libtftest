@@ -163,13 +163,41 @@ release-local: ## Test goreleaser without publishing
 	@ $(MAKE) --no-print-directory log-$@
 	goreleaser release --snapshot --clean --skip=publish --skip=sign
 
-bump-localstack: ## Bump pinned LocalStack image version (use with LS_VERSION=4.5)
+# =============================================================================
+# LocalStack Targets
+# =============================================================================
+
+##@ LocalStack
+
+.PHONY: localstack-up localstack-down localstack-status localstack-logs
+
+localstack-up: ## Start a shared LocalStack via lstk (export LIBTFTEST_CONTAINER_URL=http://localhost:4566 to reuse it)
+	@ $(MAKE) --no-print-directory log-$@
+	lstk start
+
+localstack-down: ## Stop the lstk-managed LocalStack container
+	@ $(MAKE) --no-print-directory log-$@
+	lstk stop
+
+localstack-status: ## Show lstk-managed LocalStack status and deployed resources
+	@ $(MAKE) --no-print-directory log-$@
+	lstk status
+
+localstack-logs: ## Tail lstk-managed LocalStack logs
+	lstk logs
+
+# Renovate keeps the pinned image current automatically via the customManager
+# in renovate.json5; this target remains for manual/offline bumps. It bumps
+# the calendar-versioned single image (defaultImage). LocalStack ships one
+# image now (no separate -pro image); the token-free community fallback tag
+# (defaultCommunityImage) is a deliberate manual pin and left untouched here.
+bump-localstack: ## Bump pinned LocalStack single-image version (use with LS_VERSION=2026.06.1)
 	@ $(MAKE) --no-print-directory log-$@
 	@if [ -z "$(LS_VERSION)" ]; then \
-		echo "Error: LS_VERSION is required. Usage: make bump-localstack LS_VERSION=4.5"; \
+		echo "Error: LS_VERSION is required. Usage: make bump-localstack LS_VERSION=2026.06.1"; \
 		exit 1; \
 	fi
-	@OLD_VERSION="$$(grep -oE 'localstack/localstack:[0-9.]+' localstack/container.go | head -1 | cut -d: -f2)"; \
+	@OLD_VERSION="$$(grep -oE 'localstack/localstack:[0-9]{4}\.[0-9]{2}\.[0-9]+' localstack/container.go | head -1 | cut -d: -f2)"; \
 	if [ -z "$$OLD_VERSION" ]; then \
 		echo "Error: could not detect current pinned version in localstack/container.go"; \
 		exit 1; \
@@ -180,9 +208,6 @@ bump-localstack: ## Bump pinned LocalStack image version (use with LS_VERSION=4.
 	find . -type f \( -name '*.go' -o -name '*.tf' -o -name 'Dockerfile*' -o -name 'docker-bake.hcl' -o -name '*.md' -o -name 'CLAUDE.md' \) \
 		-not -path './.git/*' -not -path './vendor/*' -not -path './build/*' \
 		-exec sed -i.bak "s|localstack/localstack:$$OLD_VERSION|localstack/localstack:$(LS_VERSION)|g" {} +; \
-	find . -type f \( -name '*.go' -o -name '*.tf' -o -name 'Dockerfile*' -o -name 'docker-bake.hcl' -o -name '*.md' -o -name 'CLAUDE.md' \) \
-		-not -path './.git/*' -not -path './vendor/*' -not -path './build/*' \
-		-exec sed -i.bak "s|localstack/localstack-pro:$$OLD_VERSION|localstack/localstack-pro:$(LS_VERSION)|g" {} +; \
 	find . -name '*.bak' -not -path './.git/*' -delete
 	@echo "✓ Pin updated. Review with 'git diff', then run 'make test' to verify."
 

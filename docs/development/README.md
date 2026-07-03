@@ -199,6 +199,31 @@ go test -tags=integration -v -race ./...
 go test -tags=integration -v -run TestNew_Plan ./...
 ```
 
+### Running LocalStack locally with `lstk`
+
+The integration tests manage their own LocalStack container via
+testcontainers-go, so you don't normally start one by hand. For iterative
+local work — or the per-suite mode where a single external container serves
+the whole run — use the [`lstk`](https://github.com/localstack/lstk) CLI
+(pinned in `mise.toml`) through the Makefile:
+
+```bash
+make localstack-up       # lstk start
+export LIBTFTEST_CONTAINER_URL=http://localhost:4566   # reuse it for the suite
+make localstack-status   # lstk status
+make localstack-logs     # lstk logs
+make localstack-down     # lstk stop
+```
+
+LocalStack now ships a **single image** using calendar versioning
+(`YYYY.MM.patch`, e.g. `2026.06.1`) — there is no separate `-pro` image — but
+it **requires `LOCALSTACK_AUTH_TOKEN` even for free-tier use** (without one the
+container exits with code 55). libtftest's default is therefore token-aware:
+export a token before `make localstack-up` / the tests to get the single image
+(`2026.06.1`, which also unlocks Pro), or run token-free against the last
+community image (`localstack/localstack:4.14`) with no account required. Set
+the image explicitly via `LIBTFTEST_LOCALSTACK_IMAGE` to override either way.
+
 ## Release Process
 
 Releases use a single `v0.x.y` tag that covers both the Go module and
@@ -226,7 +251,7 @@ make release TAG=v0.1.0
 | `LIBTFTEST_LOCALSTACK_IMAGE` | Override the default LocalStack container image |
 | `LIBTFTEST_PERSIST_ON_FAILURE` | Keep container alive on test failure for debugging |
 | `LIBTFTEST_ARTIFACT_DIR` | Additional directory for CI artifact collection |
-| `LOCALSTACK_AUTH_TOKEN` | LocalStack Pro auth token (enables Pro edition) |
+| `LOCALSTACK_AUTH_TOKEN` | LocalStack auth token — required by the unified single image; selects it over the token-free community image and enables Pro |
 | `TESTCONTAINERS_RYUK_DISABLED` | Disable Ryuk reaper (for rootless Docker / K8s runners) |
 | `DOCKER_HOST` | Custom Docker socket path |
 
@@ -261,8 +286,9 @@ Inside this repo, ask Claude Code things like:
 - "Add an awsx client for cloudwatch" — invokes `libtftest:add-awsx-client`
 - "Add a KMS assertion helper" — `libtftest:add-assertion` (which can
   chain to `libtftest:add-awsx-client` if the AWS client is missing)
-- "Bump LocalStack to 4.5" — `libtftest:bump-localstack` (which runs
-  `make bump-localstack LS_VERSION=4.5`)
+- "Bump LocalStack to 2026.06.1" — `libtftest:bump-localstack` (which runs
+  `make bump-localstack LS_VERSION=2026.06.1`; routine bumps are handled by
+  Renovate)
 - "Tag a v0.2.0 release" — `libtftest:release`
 
 The skills always run lint (`make lint`) and tests for the affected

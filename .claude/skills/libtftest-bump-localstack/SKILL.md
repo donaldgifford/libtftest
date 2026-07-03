@@ -21,12 +21,22 @@ that humans always end up doing anyway.
 
 ## Repo conventions
 
-- Pinned image lives in `localstack/container.go` constants (`defaultImage`,
-  `defaultProImage`)
-- Same pin is repeated in: integration tests, README, `docs/examples/`,
-  `CLAUDE.md`, `_preamble.md`, `Dockerfile.sneakystack`,
-  `docker-bake.hcl`. The Makefile target updates all of them.
-- LocalStack `:latest` requires a Pro auth token — never use it.
+- The pinned images live in `localstack/container.go`: `defaultImage` (the
+  calendar-versioned single image, used when `LOCALSTACK_AUTH_TOKEN` is set)
+  and `defaultCommunityImage` (the last token-free community tag, used without
+  a token — the single image won't boot without one). There is no
+  `defaultProImage`; Pro unlocks via the token.
+- The single image uses **calendar versioning** (`YYYY.MM.patch`, e.g.
+  `2026.06.1`), not semver. Pass the bare tag to `LS_VERSION`;
+  `make bump-localstack` bumps the calver single image. The community fallback
+  tag is a deliberate manual pin (not auto-bumped).
+- The same pin is repeated across Go sources (`container.go`, `doc.go`,
+  integration tests), `CLAUDE.md`, and `docs/`. `make bump-localstack`
+  sed-replaces every `localstack/localstack:<tag>` occurrence in one pass.
+- **Renovate handles routine bumps** via the customManager in
+  `renovate.json5`; this skill is for manual, offline, or
+  read-the-release-notes-first bumps.
+- LocalStack `:latest`/`stable` require an auth token — never pin to them.
 
 ## Procedure
 
@@ -34,10 +44,9 @@ that humans always end up doing anyway.
 
 Ask the user:
 
-- **Target version**, e.g., `4.5`. The Makefile target accepts the bare
-  version string (no `localstack/localstack:` prefix).
-- Whether to bump Pro alongside Community (almost always yes — they
-  release together).
+- **Target version**, e.g., `2026.06.1` (calendar-versioned). The Makefile
+  target accepts the bare tag (no `localstack/localstack:` prefix). Find the
+  latest tag on Docker Hub or via `lstk` — one image serves both editions.
 
 ### 2. Read the LocalStack release notes
 
@@ -120,9 +129,8 @@ Release notes: <link>
 
 ## Edge cases
 
-- **Pro version released later than Community**: bump Community first,
-  pin Pro to the previous version manually, follow up with a Pro-only
-  bump. Document in the commit.
+- **Single image, both editions**: there is no separate Pro image to bump —
+  the same `localstack/localstack:<calver>` tag serves Community and Pro.
 - **Pinned version doesn't exist yet** (preview): use the LocalStack
   `<version>-rc.N` tag if available; otherwise skip until the proper
   release.

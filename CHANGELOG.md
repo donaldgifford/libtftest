@@ -13,9 +13,20 @@ via conventional commit subjects and bodies instead.
 
 ## [unreleased]
 
-### Documentation
+### Features
 
-- *(impl-0004)* Check off all Phase 9 post-merge tasks
+- *(localstack)* Adopt single-image calendar versioning + lstk targets
+
+### Bug Fixes
+
+- *(deps)* Bump golang.org/x/crypto to v0.52.0 for GO-2026 SSH advisories
+- *(localstack)* Token-aware default so community runs stay token-free
+
+### Miscellaneous Tasks
+
+- *(impl-0004)* Check off Phase 9 post-merge tasks ([#13](https://github.com/donaldgifford/libtftest/issues/13))
+- Bump go, gha, update mise.
+- *(renovate)* Track the pinned LocalStack image via a custom manager
 
 ## [0.2.0] - 2026-05-14
 
