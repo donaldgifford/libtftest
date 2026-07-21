@@ -3,25 +3,25 @@ module github.com/donaldgifford/libtftest
 go 1.26.4
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.41.7
-	github.com/aws/aws-sdk-go-v2/config v1.32.16
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.15
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.2
-	github.com/aws/aws-sdk-go-v2/service/iam v1.53.8
-	github.com/aws/aws-sdk-go-v2/service/kinesis v1.43.5
-	github.com/aws/aws-sdk-go-v2/service/kms v1.50.5
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.89.1
-	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.31.12
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.99.1
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.41.6
-	github.com/aws/aws-sdk-go-v2/service/sns v1.39.16
-	github.com/aws/aws-sdk-go-v2/service/sqs v1.42.26
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.68.5
-	github.com/aws/aws-sdk-go-v2/service/sts v1.42.0
-	github.com/gruntwork-io/terratest v1.0.0
-	github.com/hashicorp/terraform-json v0.27.2
-	github.com/moby/moby/api v1.54.1
-	github.com/testcontainers/testcontainers-go v0.42.0
+	github.com/aws/aws-sdk-go-v2 v1.43.0
+	github.com/aws/aws-sdk-go-v2/config v1.32.31
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.30
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.61.0
+	github.com/aws/aws-sdk-go-v2/service/iam v1.56.0
+	github.com/aws/aws-sdk-go-v2/service/kinesis v1.46.0
+	github.com/aws/aws-sdk-go-v2/service/kms v1.55.0
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.100.0
+	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.35.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.106.0
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.44.0
+	github.com/aws/aws-sdk-go-v2/service/sns v1.42.0
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.46.0
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.73.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.45.0
+	github.com/gruntwork-io/terratest v1.0.1
+	github.com/hashicorp/terraform-json v0.28.0
+	github.com/moby/moby/api v1.55.0
+	github.com/testcontainers/testcontainers-go v0.43.0
 )
 
 require (
@@ -30,20 +30,20 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.9 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.22 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.23 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.14 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.11.22 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.22 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.22 // indirect
-	github.com/aws/aws-sdk-go-v2/service/signin v1.0.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.30.16 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.20 // indirect
-	github.com/aws/smithy-go v1.25.1 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.14 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.31 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.31 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.31 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.32 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.13 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.24 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.12.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.31 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.32 // indirect
+	github.com/aws/aws-sdk-go-v2/service/signin v1.5.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.33.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.38.0 // indirect
+	github.com/aws/smithy-go v1.27.3 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -67,7 +67,7 @@ require (
 	github.com/hashicorp/go-getter/v2 v2.2.3 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
-	github.com/hashicorp/go-version v1.7.0 // indirect
+	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.22.0 // indirect
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a // indirect
 	github.com/klauspost/compress v1.18.5 // indirect
@@ -89,7 +89,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.3 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.5 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
