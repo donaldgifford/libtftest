@@ -47,7 +47,7 @@ body — `_preamble.md` itself is not auto-loaded.
   for Plan.
 - LocalStack ships a single image now (no `-pro` variant), and it requires
   `LOCALSTACK_AUTH_TOKEN` even for free-tier use. libtftest's default is
-  token-aware: with a token → `localstack/localstack:2026.06.1` (unlocks Pro);
+  token-aware: with a token → `localstack/localstack:2026.07.0` (unlocks Pro);
   without → the token-free community tag `localstack/localstack:4.14`. Never
   pin `:latest`/`stable` (they also require a token).
 - `t.Setenv` conflicts with `t.Parallel()` — pick one.
