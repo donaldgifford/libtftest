@@ -6,7 +6,7 @@
 //
 //   - The default image depends on authentication. LocalStack's
 //     unified single image (calendar-versioned YYYY.MM.patch, e.g.
-//     localstack/localstack:2026.06.1) requires an auth token even
+//     localstack/localstack:2026.07.0) requires an auth token even
 //     for free-tier use, so with LOCALSTACK_AUTH_TOKEN set the
 //     package uses it — Pro features unlock at runtime via the same
 //     token, and there is no separate localstack-pro image. Without

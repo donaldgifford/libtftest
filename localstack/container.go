@@ -25,7 +25,7 @@ const (
 	// image (YYYY.MM.patch); Pro features unlock at runtime via the token,
 	// not a separate localstack-pro image. Renovate keeps this pin current
 	// (see the customManager in renovate.json5).
-	defaultImage   = "localstack/localstack:2026.06.1"
+	defaultImage   = "localstack/localstack:2026.07.0"
 	edgePort       = "4566/tcp"
 	imageEnv       = "LIBTFTEST_LOCALSTACK_IMAGE"
 	startupTimeout = 90 * time.Second

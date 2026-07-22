@@ -103,7 +103,7 @@ For each change, walk these rules. Skip rules that don't apply.
 
 ### LocalStack version pinning
 
-- The default image is **token-aware**: `localstack/localstack:2026.06.1`
+- The default image is **token-aware**: `localstack/localstack:2026.07.0`
   (calendar-versioned single image) when `LOCALSTACK_AUTH_TOKEN` is set, else
   the token-free community tag `localstack/localstack:4.14`. The single image
   won't boot without a token, so flag any change that makes a community/no-token

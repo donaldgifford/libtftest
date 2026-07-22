@@ -93,7 +93,7 @@ RFE candidates land (or sooner, with local helpers).
 | Component | Version / Value |
 |-----------|-----------------|
 | LocalStack Pro/Ultimate (local) | `localstack/localstack-pro:2026.5.0.dev121` (latest dev CalVer tag) |
-| LocalStack OSS (CI default) | `localstack/localstack:2026.04.0` (CalVer applies to both Pro and OSS — earlier 4.x SemVer is retired) |
+| LocalStack OSS (CI default) | `localstack/localstack:2026.07.0` (CalVer applies to both Pro and OSS — earlier 4.x SemVer is retired) |
 | k3d image tag | `EKS_K3S_IMAGE_TAG=v1.32.13-k3s1` (pin to the module's target K8s version) |
 | Docker socket mount | required — LocalStack spawns k3d containers from inside its own container |
 | `LOCALSTACK_AUTH_TOKEN` | required (EKS is not in Community) — libtftest's `RequirePro(t)` gate already handles auto-skip |
