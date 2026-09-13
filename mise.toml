@@ -2,7 +2,7 @@
 
 # Go
 # renovate: datasource=github-tags depName=golang/go
-go = "1.26.4"
+go = "1.27.1"
 # renovate: datasource=github-releases depName=segmentio/golines
 golines = "latest"
 # renovate: datasource=go depName=golang.org/x/tools
@@ -31,7 +31,7 @@ actionlint = "latest"
 # renovate: datasource=github-releases depName=casey/just
 just = "latest"
 # renovate: datasource=github-releases depName=localstack/lstk
-"github:localstack/lstk" = "0.14.1"
+"github:localstack/lstk" = "1.0.1"
 
 # tools
 # renovate: datasource=github-releases depName=mikefarah/yq
@@ -39,12 +39,12 @@ yq = "4.48.1"
 # renovate: datasource=github-releases depName=jqlang/jq
 jq = "latest"
 # renovate: datasource=github-releases depName=donaldgifford/docz
-"github:donaldgifford/docz" = "latest"
+"github:donaldgifford/docz" = "1.2.2"
 
 
 # Release tools
 # renovate: datasource=github-releases depName=golangci/golangci-lint
-golangci-lint = "2.11.4"
+golangci-lint = "2.13.2"
 
 # Security
 # renovate: datasource=github-releases depName=anchore/syft
