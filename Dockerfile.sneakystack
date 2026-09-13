@@ -1,13 +1,33 @@
 # syntax=docker/dockerfile:1
+# Multi-stage build for sneakystack, the LocalStack gap-filling proxy.
+# Produces a static binary on a distroless base. Built via docker-bake.hcl
+# (`just docker-build` locally, docker/bake-action in CI).
 
 FROM golang:1.27-alpine AS builder
 
 WORKDIR /src
+
+# Module download is its own layer and uses a persistent BuildKit cache
+# mount, so a source-only change doesn't redownload dependencies.
 COPY go.mod go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+
 COPY . .
 
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /sneakystack ./cmd/sneakystack
+# Build metadata. docker-bake.hcl forwards these from its VERSION/COMMIT/DATE
+# variables (CI sets VERSION to the release tag and COMMIT to the SHA); a
+# bare `docker build` keeps the defaults. They land in the package-level
+# vars in cmd/sneakystack/main.go, same as goreleaser's ldflags.
+ARG VERSION=dev
+ARG COMMIT=none
+ARG DATE=unknown
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build \
+      -trimpath \
+      -ldflags="-s -w -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" \
+      -o /sneakystack ./cmd/sneakystack
 
 FROM gcr.io/distroless/static-debian13:nonroot
 

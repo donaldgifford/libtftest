@@ -1,0 +1,16 @@
+# Keep the build context to what `go build ./cmd/sneakystack` needs.
+.git
+.github
+.claude
+.vscode
+.idea
+docs
+testdata
+dist
+build
+*.md
+*.out
+*.test
+coverage.*
+justfile
+*.just
