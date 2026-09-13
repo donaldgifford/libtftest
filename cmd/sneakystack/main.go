@@ -15,10 +15,26 @@ import (
 	"github.com/donaldgifford/libtftest/sneakystack"
 )
 
+// Build metadata. Injected at build time via
+// -ldflags "-X main.version=... -X main.commit=... -X main.date=..." by
+// goreleaser (.goreleaser.yml) and the container build (Dockerfile.sneakystack
+// via docker-bake.hcl args). A plain `go build` / `go run` keeps the defaults.
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	downstream := flag.String("downstream", "http://localhost:4566", "LocalStack downstream URL")
 	port := flag.Int("port", 4567, "Port to listen on")
+	showVersion := flag.Bool("version", false, "Print version information and exit")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("sneakystack %s (commit %s, built %s)\n", version, commit, date)
+		return
+	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -59,7 +75,12 @@ func main() {
 		}
 	}()
 
-	logger.Info("sneakystack starting", "addr", addr, "downstream", *downstream)
+	logger.Info("sneakystack starting",
+		"addr", addr,
+		"downstream", *downstream,
+		"version", version,
+		"commit", commit,
+	)
 
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Error("listen", "error", err)

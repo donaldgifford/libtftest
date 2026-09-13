@@ -6,6 +6,11 @@ on:
   push:
     branches:
       - main
+    # The changelog-sync job below pushes a CHANGELOG.md-only commit after
+    # each release. Without this filter that push re-triggers this workflow
+    # (and pr-semver-bump would run against a commit with no PR).
+    paths-ignore:
+      - CHANGELOG.md
 
 permissions:
   contents: write
@@ -55,6 +60,11 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Install syft (SBOM generation for goreleaser)
+        # .goreleaser.yml's `sboms:` block shells out to syft, which is not
+        # preinstalled on ubuntu-latest.
+        uses: anchore/sbom-action/download-syft@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v7
@@ -83,7 +93,7 @@ jobs:
       contents: write
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -174,6 +184,8 @@ jobs:
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
             *.output=type=registry
+            *.args.VERSION=${{ needs.bump-version.outputs.tag }}
+            *.args.COMMIT=${{ github.sha }}
 
       - name: Sign image with cosign (keyless)
         env:
