@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://www.schemastore.org/yamllint.json
 # yamllint configuration for project
 
 extends: default
@@ -49,3 +50,4 @@ ignore: |-
   node_modules/
   vendor/
   .git/
+  .github/
