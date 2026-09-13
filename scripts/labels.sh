@@ -6,7 +6,7 @@
 # if they don't already exist.
 #
 # Usage:
-#   ./tools/labels.sh [--dry-run] [--force]
+#   ./scripts/labels.sh [--dry-run] [--force]
 #
 # Options:
 #   --dry-run    Show what would be created without making changes
@@ -63,13 +63,13 @@ declare -A LABEL_COLORS=(
 
 declare -A LABEL_DESCRIPTIONS=(
   # From labeler.yml
-  ["go"]="Changes to Go code (cmd/, internal/, pkg/)"
-  ["dependencies"]="Dependency updates (go.mod, go.sum, mise.toml)"
-  ["documentation"]="Documentation changes (docs/, README.md)"
-  ["ci"]="CI/CD pipeline changes (.github/)"
-  ["ai"]="AI-related changes (docs/ai/, CLAUDE.md)"
-  ["repo"]="Repository configuration (linters, codecov, etc.)"
-  ["docker"]="Docker-related changes (Dockerfile)"
+  ["go"]="Changes to Go code (any *.go file)"
+  ["dependencies"]="Dependency updates (go.mod, go.sum, mise.toml, renovate.json5)"
+  ["documentation"]="Documentation changes (docs/, README.md, CHANGELOG.md)"
+  ["ci"]="CI/CD and task-runner changes (.github/, justfile, *.just)"
+  ["ai"]="Claude Code skills, agents, settings (.claude/, CLAUDE.md)"
+  ["repo"]="Repository configuration (linters, codecov, goreleaser, scripts/)"
+  ["docker"]="Container build changes (Dockerfile*, docker-bake.hcl, docker.just)"
   # used in git-workflow claude skill
   ["feature"]="New feature or enhancement"
   ["fix"]="Small fix not a bug or feature"

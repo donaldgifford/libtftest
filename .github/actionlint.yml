@@ -3,10 +3,16 @@
 # actionlint configuration
 # Reference: https://github.com/rhysd/actionlint/blob/main/docs/config.md
 #
-# actionlint runs in CI (and locally via `actionlint .github/workflows/*.yml`)
-# and validates workflow syntax, expression types, runner labels, shellcheck
-# in `run:` blocks, and step input/output schemas. This file dials in the
-# parts that aren't autodetected.
+# actionlint runs in CI (the `lint-actions` job in ci.yml) and locally via
+# `just lint-actions` (plain `actionlint` with no arguments finds every file
+# under .github/workflows/). It validates workflow syntax, expression types,
+# runner labels, shellcheck in `run:` blocks, and step input/output schemas.
+# This file dials in the parts that aren't autodetected.
+#
+# Known blind spot: a malformed `uses:` ref such as `owner/repo@name@sha`
+# (doubled `@`) passes actionlint but makes GitHub reject the whole workflow
+# file at parse time (runs show zero jobs). release.yml had exactly that from
+# 2026-07-03 to 2026-09-13; eyeball `uses:` lines when reviewing.
 
 # Self-hosted runners are not used in this repo — keep the labels list empty
 # so any accidental introduction shows up as an "unknown label" error.

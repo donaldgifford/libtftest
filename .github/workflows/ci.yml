@@ -5,22 +5,36 @@ name: CI
 on:
   push:
     branches: [main]
+    # release.yml's changelog-sync job pushes a CHANGELOG.md-only commit to
+    # main after every release. Nothing in it needs testing, so skip the
+    # whole matrix for pushes that touch only that file. pull_request is
+    # deliberately unfiltered: branch protection would otherwise wait
+    # forever on required checks that never start.
+    paths-ignore:
+      - CHANGELOG.md
   pull_request:
     branches: [main]
 
 permissions:
   contents: read
 
+# One run per PR: a new push cancels the previous run's slow LocalStack
+# integration jobs. Pushes to main are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   labeler:
+    name: Label PR
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
-    runs-on: ubuntu-latest
-    name: Label PR
     steps:
-      - name: Checkout code
+      - name: Apply path and branch labels
         uses: actions/labeler@v6
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -35,11 +49,28 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.11.4
+          # Keep in sync with the golangci-lint pin in mise.toml so local
+          # `just lint` and CI agree on the rule set.
+          version: v2.13.2
+
+  lint-actions:
+    name: Lint Workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up mise (actionlint only)
+        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        with:
+          install_args: actionlint
+
+      - name: Run actionlint
+        run: actionlint
 
   test-go:
     name: Test Go
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -48,8 +79,13 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Set up mise (just only)
+        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        with:
+          install_args: just
+
       - name: Run unit tests
-        run: make test-coverage
+        run: just test-coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
@@ -62,6 +98,7 @@ jobs:
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -76,15 +113,21 @@ jobs:
           terraform_version: "1.9"
           terraform_wrapper: false
 
+      - name: Set up mise (just only)
+        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        with:
+          install_args: just
+
       - name: Run integration tests
-        run: go test -tags=integration -v -race ./...
+        run: just test-integration
 
       - name: Run docs/examples integration tests
-        run: go test -tags=integration_examples -v -race ./docs/examples/...
+        run: just test-examples
 
   test-integration-pro:
     name: Integration Tests (Pro)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -100,8 +143,13 @@ jobs:
           terraform_version: "1.9"
           terraform_wrapper: false
 
+      - name: Set up mise (just only)
+        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        with:
+          install_args: just
+
       - name: Run Pro integration tests
-        run: go test -tags='integration localstack_pro' -v -race ./...
+        run: just test-integration-pro
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
 
@@ -137,23 +185,58 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Needed to upload the SBOM vulnerability scan as SARIF.
+      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # goreleaser derives the snapshot version from the nearest tag.
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
-      - name: Verify builds for all platforms
+      - name: Install syft (SBOM generation for goreleaser)
+        uses: anchore/sbom-action/download-syft@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+
+      - name: Build snapshot release (all platforms, archives, SBOMs)
         uses: goreleaser/goreleaser-action@v7
         with:
           version: "~> v2"
-          args: build --snapshot --clean
+          # `release --snapshot` exercises the whole .goreleaser.yml
+          # (archives, checksums, sboms) rather than just the builds, so
+          # config breakage surfaces here instead of on the next tag.
+          # Publishing and GPG signing are skipped: no tag or key on a PR.
+          args: release --snapshot --skip=publish --skip=sign --clean
+
+      - name: Scan archive SBOM for known vulnerabilities
+        id: scan-sbom
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          # One platform is enough: the Go module graph is identical across
+          # targets. Name follows archives.name_template in .goreleaser.yml.
+          sbom: dist/sneakystack_linux_amd64.tar.gz.spdx.json
+          severity-cutoff: high
+          # Advisory only. govulncheck + Trivy in the security job are the
+          # blocking scanners; this surfaces results in the Security tab.
+          fail-build: false
+          output-format: sarif
+
+      - name: Upload SBOM scan SARIF
+        if: ${{ !cancelled() && steps.scan-sbom.outputs.sarif != '' }}
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          sarif_file: ${{ steps.scan-sbom.outputs.sarif }}
+          category: anchore-archive-sbom
 
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -185,6 +268,7 @@ jobs:
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
             *.output=type=registry
+            *.args.COMMIT=${{ github.sha }}
 
       - name: Build multi-arch images (post-merge validation)
         if: github.event_name == 'push'
@@ -196,3 +280,4 @@ jobs:
           set: |-
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+            *.args.COMMIT=${{ github.sha }}
