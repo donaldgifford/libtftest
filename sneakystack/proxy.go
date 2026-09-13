@@ -39,10 +39,15 @@ func NewProxy(store Store, downstreamURL string) (*Proxy, error) {
 		downstream: downstream,
 		handlers:   make(map[string]ServiceHandler),
 		reverseProxy: &httputil.ReverseProxy{
-			Director: func(req *http.Request) {
-				req.URL.Scheme = downstream.Scheme
-				req.URL.Host = downstream.Host
-				req.Host = downstream.Host
+			// Rewrite replaces the Director hook (deprecated in Go 1.26).
+			// SetURL routes to the downstream scheme/host and, like the old
+			// hook, presents the downstream host in the outbound Host
+			// header; the inbound path and query are preserved because the
+			// downstream URL carries no path. SetXForwarded keeps the
+			// X-Forwarded-For the Director-based proxy added implicitly.
+			Rewrite: func(pr *httputil.ProxyRequest) {
+				pr.SetURL(downstream)
+				pr.SetXForwarded()
 			},
 		},
 	}

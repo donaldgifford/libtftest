@@ -37,3 +37,6 @@ build/
 # Claude Code session-local state (skills/agents themselves are committed)
 .claude/donald-loop.local.md
 .claude/*.local.md
+
+# goreleaser output (just release-local / CI snapshot)
+dist/

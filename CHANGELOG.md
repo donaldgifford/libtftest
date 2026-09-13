@@ -17,9 +17,34 @@ via conventional commit subjects and bodies instead.
 
 - *(localstack)* Token-aware single-image CalVer, x/crypto CVE fix, Renovate onboarding ([#20](https://github.com/donaldgifford/libtftest/issues/20))
 
+### Tooling
+
+- *(tools)* Finish Makefile to just migration
+
+### Bug Fixes
+
+- *(release)* Repair unparsable release workflow, install syft, name archives sneakystack
+- *(lint)* Restore golangci overrides, hoist repeated strings, migrate proxy to Rewrite
+
+### Documentation
+
+- *(impl)* Add IMPL-0005 CI hardening, release repair and just migration
+
 ### Miscellaneous Tasks
 
 - *(impl-0004)* Check off Phase 9 post-merge tasks ([#13](https://github.com/donaldgifford/libtftest/issues/13))
+- Bump go to 1.27.1
+- Rm plan types
+- Bump go and debian versions
+- Update docz config
+- Update actions/checkout to @v7
+- Claude fixes
+- Claude.md
+- Image and version bumps
+- Ci, configs, justfile
+- Security labels
+- Harden workflows (labeler, concurrency, actionlint, sbom scan, loop guard)
+- *(docker)* Fix local bake platform, correct metadata, add cache mounts and version args
 
 ## [0.2.0] - 2026-05-14
 

@@ -9,6 +9,22 @@ index:
   auto_update: true  # update README after docz create
   preserve_header: true
 
+changelog:
+  enabled: true  # enable changelog mapping of docz files.
+  file: CHANGELOG.md  # name of the changelog file. Defaults to CHANGELOG.md
+
+toc:
+  enabled: true  # generate ToC during docz update
+  min_headings: 3  # minimum headings to generate a ToC
+
+api:
+  enabled: true
+  landing_page: "docs/index.md"
+  exclude: []
+  # additional_docs:
+  #   - "CONTRIBUTING.md"
+  #   - "DEVELOPMENT.md"
+
 types:
   rfc:
     enabled: true
@@ -54,7 +70,7 @@ types:
       - Paused
       - Cancelled
   plan:
-    enabled: true
+    enabled: false
     dir: plan
     id_prefix: PLAN
     id_width: 4
@@ -91,13 +107,8 @@ wiki:
     adr: "ADRs"
     design: "Design"
     impl: "Implementation Plans"
-    plan: "Plans"
     investigation: "Investigations"
     # docs_dir: docs           # override MkDocs docs_dir
     # repo_url: https://github.com/org/repo
     # site_url: https://example.com/docs
     # theme: readthedocs
-
-toc:
-  enabled: true  # generate ToC during docz update
-  min_headings: 3  # minimum headings to generate a ToC

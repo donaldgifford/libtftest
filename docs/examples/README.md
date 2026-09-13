@@ -50,7 +50,7 @@ LocalStack.
 
 ```bash
 # From the libtftest repo root:
-make test-examples
+just test-examples
 # Or directly:
 go test -tags=integration_examples -v ./docs/examples/...
 ```

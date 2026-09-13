@@ -54,7 +54,7 @@ When invoked, do the following in order:
 5. **Run `go build ./awsx/`** to confirm it compiles. If the SDK module isn't
    downloaded yet, run `go mod tidy`.
 
-6. **Run `make lint`** and fix any issues. Common issues:
+6. **Run `just lint`** and fix any issues. Common issues:
    - Missing period at end of doc comment (`godot`)
    - Wrong import order (`gci`)
 
@@ -63,7 +63,7 @@ When invoked, do the following in order:
    `aws.Config{}` and asserts the returned pointer is non-nil. Real
    integration is exercised by per-service tests, not here.
 
-8. **Run `make test-pkg PKG=./awsx`** to confirm the smoke test passes.
+8. **Run `just test-pkg ./awsx`** to confirm the smoke test passes.
 
 ## Edge cases
 

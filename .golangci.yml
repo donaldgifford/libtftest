@@ -1,6 +1,19 @@
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/golangci-lint.json
 # golangci-lint configuration based on Uber's Go Style Guide
 # https://github.com/uber-go/guide/blob/master/style.md
+#
+# Uber emphasizes:
+# 1. Always check errors
+# 2. Use context properly
+# 3. Close resources (defer close)
+# 4. Keep functions small and simple
+# 5. Avoid global mutable state
+# 6. Use table-driven tests
+# 7. Handle errors explicitly, wrap with %w
+# 8. Prefer composition over inheritance
+# 9. Use functional options for configs
+# 10. Document exported functions and types
 
 version: "2"
 
@@ -128,7 +141,11 @@ linters:
         - unnamedResult  # Sometimes okay for simple functions
       settings:
         hugeParam:
-          sizeThreshold: 800  # Raised from 80 to accommodate aws.Config (696 bytes) which AWS SDK passes by value.
+          # Uber's default is 80. Raised to 800 to accommodate aws.Config (720
+          # bytes as of aws-sdk-go-v2 in go.mod), which the AWS SDK passes by
+          # value everywhere and which every awsx/assert/fixtures function
+          # takes. Do not reset to 80 when refreshing this file from a template.
+          sizeThreshold: 800
         rangeValCopy:
           sizeThreshold: 128
 
@@ -163,6 +180,10 @@ linters:
         - name: blank-imports
         - name: context-as-argument  # Uber: Context as first param
           arguments:
+            # Repo convention (IMPL-0003): every *Context helper takes
+            # `tb testing.TB` first and `ctx context.Context` second, so the
+            # testing types are allowed ahead of ctx. Do not drop this when
+            # refreshing the file from a template.
             - allowTypesBefore: "*testing.T,*testing.B,*testing.F,testing.TB"
         - name: context-keys-type  # Uber: Typed context keys
         - name: dot-imports  # Uber: Avoid dot imports
@@ -288,14 +309,3 @@ formatters:
       - third_party$
       - builtin$
       - examples$
-    # Uber emphasizes:
-    # 1. Always check errors
-    # 2. Use context properly
-    # 3. Close resources (defer close)
-    # 4. Keep functions small and simple
-    # 5. Avoid global mutable state
-    # 6. Use table-driven tests
-    # 7. Handle errors explicitly, wrap with %w
-    # 8. Prefer composition over inheritance
-    # 9. Use functional options for configs
-    # 10. Document exported functions and types

@@ -1,5 +1,13 @@
 ---
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 version: 2
+
+# The only shipped binary is sneakystack, so name the archives after it and
+# keep them in step with the install snippet in `release.header` below.
+# Without this goreleaser defaults to the repo name and produced
+# `libtftest_<os>_<arch>.tar.gz` (see v0.2.0). The GitHub release itself
+# still lands on donaldgifford/libtftest via `release.github`.
+project_name: sneakystack
 
 builds:
   - id: sneakystack
@@ -15,6 +23,10 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w
+      # Build metadata consumed by `sneakystack -version` and the startup log
+      # (package-level vars in cmd/sneakystack/main.go). Dockerfile.sneakystack
+      # injects the same three via build args.
+      - -X main.version={{ .Version }} -X main.commit={{ .ShortCommit }} -X main.date={{ .Date }}
 
 archives:
   - id: default
@@ -24,8 +36,27 @@ archives:
     files:
       - none*
 
+sboms:
+  - id: archives
+    artifacts: archive
+    documents:
+      - "${artifact}.spdx.json"
+    cmd: syft
+    args: ["$artifact", "--output", "spdx-json=$document"]
+
 checksum:
   name_template: 'checksums.txt'
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - '{{ .Env.GPG_FINGERPRINT }}'
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
 
 changelog:
   use: github

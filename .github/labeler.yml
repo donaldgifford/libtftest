@@ -1,50 +1,68 @@
 ---
-# Add 'root' label to any root file changes
-# Quotation marks are required for the leading asterisk
+# yaml-language-server: $schema=https://www.schemastore.org/pull-request-labeler.json
+# Path- and branch-based PR labels, applied by actions/labeler in ci.yml.
+# Every label named here must exist in the repo: scripts/labels.sh creates
+# them from this file plus pr-labels.yml. Quotation marks are required for
+# globs with a leading asterisk.
+
+# Any Go source anywhere in the module (root package, per-service assert/
+# and fixtures/ packages, cmd/, internal/, tools/, ...).
 go:
   - changed-files:
-      - any-glob-to-any-file: "cmd/**.go"
-      - any-glob-to-any-file: "pkg/**.go"
-      - any-glob-to-any-file: "collector/**.go"
-      - any-glob-to-any-file: "config/**.go"
-      - any-glob-to-any-file: "exporter/**.go"
+      - any-glob-to-any-file: "**/*.go"
 
 dependencies:
   - changed-files:
-      - any-glob-to-any-file: "go.mod"
-      - any-glob-to-any-file: "go.sum"
+      - any-glob-to-any-file: go.mod
+      - any-glob-to-any-file: go.sum
       - any-glob-to-any-file: mise.toml
+      - any-glob-to-any-file: renovate.json5
+      - any-glob-to-any-file: .github/dependabot.yml
 
-# Add 'Documentation' label to any changes within 'docs' folder or any subfolders
 documentation:
   - changed-files:
       - any-glob-to-any-file: docs/**
       - any-glob-to-any-file: README.md
+      - any-glob-to-any-file: CHANGELOG.md
+      - any-glob-to-any-file: .docz.yaml
 
+# CI and task-runner plumbing.
 ci:
   - changed-files:
       - any-glob-to-any-file: .github/**
-      - any-glob-to-any-file: Makefile
+      - any-glob-to-any-file: justfile
+      - any-glob-to-any-file: "*.just"
 
+# Repo-level tool configuration.
 repo:
   - changed-files:
       - any-glob-to-any-file: .codecov.yml
-      - any-glob-to-any-file: .chglog.yml
       - any-glob-to-any-file: .golangci.yml
-      - any-glob-to-any-file: .goreleaser.yaml
+      - any-glob-to-any-file: .goreleaser.yml
       - any-glob-to-any-file: .markdownlint.yaml
       - any-glob-to-any-file: .prettierrc.yaml
       - any-glob-to-any-file: .yamlfmt.yml
       - any-glob-to-any-file: .yamllint.yml
-      - any-glob-to-any-file: changelog.yaml
-      - any-glob-to-any-file: scripts/**.sh
+      - any-glob-to-any-file: cliff.toml
+      - any-glob-to-any-file: catalog-info.yaml
+      - any-glob-to-any-file: .gitignore
+      - any-glob-to-any-file: scripts/**
 
 docker:
   - changed-files:
-      - any-glob-to-any-file: Dockerfile
+      - any-glob-to-any-file: "Dockerfile*"
       - any-glob-to-any-file: docker-bake.hcl
+      - any-glob-to-any-file: .dockerignore
+      - any-glob-to-any-file: docker.just
 
-# Add label to any PR where the head branch name starts with label name or has a label name in the section in the name
+# Claude Code skills, agents, settings, and the project instructions file.
+ai:
+  - changed-files:
+      - any-glob-to-any-file: .claude/**
+      - any-glob-to-any-file: CLAUDE.md
+
+# Branch-name labels: applied when the head branch starts with, or contains
+# a segment equal to, the label name (git-workflow:branch convention).
 feature:
   - head-branch: ["^feature", "feature"]
 fix:

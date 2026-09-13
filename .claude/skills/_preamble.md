@@ -47,7 +47,7 @@ body — `_preamble.md` itself is not auto-loaded.
   for Plan.
 - LocalStack ships a single image now (no `-pro` variant), and it requires
   `LOCALSTACK_AUTH_TOKEN` even for free-tier use. libtftest's default is
-  token-aware: with a token → `localstack/localstack:2026.06.1` (unlocks Pro);
+  token-aware: with a token → `localstack/localstack:2026.07.4` (unlocks Pro);
   without → the token-free community tag `localstack/localstack:4.14`. Never
   pin `:latest`/`stable` (they also require a token).
 - `t.Setenv` conflicts with `t.Parallel()` — pick one.
@@ -77,6 +77,6 @@ libtftest/
 1. Read the closest existing example in the same package before writing.
 2. Match the existing function-doc style (`// FuncName does X. Y. Z.`).
 3. Add a table-driven test in the matching `_test.go` file.
-4. Run `make lint` and `make test-pkg PKG=./<pkg>` before claiming success.
+4. Run `just lint` and `just test-pkg ./<pkg>` before claiming success.
 5. Don't introduce a new dependency without a clear reason; check `go.mod`
    first.

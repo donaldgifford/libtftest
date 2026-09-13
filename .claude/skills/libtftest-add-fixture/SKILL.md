@@ -109,8 +109,8 @@ parallel tests collide.
 
 6. **Run lint and test.**
    ```bash
-   make lint
-   make test-pkg PKG=./fixtures/<service>
+   just lint
+   just test-pkg ./fixtures/<service>
    ```
    Common issues:
    - `thelper`: parameter named `t` instead of `tb`

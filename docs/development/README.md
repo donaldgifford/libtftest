@@ -11,48 +11,64 @@ Install tool versions via [mise](https://mise.jdx.dev/):
 mise install
 ```
 
-This installs Go, golangci-lint, goimports, and other tools defined in
-`mise.toml`. You also need Docker running for integration tests.
+This installs Go, golangci-lint, goimports, `just`, and other tools defined
+in `mise.toml`. You also need Docker running for integration tests.
+
+All project automation goes through [`just`](https://just.systems): the
+`justfile` (plus `docker.just` for image builds) is the single task runner.
+Run `just` with no arguments to list every recipe.
 
 ## Build and Test
 
 ```bash
 # Build all binaries
-make build
+just build
 
 # Run unit tests (no Docker required)
-make test
+just test
 
 # Run a single package's tests
-make test-pkg PKG=./localstack
+just test-pkg ./localstack
 
 # Run tests with coverage report
-make test-coverage
+just test-coverage
 
 # Run tests with coverage + open HTML report
-make test-report
+just test-report
 
-# Run integration tests (requires Docker)
-go test -tags=integration -v -race ./...
+# Run integration tests (requires Docker + Terraform)
+just test-integration
+
+# Run the docs/examples runnable tests (requires Docker + Terraform)
+just test-examples
 ```
 
 ## Code Quality
 
 ```bash
 # Lint (golangci-lint v2, config in .golangci.yml)
-make lint
+just lint
 
 # Lint with auto-fix
-make lint-fix
+just lint-fix
+
+# Lint GitHub Actions workflows (actionlint)
+just lint-actions
 
 # Format (gofmt + goimports)
-make fmt
+just fmt
 
-# Full CI pipeline: lint + test + build + license-check
-make ci
+# Fail if a RequirePro caller lacks a `libtftest:requires` marker
+just check-markers
+
+# Regenerate docs/feature-matrix.md from the markers
+just docs-matrix
+
+# Full CI pipeline: lint + test + build + license-check + check-markers
+just ci
 
 # Quick pre-commit check: lint + test
-make check
+just check
 ```
 
 ## Project Structure
@@ -87,7 +103,8 @@ libtftest/
 ## Code Conventions
 
 - **Go module path:** `github.com/donaldgifford/libtftest`
-- **Go version:** `go 1.25` in `go.mod` (local dev uses 1.26.x via mise)
+- **Go version:** the `go` directive in `go.mod` is authoritative (1.27.x at
+  the time of writing); mise pins the matching toolchain
 - **Style:** Uber Go Style Guide, enforced by golangci-lint v2
 - **Import ordering:** stdlib, third-party, `github.com/donaldgifford/*`
   (enforced by gci)
@@ -141,7 +158,7 @@ In `fixtures/fixtures.go`, add a `SeedMyResource` function with `t.Cleanup`.
 ### 4. Run lint and tests
 
 ```bash
-make fmt && make lint && make test
+just fmt && just lint && just test
 ```
 
 ## Adding a sneakystack Service Handler
@@ -193,7 +210,10 @@ Integration tests are gated behind build tags:
 
 ```bash
 # Run integration tests locally
-go test -tags=integration -v -race ./...
+just test-integration
+
+# Pro suite (needs LOCALSTACK_AUTH_TOKEN)
+just test-integration-pro
 
 # Run a specific integration test
 go test -tags=integration -v -run TestNew_Plan ./...
@@ -205,21 +225,21 @@ The integration tests manage their own LocalStack container via
 testcontainers-go, so you don't normally start one by hand. For iterative
 local work — or the per-suite mode where a single external container serves
 the whole run — use the [`lstk`](https://github.com/localstack/lstk) CLI
-(pinned in `mise.toml`) through the Makefile:
+(pinned in `mise.toml`) through the justfile:
 
 ```bash
-make localstack-up       # lstk start
+just localstack-up       # lstk start
 export LIBTFTEST_CONTAINER_URL=http://localhost:4566   # reuse it for the suite
-make localstack-status   # lstk status
-make localstack-logs     # lstk logs
-make localstack-down     # lstk stop
+just localstack-status   # lstk status
+just localstack-logs     # lstk logs
+just localstack-down     # lstk stop
 ```
 
 LocalStack now ships a **single image** using calendar versioning
 (`YYYY.MM.patch`, e.g. `2026.06.1`) — there is no separate `-pro` image — but
 it **requires `LOCALSTACK_AUTH_TOKEN` even for free-tier use** (without one the
 container exits with code 55). libtftest's default is therefore token-aware:
-export a token before `make localstack-up` / the tests to get the single image
+export a token before `just localstack-up` / the tests to get the single image
 (`2026.06.1`, which also unlocks Pro), or run token-free against the last
 community image (`localstack/localstack:4.14`) with no account required. Set
 the image explicitly via `LIBTFTEST_LOCALSTACK_IMAGE` to override either way.
@@ -227,22 +247,28 @@ the image explicitly via `LIBTFTEST_LOCALSTACK_IMAGE` to override either way.
 ## Release Process
 
 Releases use a single `v0.x.y` tag that covers both the Go module and
-sneakystack artifacts.
+sneakystack artifacts. The normal path is label-driven: every PR carries
+exactly one of `major` / `minor` / `patch` / `dont-release` (enforced by
+`pr-labels.yml`), and on merge `release.yml` bumps, tags, runs goreleaser,
+regenerates `CHANGELOG.md`, and builds + signs the container image.
 
 ```bash
 # Validate goreleaser config
-make release-check
+just release-check
 
-# Local snapshot (no publish)
-make release-local
+# Local snapshot (no publish, no sign; needs syft for the SBOMs)
+just release-local
 
-# Tag and push a release
-make release TAG=v0.1.0
+# Manual tag + push (escape hatch; release.yml normally tags on merge)
+just release v0.1.0
 ```
 
-- **goreleaser** builds the sneakystack binary (linux/darwin, amd64/arm64)
+- **goreleaser** builds the sneakystack binary (linux/darwin, amd64/arm64),
+  archives it as `sneakystack_<os>_<arch>.tar.gz` with an SPDX SBOM per
+  archive, and GPG-signs the checksums
 - **docker-bake.hcl** builds the sneakystack container image and pushes to
-  `ghcr.io/donaldgifford/sneakystack`
+  `ghcr.io/donaldgifford/sneakystack` (`just docker-build` for a local,
+  non-publishing build; `just docker-print` to validate the bake file)
 
 ## Environment Variables
 
@@ -287,11 +313,10 @@ Inside this repo, ask Claude Code things like:
 - "Add a KMS assertion helper" — `libtftest:add-assertion` (which can
   chain to `libtftest:add-awsx-client` if the AWS client is missing)
 - "Bump LocalStack to 2026.06.1" — `libtftest:bump-localstack` (which runs
-  `make bump-localstack LS_VERSION=2026.06.1`; routine bumps are handled by
-  Renovate)
+  `just bump-localstack 2026.06.1`; routine bumps are handled by Renovate)
 - "Tag a v0.2.0 release" — `libtftest:release`
 
-The skills always run lint (`make lint`) and tests for the affected
+The skills always run lint (`just lint`) and tests for the affected
 package before declaring success.
 
 ### Adding a new local skill

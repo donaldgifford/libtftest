@@ -59,6 +59,10 @@ func Ping(ctx context.Context) error {
 	return nil
 }
 
+// defaultDockerSocket is the conventional Docker Engine socket path; it is
+// the answer on Linux and the last-resort fallback on macOS.
+const defaultDockerSocket = "/var/run/docker.sock"
+
 // dockerSocket returns the Docker socket path, honoring DOCKER_HOST if set.
 func dockerSocket() string {
 	if host := os.Getenv("DOCKER_HOST"); host != "" {
@@ -70,7 +74,7 @@ func dockerSocket() string {
 	}
 
 	if runtime.GOOS == "linux" {
-		return "/var/run/docker.sock"
+		return defaultDockerSocket
 	}
 
 	// macOS: check common socket locations.
@@ -78,7 +82,7 @@ func dockerSocket() string {
 	candidates := []string{
 		filepath.Join(home, ".colima", "default", "docker.sock"),
 		filepath.Join(home, ".rd", "docker.sock"),
-		"/var/run/docker.sock",
+		defaultDockerSocket,
 	}
 	for _, c := range candidates {
 		if _, err := os.Stat(c); err == nil { //nolint:gosec // Docker socket paths are under the user's home by design.
@@ -86,7 +90,7 @@ func dockerSocket() string {
 		}
 	}
 
-	return "/var/run/docker.sock"
+	return defaultDockerSocket
 }
 
 // classifyError wraps a connection error with actionable remediation hints.

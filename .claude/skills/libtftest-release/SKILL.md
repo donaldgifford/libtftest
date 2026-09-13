@@ -2,7 +2,7 @@
 name: libtftest:release
 description: >
   Tag and push a libtftest release. Use when shipping vX.Y.Z: verifies
-  clean main + green CI + unique version, runs make release-check,
+  clean main + green CI + unique version, runs just release-check,
   drafts CHANGELOG, tags and pushes with explicit confirmation. Refuses
   to push to anything other than the resolved upstream remote.
 when_to_use: >
@@ -24,7 +24,10 @@ and refuses to push to anything other than the resolved upstream remote.
 - Versions follow SemVer: `v0.X.Y` for pre-1.0, `vX.Y.Z` for 1.0+
 - Pre-1.0 may include breaking changes between minor versions
 - Releases are tagged on `main` only — never on a feature branch
-- `make release` exists but does only the tag+push; this skill does the
+- The normal path is label-driven: `release.yml` tags on merge to main from
+  the PR's `major`/`minor`/`patch` label. This skill is the manual escape
+  hatch for that path
+- `just release <tag>` exists but does only the tag+push; this skill does the
   full pre-flight + CHANGELOG draft
 
 ## Procedure
@@ -76,7 +79,7 @@ current HEAD SHA. If not, halt:
 ### 4. Run release-check
 
 ```bash
-make release-check
+just release-check
 ```
 
 This validates the goreleaser config. If it fails, surface the error.

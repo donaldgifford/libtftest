@@ -92,8 +92,8 @@ Place the test at `sneakystack/services/<service>_test.go`.
 ### 6. Run lint and test
 
 ```bash
-make lint
-make test-pkg PKG=./sneakystack/...
+just lint
+just test-pkg ./sneakystack/...
 ```
 
 Common issues:
