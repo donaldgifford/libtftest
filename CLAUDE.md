@@ -75,32 +75,50 @@ reuse lives at `internal/testfake.FakeTB` /
 
 ## Build & Development Commands
 
+The task runner is [`just`](https://just.systems) (`justfile` + `docker.just`; the Makefile was removed in IMPL-0005). `just` with no arguments lists every recipe with its group.
+
 ```bash
 # Tool versions managed by mise (see mise.toml)
-mise install              # Install all tool versions
+mise install                    # Install all tool versions (includes just)
 
 # Build
-make build                # Build core binary to build/bin/libtftest
+just build                      # Build core binary to build/bin/libtftest
 
 # Test
-make test                 # Run all tests with race detector
-make test-pkg PKG=./pkg/x # Test a specific package
-make test-coverage        # Tests with coverage report (coverage.out)
-make test-report          # Tests with coverage, opens HTML report
+just test                       # Unit tests with race detector (no Docker)
+just test-pkg ./localstack      # Test a specific package
+just test-coverage              # Unit tests with coverage profile (coverage.out)
+just test-report                # Coverage + open HTML report
+just test-integration           # LocalStack integration suite (Docker + Terraform)
+just test-integration-pro       # Pro suite (also needs LOCALSTACK_AUTH_TOKEN)
+just test-examples              # docs/examples runnable tests
 
 # Lint & Format
-make lint                 # golangci-lint (v2, config in .golangci.yml)
-make lint-fix             # golangci-lint with auto-fix
-make fmt                  # gofmt + goimports (local prefix: github.com/donaldgifford)
+just lint                       # golangci-lint (v2, config in .golangci.yml)
+just lint-fix                   # golangci-lint with auto-fix
+just lint-actions               # actionlint on .github/workflows
+just fmt                        # gofmt + goimports (local prefix: github.com/donaldgifford)
+
+# Markers & generated docs
+just check-markers              # Fail if a RequirePro caller lacks a libtftest:requires marker
+just docs-matrix                # Regenerate docs/feature-matrix.md
 
 # Combined
-make check                # lint + test (pre-commit)
-make ci                   # lint + test + build + license-check
+just check                      # lint + test (pre-commit)
+just ci                         # lint + test + build + license-check + check-markers
+
+# LocalStack (lstk-managed shared container)
+just localstack-up              # also: localstack-down | localstack-status | localstack-logs
+just bump-localstack 2026.08.1  # Manual pin bump (Renovate does routine ones)
 
 # Release
-make release-check        # Validate goreleaser config
-make release-local        # Local goreleaser snapshot (no publish)
-make release TAG=v1.0.0   # Tag and push a release
+just release-check              # Validate goreleaser config
+just release-local              # Local goreleaser snapshot (needs syft; no publish/sign)
+just release v1.0.0             # Tag and push (release.yml normally tags on merge instead)
+
+# Docker (docker.just) -- only these two are side-effect free
+just docker-build               # Native-arch image, loaded locally
+just docker-print               # Validate docker-bake.hcl
 ```
 
 ## Architecture
@@ -146,13 +164,19 @@ Core external dependencies: `terratest`, `testcontainers-go`, `aws-sdk-go-v2`.
 - Comments on exported symbols must end with periods (godot linter)
 - `nolint` directives require both explanation and specific linter name
 - **Every package ships a `doc.go`** — one file per package containing only the `package <name>` declaration and a godoc-compliant multi-paragraph package comment. No imports, types, or constants belong in `doc.go`. See [INV-0003](docs/investigation/0003-package-documentation-convention-and-gomarkdoc-toolchain.md) for the convention and gap analysis vs. the `go-development` plugin. Rendering tooling (`gomarkdoc`) and CI enforcement are deferred follow-ups.
-- **Pro/mockta/external-dependency markers** — when a function calls `libtftest.RequirePro(tb)` (or any future equivalent gate), add a `// libtftest:requires <tag>[,<tag>...] <reason>` line to its doc comment. Tag list is comma-separated, no whitespace inside; reason is free text. Enforced by `make check-markers` (wired into `make ci`); rendered to `docs/feature-matrix.md` by `make docs-matrix`. Tooling lives in `tools/docgen/`; tracked under [INV-0004](docs/investigation/0004-pro-and-oss-feature-matrix-tooling.md).
+- **Pro/mockta/external-dependency markers** — when a function calls `libtftest.RequirePro(tb)` (or any future equivalent gate), add a `// libtftest:requires <tag>[,<tag>...] <reason>` line to its doc comment. Tag list is comma-separated, no whitespace inside; reason is free text. Enforced by `just check-markers` (wired into `just ci`); rendered to `docs/feature-matrix.md` by `just docs-matrix`. Tooling lives in `tools/docgen/`; tracked under [INV-0004](docs/investigation/0004-pro-and-oss-feature-matrix-tooling.md).
 
 ## CI Pipeline
 
-GitHub Actions (`.github/workflows/ci.yml`): lint, test-coverage (with Codecov), security scan (govulncheck + Trivy), build (goreleaser snapshot), Docker build (Bake), integration tests (requires Docker + Terraform).
+GitHub Actions (`.github/workflows/ci.yml`): lint (golangci-lint, version pinned to match `mise.toml`), lint-actions (actionlint), test-go (`just test-coverage` + Codecov), security scan (govulncheck + Trivy), build (`goreleaser release --snapshot` with syft SBOMs, then an advisory grype scan of the SBOM uploaded as SARIF), Docker build (Bake), integration tests (`just test-integration` + `just test-examples`; the Pro suite runs on main only). A newer push cancels a PR's in-flight run (`concurrency`); the LocalStack jobs carry `timeout-minutes`. CI installs `just` with `jdx/mise-action` and `install_args: just`, so it does not pull the whole mise toolchain.
 
-Integration tests require `hashicorp/setup-terraform@v3` in CI -- terratest v0.56.0 defaults to `tofu` if `terraform` is not in PATH.
+Releases (`.github/workflows/release.yml`): merge to main → `pr-semver-bump` reads the PR's `major`/`minor`/`patch`/`dont-release` label and tags → goreleaser (the syft install step is required for `sboms:`) → `changelog-sync` regenerates CHANGELOG.md with git-cliff and pushes `chore(changelog): sync vX` → multi-arch Docker bake + cosign. Both `ci.yml` and `release.yml` set `on.push.paths-ignore: [CHANGELOG.md]` so that sync commit does not start another cycle.
+
+Gotchas:
+
+- Integration tests require `hashicorp/setup-terraform` in CI -- terratest defaults to `tofu` if `terraform` is not in PATH.
+- A malformed `uses:` ref (e.g. a doubled `@`) invalidates the **whole workflow file**. GitHub records a failed run with zero jobs on every push, including non-main branches, and `actionlint` does not catch it. `release.yml` sat in that state from 2026-07-03 to 2026-09-13 with no release shipping. After editing a workflow, check `gh run list --workflow=<file>` for zero-job failures.
+- `goreleaser build --snapshot` does not exercise `archives`, `sboms` or `signs`; CI uses `release --snapshot --skip=publish --skip=sign` so config errors surface before a tag.
 
 ## Lint Gotchas
 
@@ -163,8 +187,8 @@ Integration tests require `hashicorp/setup-terraform@v3` in CI -- terratest v0.5
 
 ## LocalStack Notes
 
-- **Token-aware default image.** LocalStack moved to a single unified image with calendar versioning (`YYYY.MM.patch`, see the [CalVer](https://blog.localstack.cloud/switching-to-calendar-versioning/) and [single-image](https://blog.localstack.cloud/localstack-single-image-next-steps/) posts) that **requires `LOCALSTACK_AUTH_TOKEN` even for free-tier use** (no token → container exits with code 55). So `ResolveImage()` branches on the token, not edition: with a token → `localstack/localstack:2026.07.4` (unified single image, unlocks Pro); without → `localstack/localstack:4.14` (last token-free community tag, `defaultCommunityImage`). There is no separate `localstack/localstack-pro` image anymore. Renovate keeps the **calver** pin current (customManager in `renovate.json5`); the community `4.14` tag is a deliberate manual pin. `make bump-localstack LS_VERSION=<calver>` is the manual escape hatch for the single image.
-- Local dev / shared-container mode uses the `lstk` CLI (in `mise.toml`): `make localstack-up|down|status|logs`. The testcontainers-managed lifecycle in `localstack/container.go` is unchanged.
+- **Token-aware default image.** LocalStack moved to a single unified image with calendar versioning (`YYYY.MM.patch`, see the [CalVer](https://blog.localstack.cloud/switching-to-calendar-versioning/) and [single-image](https://blog.localstack.cloud/localstack-single-image-next-steps/) posts) that **requires `LOCALSTACK_AUTH_TOKEN` even for free-tier use** (no token → container exits with code 55). So `ResolveImage()` branches on the token, not edition: with a token → `localstack/localstack:2026.07.4` (unified single image, unlocks Pro); without → `localstack/localstack:4.14` (last token-free community tag, `defaultCommunityImage`). There is no separate `localstack/localstack-pro` image anymore. Renovate keeps the **calver** pin current (customManager in `renovate.json5`); the community `4.14` tag is a deliberate manual pin. `just bump-localstack <calver>` is the manual escape hatch for the single image.
+- Local dev / shared-container mode uses the `lstk` CLI (in `mise.toml`): `just localstack-up|down|status|logs`. The testcontainers-managed lifecycle in `localstack/container.go` is unchanged.
 - `:latest`/`stable` require a LocalStack auth token — never pin to them; always use an explicit CalVer tag.
 - S3 CreateBucket returned MalformedXML on `4.4` with the then-current AWS provider version (Plan worked, Apply had compat issues) — re-verify against the CalVer image.
 - `AllServicesReady` signature is `func(io.Reader) bool` (not `func(*http.Response) bool`)
@@ -183,7 +207,7 @@ Local skills (`.claude/skills/`):
 - `libtftest:add-assertion` — scaffold a new assertion namespace + methods in `assert/`
 - `libtftest:add-fixture` — scaffold a new `Seed*` fixture function with paired `t.Cleanup`
 - `libtftest:add-sneakystack-service` — scaffold a new gap-service handler in `sneakystack/services/` (JSON-RPC and REST-XML templates)
-- `libtftest:bump-localstack` — wraps `make bump-localstack LS_VERSION=<x>` plus the playbook (release notes, CHANGELOG, integration tests)
+- `libtftest:bump-localstack` — wraps `just bump-localstack <x>` plus the playbook (release notes, CHANGELOG, integration tests)
 - `libtftest:release` — release tag + CHANGELOG drafting workflow with explicit refusal conditions
 
 Local agents (`.claude/agents/`):

@@ -106,8 +106,8 @@ s3assert.BucketExistsContext(t, ctx, tc.AWS(), bucket)
 
 6. **Run lint and test.**
    ```bash
-   make lint
-   make test-pkg PKG=./assert/<service>
+   just lint
+   just test-pkg ./assert/<service>
    ```
    Common issues:
    - `godot`: missing period at end of doc comment

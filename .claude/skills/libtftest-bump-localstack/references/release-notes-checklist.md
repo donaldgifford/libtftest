@@ -62,14 +62,15 @@ release notes and check whether anything changed.
 
 ## Smoke-test recipe
 
-After running `make bump-localstack LS_VERSION=<x>`:
+After running `just bump-localstack <x>`:
 
-1. `make lint` — catches any string-literal regressions
-2. `make test` — unit tests
-3. `make test PKG=./localstack/...` — container lifecycle integration
-4. `make test PKG=./libtftest_integration_test.go` — full TestCase
-   end-to-end (S3 module apply + assert)
-5. If sneakystack changed: `make test PKG=./sneakystack/...`
+1. `just lint` — catches any string-literal regressions
+2. `just test` — unit tests
+3. `go test -tags=integration -v -race ./localstack/...` — container
+   lifecycle integration
+4. `just test-integration` — full TestCase end-to-end (S3 module apply +
+   assert) plus everything else behind the `integration` tag
+5. If sneakystack changed: `just test-pkg ./sneakystack/...`
 
 ## When to roll back
 
