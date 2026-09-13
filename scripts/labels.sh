@@ -51,6 +51,14 @@ declare -A LABEL_COLORS=(
   ["minor"]="0E8A16"        # Green - feature
   ["patch"]="FEF2C0"        # Yellow - fix
   ["dont-release"]="D4C5F9" # Lavender - skip
+
+  # From dependabot-severity-label.yml — applied dynamically by that
+  # workflow via `gh pr edit --add-label severity:$LEVEL`. Not declared
+  # in labeler.yml, so we hardcode them here.
+  ["severity:critical"]="B60205" # Dark red - critical CVE
+  ["severity:high"]="D93F0B"     # Red-orange - high CVE
+  ["severity:medium"]="FBCA04"   # Yellow - medium CVE
+  ["severity:low"]="0E8A16"      # Green - low CVE
 )
 
 declare -A LABEL_DESCRIPTIONS=(
@@ -74,6 +82,24 @@ declare -A LABEL_DESCRIPTIONS=(
   ["minor"]="New features - increment minor version (0.x.0)"
   ["patch"]="Bug fixes - increment patch version (0.0.x)"
   ["dont-release"]="No release needed for this PR"
+
+  # From dependabot-severity-label.yml
+  ["severity:critical"]="Critical-severity CVE (applied to Dependabot PRs)"
+  ["severity:high"]="High-severity CVE (applied to Dependabot PRs)"
+  ["severity:medium"]="Medium-severity CVE (applied to Dependabot PRs)"
+  ["severity:low"]="Low-severity CVE (applied to Dependabot PRs)"
+)
+
+# Labels referenced by workflows but not by any labeler config file.
+# These are applied dynamically (e.g. dependabot-severity-label.yml uses
+# `gh pr edit --add-label`), which fails if the label doesn't exist —
+# so this script must create them even though the extraction functions
+# won't find them.
+WORKFLOW_LABELS=(
+  "severity:critical"
+  "severity:high"
+  "severity:medium"
+  "severity:low"
 )
 
 # Script directory and repo root
@@ -267,9 +293,11 @@ main() {
   pr_labels=$(extract_labels_from_pr_workflow "$PR_LABELS_FILE")
   log_info "Found $(echo "$pr_labels" | wc -l | tr -d ' ') labels in pr-labels.yml"
 
-  # Combine and deduplicate
+  # Combine and deduplicate (labeler.yml + pr-labels.yml + workflow-only labels)
+  local workflow_labels
+  workflow_labels=$(printf '%s\n' "${WORKFLOW_LABELS[@]}")
   local all_labels
-  all_labels=$(echo -e "${labeler_labels}\n${pr_labels}" | sort -u)
+  all_labels=$(echo -e "${labeler_labels}\n${pr_labels}\n${workflow_labels}" | sort -u)
   local total_labels
   total_labels=$(echo "$all_labels" | wc -l | tr -d ' ')
 
