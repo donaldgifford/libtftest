@@ -141,7 +141,11 @@ linters:
         - unnamedResult  # Sometimes okay for simple functions
       settings:
         hugeParam:
-          sizeThreshold: 80  # Uber: Pass large structs by pointer
+          # Uber's default is 80. Raised to 800 to accommodate aws.Config (720
+          # bytes as of aws-sdk-go-v2 in go.mod), which the AWS SDK passes by
+          # value everywhere and which every awsx/assert/fixtures function
+          # takes. Do not reset to 80 when refreshing this file from a template.
+          sizeThreshold: 800
         rangeValCopy:
           sizeThreshold: 128
 
@@ -175,6 +179,12 @@ linters:
         - name: early-return  # Uber: Early returns preferred
         - name: blank-imports
         - name: context-as-argument  # Uber: Context as first param
+          arguments:
+            # Repo convention (IMPL-0003): every *Context helper takes
+            # `tb testing.TB` first and `ctx context.Context` second, so the
+            # testing types are allowed ahead of ctx. Do not drop this when
+            # refreshing the file from a template.
+            - allowTypesBefore: "*testing.T,*testing.B,*testing.F,testing.TB"
         - name: context-keys-type  # Uber: Typed context keys
         - name: dot-imports  # Uber: Avoid dot imports
 

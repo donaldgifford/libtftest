@@ -49,10 +49,14 @@ func BuildPlanOptions(tb testing.TB, workDir string, vars map[string]any) *terra
 	})
 }
 
+// dummyCredential is the placeholder access/secret key LocalStack accepts.
+// Used for both the provider override (override.go) and the CLI env vars.
+const dummyCredential = "test"
+
 func defaultEnvVars() map[string]string {
 	return map[string]string{
-		"AWS_ACCESS_KEY_ID":     "test",
-		"AWS_SECRET_ACCESS_KEY": "test",
+		"AWS_ACCESS_KEY_ID":     dummyCredential,
+		"AWS_SECRET_ACCESS_KEY": dummyCredential,
 		"AWS_DEFAULT_REGION":    "us-east-1",
 		"TF_PLUGIN_CACHE_DIR":   PluginCacheDir(),
 		"TF_IN_AUTOMATION":      "1",
