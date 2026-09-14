@@ -11,6 +11,12 @@ Manual edits will be overwritten by the `Changelog Sync` job in the
 `Release` workflow after each tagged release — author release notes
 via conventional commit subjects and bodies instead.
 
+## [unreleased]
+
+### Documentation
+
+- *(impl)* Close out IMPL-0005 after v0.2.1 shipped
+
 ## [0.2.1] - 2026-09-13
 
 ### Features

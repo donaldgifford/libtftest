@@ -1,7 +1,7 @@
 ---
 id: IMPL-0005
 title: "CI hardening, release pipeline repair, and Makefile-to-just migration"
-status: In Progress
+status: Completed
 author: Donald Gifford
 created: 2026-09-13
 ---
@@ -10,7 +10,7 @@ created: 2026-09-13
 
 # IMPL-0005: CI hardening, release pipeline repair, and Makefile-to-just migration
 
-**Status:** In Progress **Author:** Donald Gifford **Date:** 2026-09-13
+**Status:** Completed **Author:** Donald Gifford **Date:** 2026-09-13
 
 <!--toc:start-->
 - [Objective](#objective)
@@ -35,6 +35,7 @@ created: 2026-09-13
     - [Tasks](#tasks-4)
     - [Success Criteria](#success-criteria-4)
 - [Verification log (2026-09-13, local)](#verification-log-2026-09-13-local)
+- [Post-merge verification log (2026-09-13)](#post-merge-verification-log-2026-09-13)
 - [File Changes](#file-changes)
 - [Decisions](#decisions)
 - [Dependencies](#dependencies)
@@ -58,9 +59,16 @@ unit:
 `example-github/` vs `.github/` on 2026-09-13; the findings below are the
 spec.
 
+**Outcome:** shipped as [PR #30](https://github.com/donaldgifford/libtftest/pull/30)
+(squash commit `17cbb15`, merged 2026-09-13) and released as
+[v0.2.1](https://github.com/donaldgifford/libtftest/releases/tag/v0.2.1) —
+the first release since v0.2.0 (2026-05-13). See the
+[post-merge verification log](#post-merge-verification-log-2026-09-13).
+
 ## Findings that motivated this work
 
-F1–F8 came from the review; F9–F11 surfaced while verifying the fixes.
+F1–F8 came from the review; F9–F11 surfaced while verifying the fixes;
+F12 surfaced on the first Release run after merge.
 
 | # | Finding | How it was confirmed |
 | - | ------- | -------------------- |
@@ -75,6 +83,7 @@ F1–F8 came from the review; F9–F11 surfaced while verifying the fixes.
 | F9 | Commit f70aa8f also replaced `.golangci.yml` with a template copy, resetting `gocritic.hugeParam.sizeThreshold` from 800 to 80 and dropping revive `context-as-argument` `allowTypesBefore`. Result: 45 findings across awsx/assert/fixtures that CI would have failed on. Separately, Go 1.27 flags `httputil.ReverseProxy.Director` as deprecated (SA1019) and goconst 2.13 flags three repeated strings. | `just lint` → 49 issues; `git diff bd15ee6 -- .golangci.yml`. |
 | F10 | `docker-bake.hcl` local target used `platforms = ["linux/${BAKE_LOCAL_PLATFORM}"]`; that variable already contains the OS, so on macOS it expands to `linux/darwin/arm64/v8` and `docker buildx bake` fails. Local bake never worked on this machine. | `docker buildx bake --print` → "cannot parse platform specifier". |
 | F11 | `docker.just` redeclared `set shell`; `just` rejects a setting redefined by an imported module, so **every** `just` recipe failed to parse. | `just --list` → "setting `shell` first set on line 8 is redefined on line 13". |
+| F12 | The `GPG_PRIVATE_KEY` repository secret held the **public** key, so goreleaser's `signs:` step failed with `gpg: signing failed: No secret key` on the first Release run after merge. Not a code defect — the workflow, goreleaser config and key ID (`2E2CEA0BC2BD8D59`) were all correct. | Release job log for run 34775258159, attempt 1: `ghaction-import-gpg` printed `public key … imported` with no `secret key` line. Fixed by re-exporting with `gpg --armor --export-secret-keys` into the secret and `gh run rerun 34775258159 --failed`, which keeps the tag and `needs.bump-version.outputs.tag` and re-runs the skipped dependents. |
 
 ## Scope
 
@@ -142,8 +151,9 @@ end.
 #### Success Criteria
 
 - `actionlint` passes and, more importantly, the next push to `main` shows a
-  Release run **with jobs** in `gh run list --workflow=release.yml`.
-  *(Pending push.)*
+  Release run **with jobs** in `gh run list --workflow=release.yml`. ✓
+  Run 34775258159 on the merge commit `17cbb15` ran all four jobs
+  (Bump Version → Release → Changelog Sync → Docker) to `success`.
 - `goreleaser release --snapshot --skip=publish --skip=sign --clean` succeeds
   locally and produces `dist/sneakystack_linux_amd64.tar.gz.spdx.json`. ✓
 - `go run ./cmd/sneakystack -version` prints
@@ -190,7 +200,10 @@ Adopt what the example tree does better and close the gaps neither had.
 - `yamllint` excludes `.github/` by config; actionlint covers it. ✓
 - Labeler reasoning: a PR touching only `assert/s3/s3.go` gets `go`; one
   touching `Dockerfile.sneakystack` gets `docker`; one touching
-  `.claude/skills/...` gets `ai`. *(Observe on the first PR.)*
+  `.claude/skills/...` gets `ai`. ✓ PR #30 (which touched all of those)
+  received `go`, `docker`, `ai`, `ci`, `repo`, `documentation`,
+  `dependencies` from the labeler plus `chore` from the branch prefix; the
+  only hand-applied label was `patch`.
 
 ---
 
@@ -284,20 +297,24 @@ updated; the Makefile and its lint/format tooling go away.
 - [x] Regenerate `CHANGELOG.md` with `git-cliff -o CHANGELOG.md` for the
       commits already on the branch.
 - [x] `docz update impl` to refresh the impl index.
-- [ ] Commit the working tree (suggested grouping below), then re-run
+- [x] Commit the working tree (suggested grouping below), then re-run
       `git-cliff -o CHANGELOG.md` and commit it as
       `chore(changelog): regenerate` so the PR drift check passes (that
       prefix is skipped by `cliff.toml`, so the regen commit is invisible to
       the next run).
-- [ ] Open the PR labeled `patch`. Merging cuts v0.2.1, which also ships
+- [x] Open the PR labeled `patch`. Merging cuts v0.2.1, which also ships
       everything merged since May (PR #20, #22 and the Renovate bumps).
-- [ ] After merge: confirm `gh run list --workflow=release.yml` shows a run
+      → PR #30, merged 2026-09-13 18:38 UTC.
+- [x] After merge: confirm `gh run list --workflow=release.yml` shows a run
       with jobs, the GitHub release has `sneakystack_*` assets + `.spdx.json`
       SBOMs, `ghcr.io/donaldgifford/sneakystack:0.2.1` exists, and no
       CI/Release run was triggered by the resulting `chore(changelog): sync`
-      commit.
-- [ ] After merge: run `scripts/labels.sh` once so the `ai` label and the
-      refreshed descriptions exist on the repo.
+      commit. → All confirmed; the first attempt failed at GPG signing (F12)
+      and succeeded on `gh run rerun --failed`. Details in the
+      [post-merge log](#post-merge-verification-log-2026-09-13).
+- [x] After merge: run `scripts/labels.sh` once so the `ai` label and the
+      refreshed descriptions exist on the repo. → `scripts/labels.sh --force`:
+      created the 4 `severity:*` labels, updated 16 existing ones.
 
 Suggested commit grouping (all on `chore/cleanup`):
 
@@ -315,12 +332,18 @@ Suggested commit grouping (all on `chore/cleanup`):
 6. `docs(impl): IMPL-0005` — this document + index.
 7. `chore(changelog): regenerate`.
 
+The branch carried exactly those seven commits; PR #30 squash-merged them
+as `17cbb15 fix(ci): repair release pipeline, harden workflows, finish just
+migration (IMPL-0005) (#30)`.
+
 #### Success Criteria
 
 - Release run on the merge commit succeeds end to end (bump-version →
-  release → changelog-sync → docker).
+  release → changelog-sync → docker). ✓ Run 34775258159, after the F12
+  re-run.
 - No Release/CI run is triggered by the resulting `chore(changelog): sync`
-  commit.
+  commit. ✓ `b609ac3 chore(changelog): sync v0.2.1` landed on `main` with
+  zero workflow runs against it.
 
 ---
 
@@ -338,6 +361,20 @@ Suggested commit grouping (all on `chore/cleanup`):
 | `go run ./cmd/sneakystack -version` | `sneakystack dev (commit none, built unknown)` |
 | `jq` on `.claude/settings.json` | valid; 31 allow entries |
 | `git-cliff -o CHANGELOG.md` | unreleased section gains the 10 branch commits |
+
+## Post-merge verification log (2026-09-13)
+
+| Check | Result |
+| ----- | ------ |
+| PR #30 checks | All green: CI (Lint, Lint Workflows, Test Go, Integration Tests, Security Scan, Build incl. SBOM scan → `grype` code-scanning check, Docker Build, Label PR; Integration Tests (Pro) skipped without a token), Changelog Drift Check, PR Label Check, CodeQL, TruffleHog, License Check, Local Skills |
+| PR #30 labels | `patch` (hand-applied) + `go`, `docker`, `ai`, `ci`, `repo`, `documentation`, `dependencies`, `chore` (automatic) |
+| Release run 34775258159 (attempt 1) | Bump Version ✓ tagged `v0.2.1`; Release ✗ `gpg: signing failed: No secret key` (F12); Changelog Sync / Docker skipped |
+| `GPG_PRIVATE_KEY` secret re-exported, `gh run rerun 34775258159 --failed` | Release ✓, Changelog Sync ✓, Docker ✓; run concluded `success` at 18:59 UTC |
+| GitHub release `v0.2.1` (published 18:55 UTC) | `checksums.txt` + `checksums.txt.sig`; `sneakystack_{linux,darwin}_{amd64,arm64}.tar.gz`, each with a `.spdx.json` SBOM |
+| `ghcr.io/donaldgifford/sneakystack` | Tags `0.2.1`, `0.2`, `latest`; manifest list with `linux/amd64` + `linux/arm64`; cosign keyless signatures with Rekor tlog entries. (Verified with `docker manifest inspect` — the local `gh` token lacks `read:packages`.) |
+| Loop guard | `b609ac3 chore(changelog): sync v0.2.1` pushed to `main` by the bot; `gh run list` shows no CI or Release run for that SHA |
+| `scripts/labels.sh --force` | Created the four `severity:*` labels (critical, high, medium, low); updated 16 existing labels (colors/descriptions) |
+| Local `main` after merge | Diverged from `origin/main` (the ten pre-PR commits are only reachable as the squash); reset to `origin/main` before starting the close-out branch |
 
 ## File Changes
 
@@ -422,3 +459,6 @@ Suggested commit grouping (all on `chore/cleanup`):
 - [INV-0004](../investigation/0004-pro-and-oss-feature-matrix-tooling.md) —
   marker tooling the `check-markers` recipe drives.
 - Release runs: <https://github.com/donaldgifford/libtftest/actions/workflows/release.yml>
+- PR #30: <https://github.com/donaldgifford/libtftest/pull/30>
+- Release run 34775258159: <https://github.com/donaldgifford/libtftest/actions/runs/34775258159>
+- v0.2.1: <https://github.com/donaldgifford/libtftest/releases/tag/v0.2.1>
