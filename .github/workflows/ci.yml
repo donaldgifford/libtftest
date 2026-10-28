@@ -51,7 +51,7 @@ jobs:
         with:
           # Keep in sync with the golangci-lint pin in mise.toml so local
           # `just lint` and CI agree on the rule set.
-          version: v2.13.2
+          version: v2.15.0
 
   lint-actions:
     name: Lint Workflows
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set up mise (actionlint only)
-        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
           install_args: actionlint
 
@@ -80,7 +80,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Set up mise (just only)
-        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
           install_args: just
 
@@ -110,11 +110,11 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
-          terraform_version: "1.9"
+          terraform_version: "1.17"
           terraform_wrapper: false
 
       - name: Set up mise (just only)
-        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
           install_args: just
 
@@ -140,11 +140,11 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
-          terraform_version: "1.9"
+          terraform_version: "1.17"
           terraform_wrapper: false
 
       - name: Set up mise (just only)
-        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
           install_args: just
 
@@ -201,7 +201,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Install syft (SBOM generation for goreleaser)
-        uses: anchore/sbom-action/download-syft@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
 
       - name: Build snapshot release (all platforms, archives, SBOMs)
         uses: goreleaser/goreleaser-action@v7
@@ -228,7 +228,7 @@ jobs:
 
       - name: Upload SBOM scan SARIF
         if: ${{ !cancelled() && steps.scan-sbom.outputs.sarif != '' }}
-        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: ${{ steps.scan-sbom.outputs.sarif }}
           category: anchore-archive-sbom
