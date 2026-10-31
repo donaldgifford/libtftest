@@ -3,24 +3,24 @@ module github.com/donaldgifford/libtftest
 go 1.27.1
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.47.0
-	github.com/aws/aws-sdk-go-v2/config v1.33.4
-	github.com/aws/aws-sdk-go-v2/credentials v1.20.4
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.68.0
-	github.com/aws/aws-sdk-go-v2/service/iam v1.64.0
-	github.com/aws/aws-sdk-go-v2/service/kinesis v1.54.0
-	github.com/aws/aws-sdk-go-v2/service/kms v1.60.0
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.108.0
-	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.41.0
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.113.1
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.49.0
-	github.com/aws/aws-sdk-go-v2/service/sns v1.47.0
-	github.com/aws/aws-sdk-go-v2/service/sqs v1.52.0
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.78.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.50.0
+	github.com/aws/aws-sdk-go-v2 v1.47.5
+	github.com/aws/aws-sdk-go-v2/config v1.33.13
+	github.com/aws/aws-sdk-go-v2/credentials v1.20.13
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.72.3
+	github.com/aws/aws-sdk-go-v2/service/iam v1.64.6
+	github.com/aws/aws-sdk-go-v2/service/kinesis v1.56.9
+	github.com/aws/aws-sdk-go-v2/service/kms v1.62.2
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.114.0
+	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.41.8
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.114.6
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.50.8
+	github.com/aws/aws-sdk-go-v2/service/sns v1.47.7
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.52.8
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.81.2
+	github.com/aws/aws-sdk-go-v2/service/sts v1.51.6
 	github.com/gruntwork-io/terratest v1.0.1
-	github.com/hashicorp/terraform-json v0.28.0
-	github.com/moby/moby/api v1.56.0
+	github.com/hashicorp/terraform-json v0.29.0
+	github.com/moby/moby/api v1.56.1
 	github.com/testcontainers/testcontainers-go v0.44.0
 )
 
@@ -31,20 +31,20 @@ require (
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v17 v17.0.1 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.20 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.20.0 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.5.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.19 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.11.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.13.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/signin v1.10.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.38.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.43.0 // indirect
-	github.com/aws/smithy-go v1.28.1 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.25 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.20.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.8 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.8 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.5.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.23 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.11.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.13.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/signin v1.12.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.39.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.44.1 // indirect
+	github.com/aws/smithy-go v1.28.7 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
