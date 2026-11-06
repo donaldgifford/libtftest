@@ -16,7 +16,7 @@ jobs:
       security-events: write
       contents: read
     steps:
-      - uses: donaldgifford/govulncheck-action@v1
+      - uses: donaldgifford/govulncheck-action@fa2076e80682e840c13c29cfa1e120995d932e5b # v1
         with:
           # NOTE that we want to produce the SARIF-formatted report, which can then be consumed by other tools ...
           output-format: sarif
